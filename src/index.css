@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    @apply bg-surface-bg text-text-primary overflow-x-hidden;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+}
+
+/* Custom UI Utilities */
+@layer components {
+  .eco-glass {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  .eco-gradient-card {
+    background: linear-gradient(135deg, #1E5631 0%, #2E8B57 100%);
+  }
+  
+  .gold-gradient-badge {
+    background: linear-gradient(135deg, #FFB800 0%, #E5A93C 100%);
+  }
+}
+
+/* Hide scrollbar for tabs / horizontal feeds */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

@@ -70,27 +70,27 @@ flowchart LR
 
 ### Sprint 1: Setup Proyek & Skema Supabase
 
-- [ ] **1.1 Inisialisasi Frontend**
-  - [ ] Setup Vite + React 18 + TypeScript.
-  - [ ] Pasang dependensi ringan: `@supabase/supabase-js`, `lucide-react`, `zustand`, `react-router-dom`, `canvas-confetti`.
-  - [ ] Setup Tailwind CSS dengan color palette utama (`#1E5631`, `#2E8B57`, `#E5A93C`, `#F8F9FA`).
-  - [ ] Simpan file `.env` lokal (hanya butuh 4 variabel: Supabase URL, Anon Key, Gemini Key, Mock Toggle).
+- [x] **1.1 Inisialisasi Frontend**
+  - [x] Setup Vite + React 18 + TypeScript.
+  - [x] Pasang dependensi ringan: `@supabase/supabase-js`, `lucide-react`, `zustand`, `react-router-dom`, `canvas-confetti`.
+  - [x] Setup Tailwind CSS dengan color palette utama (`#1E5631`, `#2E8B57`, `#E5A93C`, `#F8F9FA`).
+  - [x] Simpan file `.env` lokal (hanya butuh 4 variabel: Supabase URL, Anon Key, Gemini Key, Mock Toggle).
 
-- [ ] **1.2 Skema Database Supabase (Jalankan via Supabase SQL Editor)**
-  - [ ] Buat 6 tabel esensial:
+- [x] **1.2 Skema Database Supabase (Jalankan via Supabase SQL Editor)**
+  - [x] Buat 6 tabel esensial di `supabase/schema.sql`:
     1. `users` (id, nim, full_name, email, role: 'STUDENT'/'VERIFIER'/'ADMIN', total_green_coins, total_sat_points, streak_days).
     2. `action_categories` (id, name, type, emission_factor, base_coins, sat_equivalent).
     3. `actions` (id, user_id, category_id, photo_url, story, gps_lat, gps_lng, status: 'PENDING'/'APPROVED'/'REJECTED', ai_confidence, created_at).
     4. `verifications` (id, action_id, verifier_id, status, notes, created_at).
     5. `sat_conversions` (id, user_id, coins_spent, sat_points_added, created_at).
     6. `badges` & `user_badges` (id, name, icon, criteria).
-  - [ ] Seed kategori awal (Tumbler, Bus Kampus, Pilah Sampah, Hemat Listrik).
-  - [ ] Aktifkan RLS dasar (User hanya bisa edit aksinya sendiri; Verifikator bisa edit status aksi).
-  - [ ] Buat bucket storage: `action-photos` (Public).
+  - [x] Seed kategori awal (Tumbler, Bus Kampus, Pilah Sampah, Hemat Listrik).
+  - [x] Aktifkan RLS dasar (User hanya bisa edit aksinya sendiri; Verifikator bisa edit status aksi).
+  - [x] Siapkan definisi storage bucket: `action-photos` (Public).
 
-- [ ] **1.3 Simple Auth & Role Switcher**
-  - [ ] Setup `src/services/supabase.ts`.
-  - [ ] Buat halaman Login/Onboarding sederhana dengan input NIM & Password / Quick Role Switcher (Mahasiswa / Verifikator) untuk mempermudah demonstrasi juri.
+- [x] **1.3 Simple Auth & Role Switcher**
+  - [x] Setup `src/services/supabase.ts`.
+  - [x] Buat halaman Login/Onboarding (`src/pages/LoginPage.tsx`) dengan input NIM & Password / Quick Role Switcher (Mahasiswa / Verifikator) untuk mempermudah demonstrasi juri.
 
 ---
 
