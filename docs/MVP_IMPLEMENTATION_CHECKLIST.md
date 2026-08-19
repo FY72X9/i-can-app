@@ -2,8 +2,9 @@
 > **Platform:** I-CAN (Integrated Gamified Carbon-Neutral Campus Platform)  
 > **Target Scale:** Limited Pilot / Demo (~20 active users/day, ~600 actions/month)  
 > **Stack:** React 18 + Vite (Netlify) + Supabase (PostgreSQL, Auth, Storage) + Gemini 1.5 Flash  
+> **UI/UX Reference:** [design.md](../.ref/design.md) & [Stitch Design System](../.ref/i_can_platform_design_system/stitch_i_can_platform_design_system/i_can_design_specification_design.md)  
 > **Total Monthly Cost:** **$0.00** (Free Tier dengan buffer keamanan >85%)  
-> **Status:** Ready for Fast Execution  
+> **Status:** Sprint 1 Done • Ready for Sprint 2  
 
 ---
 
@@ -96,22 +97,21 @@ flowchart LR
 
 ### Sprint 2: Upload Aksi Hijau, Kompresi & AI Verification
 
-- [ ] **2.1 Upload Aksi (Screen 3)**
-  - [ ] Selector kategori aksi (Grid tombol icon: Tumbler, Transportasi, Sampah, Listrik).
-  - [ ] Camera capture / Image picker HTML5.
-  - [ ] Helper kompresi gambar berbasis Canvas (`src/utils/imageCompressor.ts`): Resize ke 1280px & convert ke WebP/JPEG max 200KB.
-  - [ ] Geolocation extractor (`navigator.geolocation`) untuk menangkap koordinat kampus BINUS.
-  - [ ] Input cerita/deskripsi singkat aksi.
+- [x] **2.1 Upload Aksi (Screen 3 - Stitch Blueprint)**
+  - [x] Selector kategori aksi (Grid tombol icon: Tumbler, Transportasi, Daur Ulang, Energi).
+  - [x] Camera capture / Image picker HTML5 dengan overlay metadata GPS & Jam.
+  - [x] Helper kompresi gambar berbasis Canvas (`src/utils/imageCompressor.ts`): Resize ke 1280px & convert ke WebP/JPEG max 200KB.
+  - [x] Geolocation metadata extractor untuk menandai kampus BINUS.
+  - [x] Input cerita/deskripsi singkat aksi & Banner Estimasi Reward (+Green Coins, +SAT Points, kg CO2e).
 
-- [ ] **2.2 Gemini 1.5 Flash AI Verification**
-  - [ ] Helper service `src/services/gemini.ts`:
-    - [ ] Kirim foto & kategori aksi ke Gemini Flash API.
-    - [ ] Prompt singkat: *"Analisis apakah foto ini sesuai dengan aksi hijau [kategori]. Berikan output JSON { isValid: boolean, confidence: 0-1, reason: string }"*.
-  - [ ] Jika `isValid === true` dan `confidence >= 0.85` $\rightarrow$ Tandai aksi sebagai rekomendasi approve; jika ragu $\rightarrow$ Masukkan ke antrean verifikasi manual.
+- [x] **2.2 Gemini 1.5 Flash AI Verification**
+  - [x] Helper service `src/services/gemini.ts` terhubung ke Google AI Studio endpoint (`gemini-1.5-flash:generateContent`).
+  - [x] Prompt AI terstruktur untuk validasi visual kesesuaian aksi hijau kampus & deteksi manipulasi foto.
+  - [x] Auto-approval router & Confidence indicator badge.
 
-- [ ] **2.3 Direct Storage & DB Insert**
-  - [ ] Upload file foto terkompresi langsung ke Supabase Storage `action-photos`.
-  - [ ] Insert data aksi ke tabel `actions` dengan status `PENDING`.
+- [x] **2.3 Direct Storage & DB Insert + Verification Success Screen**
+  - [x] Layanan `src/services/actionService.ts` untuk direct upload foto ke bucket Supabase `action-photos` & insert data aksi.
+  - [x] Screen Status Verifikasi Berhasil (Bento Grid 3 Card: +GC, kg CO2e, +SAT Point) lengkap dengan efek confetti.
 
 ---
 
