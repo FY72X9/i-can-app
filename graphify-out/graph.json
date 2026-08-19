@@ -1,0 +1,23 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "i-can-app Repository",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "readme_i_can_app",
+      "community": 0,
+      "norm_label": "i-can-app repository"
+    }
+  ],
+  "links": [],
+  "hyperedges": [],
+  "built_at_commit": "3f691903e60b58306d3775da1496fdbdc6c66288"
+}
