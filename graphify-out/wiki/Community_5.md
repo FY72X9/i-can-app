@@ -1,17 +1,18 @@
 # Community 5
 
-> 8 nodes · cohesion 0.25
+> 9 nodes · cohesion 0.22
 
 ## Key Concepts
 
-- [useAuthStore](file:///D:/Codes/i-can-app/src/stores/authStore.ts#L51) (3 connections)
-- [AppLayout()](file:///D:/Codes/i-can-app/src/App.tsx#L28) (2 connections)
-- [App.tsx](file:///D:/Codes/i-can-app/src/App.tsx#L1) (2 connections)
-- [authStore.ts](file:///D:/Codes/i-can-app/src/stores/authStore.ts#L1) (2 connections)
-- [LoginPage()](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L9) (2 connections)
-- [App()](file:///D:/Codes/i-can-app/src/App.tsx#L195) (1 connections)
-- [DEMO_PROFILES](file:///D:/Codes/i-can-app/src/stores/authStore.ts#L5) (1 connections)
-- [LoginPage.tsx](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L1) (1 connections)
+- [WalletPage.tsx](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L1) (9 connections)
+- [[copiedTranscript, setCopiedTranscript]](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L28) (1 connections)
+- [defaultVerified](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L31) (1 connections)
+- [handleExportTranscript()](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L101) (1 connections)
+- [totalCoins](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L99) (1 connections)
+- [totalComserv](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L98) (1 connections)
+- [totalSat](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L97) (1 connections)
+- [{ user }](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L26) (1 connections)
+- [[verifiedActions, setVerifiedActions]](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L27) (1 connections)
 
 ## Relationships
 
@@ -19,14 +20,12 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\App.tsx](file:///D:/Codes/i-can-app/src/App.tsx)
-- [D:\Codes\i-can-app\src\pages\LoginPage.tsx](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx)
-- [D:\Codes\i-can-app\src\stores\authStore.ts](file:///D:/Codes/i-can-app/src/stores/authStore.ts)
+- [D:\Codes\i-can-app\src\pages\WalletPage.tsx](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 10 (71%)
-- INFERRED: 4 (29%)
+- EXTRACTED: 17 (100%)
+- INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 
 ---

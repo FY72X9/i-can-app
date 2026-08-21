@@ -1,12 +1,14 @@
 # Community 11
 
-> 3 nodes · cohesion 0.67
+> 5 nodes · cohesion 0.40
 
 ## Key Concepts
 
-- [carbonCalc.ts](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts#L1) (2 connections)
-- [calculateActionImpact()](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts#L85) (1 connections)
-- [EMISSION_FACTORS](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts#L16) (1 connections)
+- [supabase.ts](file:///D:/Codes/i-can-app/src/services/supabase.ts#L1) (4 connections)
+- [isConfigured](file:///D:/Codes/i-can-app/src/services/supabase.ts#L7) (1 connections)
+- [supabase](file:///D:/Codes/i-can-app/src/services/supabase.ts#L12) (1 connections)
+- [supabaseAnonKey](file:///D:/Codes/i-can-app/src/services/supabase.ts#L4) (1 connections)
+- [supabaseUrl](file:///D:/Codes/i-can-app/src/services/supabase.ts#L3) (1 connections)
 
 ## Relationships
 
@@ -14,11 +16,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\utils\carbonCalc.ts](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts)
+- [D:\Codes\i-can-app\src\services\supabase.ts](file:///D:/Codes/i-can-app/src/services/supabase.ts)
 
 ## Audit Trail
 
-- EXTRACTED: 4 (100%)
+- EXTRACTED: 8 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

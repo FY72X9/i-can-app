@@ -1,10 +1,10 @@
-# unknown
+# Community 25
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- [index.ts](file:///D:/Codes/i-can-app/src/types/index.ts#L1) (0 connections)
+- [i-can-app Repository](file:///D:/Codes/i-can-app/README.md) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\types\index.ts](file:///D:/Codes/i-can-app/src/types/index.ts)
+- [README.md](file:///D:/Codes/i-can-app/README.md)
 
 ## Audit Trail
 

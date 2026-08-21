@@ -39,7 +39,7 @@ const FACULTIES = [
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, loginAs, loginWithPassword, register, authError, clearError, isLoading } = useAuthStore();
+  const { user, isAuthenticated, loginAs, loginWithPassword, register, authError, clearError, isLoading } = useAuthStore();
   const { signIn: logtoSignIn } = useLogto();
 
   const [activeTab, setActiveTab] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
@@ -59,13 +59,6 @@ export const LoginPage: React.FC = () => {
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [formValidationMsg, setFormValidationMsg] = useState<string | null>(null);
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/', { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
-
   const handleTabSwitch = (tab: 'LOGIN' | 'REGISTER') => {
     setActiveTab(tab);
     clearError();
@@ -83,7 +76,7 @@ export const LoginPage: React.FC = () => {
 
     const success = await loginWithPassword(loginIdentifier, loginPassword);
     if (success) {
-      navigate('/');
+      navigate('/home');
     }
   };
 
@@ -122,7 +115,7 @@ export const LoginPage: React.FC = () => {
         origin: { y: 0.6 },
         colors: ['#2E8B57', '#00FF66', '#E5A93C'],
       });
-      navigate('/');
+      navigate('/home');
     }
   };
 
@@ -146,12 +139,12 @@ export const LoginPage: React.FC = () => {
 
   const handleDemoStudent = () => {
     loginAs('student');
-    navigate('/');
+    navigate('/home');
   };
 
   const handleDemoVerifier = () => {
     loginAs('verifier');
-    navigate('/');
+    navigate('/home');
   };
 
   return (
@@ -180,6 +173,24 @@ export const LoginPage: React.FC = () => {
 
       {/* Auth Main Card */}
       <div className="space-y-4 my-4 relative z-10">
+        {/* Active Session Callout if already logged in */}
+        {user && (
+          <div className="p-3 bg-gradient-to-r from-eco-700 to-eco-900 text-white rounded-3xl shadow-neon-glow flex items-center justify-between gap-2 border border-eco-neon/40">
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase font-bold text-eco-neon flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" /> Sesi Akun Aktif
+              </div>
+              <div className="text-xs font-black truncate">{user.fullName} ({user.role})</div>
+            </div>
+            <button
+              onClick={() => navigate('/home')}
+              className="px-3 py-1.5 bg-eco-neon text-eco-950 font-black text-xs rounded-xl shrink-0 hover:bg-emerald-300 transition-all active:scale-95 shadow-sm"
+            >
+              Buka Dashboard →
+            </button>
+          </div>
+        )}
+
         <Card className="p-4 sm:p-5 bg-white space-y-4 shadow-eco-card border-surface-border">
           {/* Navigation Tabs */}
           <div className="flex bg-surface-subtle p-1 rounded-2xl border border-surface-border">

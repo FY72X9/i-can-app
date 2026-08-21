@@ -1,11 +1,13 @@
 # Community 12
 
-> 2 nodes · cohesion 1.00
+> 4 nodes · cohesion 0.50
 
 ## Key Concepts
 
-- [Badge()](file:///D:/Codes/i-can-app/src/components/common/Badge.tsx#L11) (1 connections)
-- [Badge.tsx](file:///D:/Codes/i-can-app/src/components/common/Badge.tsx#L1) (1 connections)
+- [Button.tsx](file:///D:/Codes/i-can-app/src/components/common/Button.tsx#L1) (3 connections)
+- [baseStyles](file:///D:/Codes/i-can-app/src/components/common/Button.tsx#L24) (1 connections)
+- [sizeStyles](file:///D:/Codes/i-can-app/src/components/common/Button.tsx#L26) (1 connections)
+- [variantStyles](file:///D:/Codes/i-can-app/src/components/common/Button.tsx#L32) (1 connections)
 
 ## Relationships
 
@@ -13,11 +15,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\components\common\Badge.tsx](file:///D:/Codes/i-can-app/src/components/common/Badge.tsx)
+- [D:\Codes\i-can-app\src\components\common\Button.tsx](file:///D:/Codes/i-can-app/src/components/common/Button.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 2 (100%)
+- EXTRACTED: 6 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

@@ -1,18 +1,19 @@
 # Community 3
 
-> 9 nodes · cohesion 0.22
+> 10 nodes · cohesion 0.20
 
 ## Key Concepts
 
-- [WalletPage.tsx](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L1) (9 connections)
-- [[copiedTranscript, setCopiedTranscript]](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L28) (1 connections)
-- [defaultVerified](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L31) (1 connections)
-- [handleExportTranscript()](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L101) (1 connections)
-- [totalCoins](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L99) (1 connections)
-- [totalComserv](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L98) (1 connections)
-- [totalSat](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L97) (1 connections)
-- [{ user }](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L26) (1 connections)
-- [[verifiedActions, setVerifiedActions]](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L27) (1 connections)
+- [useAuthStore](file:///D:/Codes/i-can-app/src/stores/authStore.ts#L55) (4 connections)
+- [AppLayout](file:///D:/Codes/i-can-app/src/App.tsx#L28) (2 connections)
+- [CallbackPage()](file:///D:/Codes/i-can-app/src/pages/CallbackPage.tsx#L8) (2 connections)
+- [App.tsx](file:///D:/Codes/i-can-app/src/App.tsx#L1) (2 connections)
+- [authStore.ts](file:///D:/Codes/i-can-app/src/stores/authStore.ts#L1) (2 connections)
+- [ProtectedRoute()](file:///D:/Codes/i-can-app/src/components/common/ProtectedRoute.tsx#L9) (2 connections)
+- [className](file:///D:/Codes/i-can-app/src/App.tsx#L121) (1 connections)
+- [DEMO_PROFILES](file:///D:/Codes/i-can-app/src/stores/authStore.ts#L6) (1 connections)
+- [ProtectedRoute.tsx](file:///D:/Codes/i-can-app/src/components/common/ProtectedRoute.tsx#L1) (1 connections)
+- [CallbackPage.tsx](file:///D:/Codes/i-can-app/src/pages/CallbackPage.tsx#L1) (1 connections)
 
 ## Relationships
 
@@ -20,12 +21,15 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\pages\WalletPage.tsx](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx)
+- [D:\Codes\i-can-app\src\App.tsx](file:///D:/Codes/i-can-app/src/App.tsx)
+- [D:\Codes\i-can-app\src\components\common\ProtectedRoute.tsx](file:///D:/Codes/i-can-app/src/components/common/ProtectedRoute.tsx)
+- [D:\Codes\i-can-app\src\pages\CallbackPage.tsx](file:///D:/Codes/i-can-app/src/pages/CallbackPage.tsx)
+- [D:\Codes\i-can-app\src\stores\authStore.ts](file:///D:/Codes/i-can-app/src/stores/authStore.ts)
 
 ## Audit Trail
 
-- EXTRACTED: 17 (100%)
-- INFERRED: 0 (0%)
+- EXTRACTED: 12 (67%)
+- INFERRED: 6 (33%)
 - AMBIGUOUS: 0 (0%)
 
 ---

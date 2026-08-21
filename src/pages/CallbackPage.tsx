@@ -36,10 +36,10 @@ export const CallbackPage: React.FC = () => {
       };
 
       setUser(loggedUser);
-      navigate('/');
+      navigate('/home');
     } catch (err) {
       console.error('Error extracting Logto user info:', err);
-      navigate('/');
+      navigate('/home');
     }
   });
 

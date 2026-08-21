@@ -1,14 +1,16 @@
 # Community 7
 
-> 5 nodes · cohesion 0.40
+> 7 nodes · cohesion 0.29
 
 ## Key Concepts
 
-- [BottomNav.tsx](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L1) (4 connections)
-- [Icon](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L22) (1 connections)
-- [isVerifier](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L8) (1 connections)
-- [navItems](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L10) (1 connections)
-- [{ user }](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L7) (1 connections)
+- [TopNavbar.tsx](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L1) (6 connections)
+- [dropdownRef](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L13) (1 connections)
+- [handleClickOutside()](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L17) (1 connections)
+- [sampleNotifications](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L34) (1 connections)
+- [[showNotifications, setShowNotifications]](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L12) (1 connections)
+- [toggleRole()](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L26) (1 connections)
+- [{ user, loginAs }](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L11) (1 connections)
 
 ## Relationships
 
@@ -16,11 +18,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\components\common\BottomNav.tsx](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx)
+- [D:\Codes\i-can-app\src\components\common\TopNavbar.tsx](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 8 (100%)
+- EXTRACTED: 12 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

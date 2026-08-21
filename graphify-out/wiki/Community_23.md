@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [i-can-app Repository](file:///D:/Codes/i-can-app/README.md) (0 connections)
+- [vite-env.d.ts](file:///D:/Codes/i-can-app/src/vite-env.d.ts#L1) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [README.md](file:///D:/Codes/i-can-app/README.md)
+- [D:\Codes\i-can-app\src\vite-env.d.ts](file:///D:/Codes/i-can-app/src/vite-env.d.ts)
 
 ## Audit Trail
 

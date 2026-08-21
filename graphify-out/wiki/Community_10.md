@@ -1,12 +1,14 @@
 # Community 10
 
-> 3 nodes · cohesion 0.67
+> 5 nodes · cohesion 0.40
 
 ## Key Concepts
 
-- [ProfilePage.tsx](file:///D:/Codes/i-can-app/src/pages/ProfilePage.tsx#L1) (2 connections)
-- [Icon](file:///D:/Codes/i-can-app/src/pages/ProfilePage.tsx#L93) (1 connections)
-- [ProfilePage](file:///D:/Codes/i-can-app/src/pages/ProfilePage.tsx#L20) (1 connections)
+- [logto.ts](file:///D:/Codes/i-can-app/src/services/logto.ts#L1) (4 connections)
+- [isLogtoConfigured](file:///D:/Codes/i-can-app/src/services/logto.ts#L11) (1 connections)
+- [logtoAppId](file:///D:/Codes/i-can-app/src/services/logto.ts#L9) (1 connections)
+- [logtoConfig](file:///D:/Codes/i-can-app/src/services/logto.ts#L18) (1 connections)
+- [logtoEndpoint](file:///D:/Codes/i-can-app/src/services/logto.ts#L8) (1 connections)
 
 ## Relationships
 
@@ -14,11 +16,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\pages\ProfilePage.tsx](file:///D:/Codes/i-can-app/src/pages/ProfilePage.tsx)
+- [D:\Codes\i-can-app\src\services\logto.ts](file:///D:/Codes/i-can-app/src/services/logto.ts)
 
 ## Audit Trail
 
-- EXTRACTED: 4 (100%)
+- EXTRACTED: 8 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

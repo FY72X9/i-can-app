@@ -8,7 +8,7 @@ export const BottomNav: React.FC = () => {
   const isVerifier = user?.role === 'VERIFIER';
 
   const navItems = [
-    { name: 'Home', path: '/', icon: Home },
+    { name: 'Home', path: '/home', icon: Home },
     { name: 'Feed', path: '/feed', icon: Rss },
     { name: 'Upload', path: '/upload', icon: Plus, isAction: true },
     { name: isVerifier ? 'Verify' : 'Wallet', path: isVerifier ? '/verify' : '/wallet', icon: isVerifier ? CheckSquare : Wallet },

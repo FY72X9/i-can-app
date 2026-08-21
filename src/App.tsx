@@ -197,13 +197,14 @@ export const App: React.FC = () => {
     <LogtoProvider config={logtoConfig}>
       <BrowserRouter>
         <Routes>
-          {/* Public Authentication Routes */}
+          {/* Public Authentication & Entry Routes (Main Page is LoginPage) */}
+          <Route path="/" element={<LoginPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/callback" element={<CallbackPage />} />
 
-          {/* Protected Main Application Routes */}
+          {/* Protected Main Application Dashboard Routes */}
           <Route
-            path="/"
+            path="/home"
             element={
               <ProtectedRoute>
                 <AppLayout>

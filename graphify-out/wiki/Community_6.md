@@ -1,16 +1,17 @@
 # Community 6
 
-> 7 nodes · cohesion 0.29
+> 8 nodes · cohesion 0.25
 
 ## Key Concepts
 
-- [TopNavbar.tsx](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L1) (6 connections)
-- [dropdownRef](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L13) (1 connections)
-- [handleClickOutside()](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L17) (1 connections)
-- [sampleNotifications](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L34) (1 connections)
-- [[showNotifications, setShowNotifications]](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L12) (1 connections)
-- [toggleRole()](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L26) (1 connections)
-- [{ user, loginAs }](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L11) (1 connections)
+- [HomePage.tsx](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L1) (7 connections)
+- [[cheers, setCheers]](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L27) (1 connections)
+- [flashQuests](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L101) (1 connections)
+- [handleCheer()](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L34) (1 connections)
+- [[hasCheered, setHasCheered]](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L32) (1 connections)
+- [Icon](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L266) (1 connections)
+- [programs](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L42) (1 connections)
+- [{ user }](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L26) (1 connections)
 
 ## Relationships
 
@@ -18,11 +19,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\components\common\TopNavbar.tsx](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx)
+- [D:\Codes\i-can-app\src\pages\HomePage.tsx](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 12 (100%)
+- EXTRACTED: 14 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 
