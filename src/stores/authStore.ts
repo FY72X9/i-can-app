@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { UserProfile } from '@/types';
+import { loginWithCredentials, registerUser, RegisterParams } from '@/services/authService';
 
 // Mock profiles for instant demo / judging without requiring manual DB setup
 export const DEMO_PROFILES: Record<string, UserProfile> = {
@@ -41,9 +42,12 @@ interface AuthState {
   user: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  authError: string | null;
   loginAs: (role: 'student' | 'verifier') => void;
-  loginWithNim: (nim: string, fullName?: string) => void;
+  loginWithPassword: (identifier: string, password: string) => Promise<boolean>;
+  register: (params: RegisterParams) => Promise<boolean>;
   logout: () => void;
+  clearError: () => void;
   updateUserStats: (stats: { greenCoins?: number; satPoints?: number; carbonSaved?: number; streakDays?: number }) => void;
   setUser: (user: UserProfile | null) => void;
 }
@@ -57,34 +61,55 @@ export const useAuthStore = create<AuthState>((set) => {
     user: initialUser,
     isAuthenticated: Boolean(initialUser),
     isLoading: false,
+    authError: null,
 
     loginAs: (role) => {
       const selectedProfile = DEMO_PROFILES[role] || DEMO_PROFILES.student;
       localStorage.setItem('i_can_user', JSON.stringify(selectedProfile));
-      set({ user: selectedProfile, isAuthenticated: true });
+      set({ user: selectedProfile, isAuthenticated: true, authError: null });
     },
 
-    loginWithNim: (nim, fullName = 'Mahasiswa BINUS') => {
-      const newUser: UserProfile = {
-        id: `usr-${Date.now()}`,
-        nim,
-        email: `${nim}@binus.ac.id`,
-        fullName,
-        role: 'STUDENT',
-        facultyName: 'School of Computer Science',
-        totalGreenCoins: 50,
-        totalSatPoints: 10,
-        totalCarbonSaved: 1.5,
-        streakDays: 1,
-        createdAt: new Date().toISOString(),
-      };
-      localStorage.setItem('i_can_user', JSON.stringify(newUser));
-      set({ user: newUser, isAuthenticated: true });
+    loginWithPassword: async (identifier: string, password: string) => {
+      set({ isLoading: true, authError: null });
+      try {
+        const result = await loginWithCredentials(identifier, password);
+        if (result.error || !result.user) {
+          set({ isLoading: false, authError: result.error || 'Gagal masuk akun' });
+          return false;
+        }
+        localStorage.setItem('i_can_user', JSON.stringify(result.user));
+        set({ user: result.user, isAuthenticated: true, isLoading: false, authError: null });
+        return true;
+      } catch (err: any) {
+        set({ isLoading: false, authError: err.message || 'Terjadi kesalahan sistem' });
+        return false;
+      }
+    },
+
+    register: async (params: RegisterParams) => {
+      set({ isLoading: true, authError: null });
+      try {
+        const result = await registerUser(params);
+        if (result.error || !result.user) {
+          set({ isLoading: false, authError: result.error || 'Gagal mendaftarkan akun' });
+          return false;
+        }
+        localStorage.setItem('i_can_user', JSON.stringify(result.user));
+        set({ user: result.user, isAuthenticated: true, isLoading: false, authError: null });
+        return true;
+      } catch (err: any) {
+        set({ isLoading: false, authError: err.message || 'Terjadi kesalahan saat pendaftaran' });
+        return false;
+      }
     },
 
     logout: () => {
       localStorage.removeItem('i_can_user');
-      set({ user: null, isAuthenticated: false });
+      set({ user: null, isAuthenticated: false, authError: null });
+    },
+
+    clearError: () => {
+      set({ authError: null });
     },
 
     updateUserStats: (stats) => {
@@ -108,7 +133,7 @@ export const useAuthStore = create<AuthState>((set) => {
       } else {
         localStorage.removeItem('i_can_user');
       }
-      set({ user, isAuthenticated: Boolean(user) });
+      set({ user, isAuthenticated: Boolean(user), authError: null });
     },
   };
 });

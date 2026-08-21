@@ -6,14 +6,14 @@
 ## Core Abstractions (God Nodes)
 1. `getActions()` (5 edges)
 2. `updateActionVerification()` (4 edges)
-3. `LoginPage()` (2 edges)
-4. `load()` (2 edges)
-5. `handleDecision()` (2 edges)
-6. `confirmReject()` (2 edges)
-7. `load()` (2 edges)
-8. `submitGreenAction()` (2 edges)
-9. `useAuthStore` (2 edges)
-10. `{ user }` (1 edges)
+3. `submitGreenAction()` (3 edges)
+4. `useAuthStore` (3 edges)
+5. `AppLayout()` (2 edges)
+6. `LoginPage()` (2 edges)
+7. `handleSubmit()` (2 edges)
+8. `load()` (2 edges)
+9. `handleDecision()` (2 edges)
+10. `confirmReject()` (2 edges)
 
 ## System Layers
 - **L0: Global/Entry**: 

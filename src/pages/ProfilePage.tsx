@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
@@ -7,18 +8,26 @@ import {
   Award, 
   Flame, 
   ShieldCheck, 
-  Trophy,
-  Leaf,
-  Coins,
-  GraduationCap,
-  Sparkles,
-  CheckCircle2,
-  Lock,
-  Zap
+  Trophy, 
+  Leaf, 
+  Coins, 
+  GraduationCap, 
+  Sparkles, 
+  CheckCircle2, 
+  Lock, 
+  Zap,
+  LogOut,
+  UserCheck
 } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
-  const { user, loginAs } = useAuthStore();
+  const navigate = useNavigate();
+  const { user, loginAs, logout } = useAuthStore();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const badges = [
     { name: 'First Step Green', icon: Award, desc: 'Aksi pertama diunggah ke I-CAN', unlocked: true, level: 'Bronze', rarity: 'Common' },
@@ -157,12 +166,12 @@ export const ProfilePage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 4. Switch Account for Demo / Logout */}
-      <div className="pt-1">
+      {/* 4. Switch Account & Logout Action Buttons */}
+      <div className="grid grid-cols-2 gap-2 pt-1">
         <Button
           variant="outline"
           size="sm"
-          className="w-full text-xs text-text-secondary font-bold"
+          className="w-full text-xs text-text-secondary font-bold py-2.5 flex items-center justify-center gap-1.5"
           onClick={() => {
             if (user?.role === 'STUDENT') {
               loginAs('verifier');
@@ -171,7 +180,18 @@ export const ProfilePage: React.FC = () => {
             }
           }}
         >
-          Ganti Akun Demo: Saat Ini ({user?.role})
+          <UserCheck className="w-3.5 h-3.5" />
+          Switch ({user?.role === 'STUDENT' ? 'Verifier' : 'Student'})
+        </Button>
+
+        <Button
+          variant="danger"
+          size="sm"
+          className="w-full text-xs font-bold py-2.5 flex items-center justify-center gap-1.5 bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100"
+          onClick={handleLogout}
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          Keluar (Logout)
         </Button>
       </div>
     </div>

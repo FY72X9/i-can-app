@@ -1,17 +1,18 @@
 # Community 2
 
-> 8 nodes · cohesion 0.25
+> 9 nodes · cohesion 0.22
 
 ## Key Concepts
 
-- [HomePage.tsx](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L1) (7 connections)
-- [currentSat](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L28) (1 connections)
-- [Icon](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L143) (1 connections)
-- [navigate](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L24) (1 connections)
-- [quickActions](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L31) (1 connections)
-- [satPercentage](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L29) (1 connections)
-- [satTarget](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L27) (1 connections)
-- [{ user }](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L25) (1 connections)
+- [FeedPage.tsx](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L1) (8 connections)
+- [[activeTab, setActiveTab]](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L23) (1 connections)
+- [addReaction()](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L45) (1 connections)
+- [filteredPosts](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L118) (1 connections)
+- [[hasLiked, setHasLiked]](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L30) (1 connections)
+- [[likes, setLikes]](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L24) (1 connections)
+- [[reactions, setReactions]](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L31) (1 connections)
+- [samplePosts](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L62) (1 connections)
+- [toggleLike()](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L37) (1 connections)
 
 ## Relationships
 
@@ -19,11 +20,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\pages\HomePage.tsx](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx)
+- [D:\Codes\i-can-app\src\pages\FeedPage.tsx](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 14 (100%)
+- EXTRACTED: 16 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

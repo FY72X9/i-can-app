@@ -1,14 +1,16 @@
 # Community 6
 
-> 5 nodes · cohesion 0.40
+> 7 nodes · cohesion 0.29
 
 ## Key Concepts
 
-- [supabase.ts](file:///D:/Codes/i-can-app/src/services/supabase.ts#L1) (4 connections)
-- [isConfigured](file:///D:/Codes/i-can-app/src/services/supabase.ts#L7) (1 connections)
-- [supabase](file:///D:/Codes/i-can-app/src/services/supabase.ts#L12) (1 connections)
-- [supabaseAnonKey](file:///D:/Codes/i-can-app/src/services/supabase.ts#L4) (1 connections)
-- [supabaseUrl](file:///D:/Codes/i-can-app/src/services/supabase.ts#L3) (1 connections)
+- [TopNavbar.tsx](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L1) (6 connections)
+- [dropdownRef](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L13) (1 connections)
+- [handleClickOutside()](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L17) (1 connections)
+- [sampleNotifications](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L34) (1 connections)
+- [[showNotifications, setShowNotifications]](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L12) (1 connections)
+- [toggleRole()](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L26) (1 connections)
+- [{ user, loginAs }](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L11) (1 connections)
 
 ## Relationships
 
@@ -16,11 +18,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\services\supabase.ts](file:///D:/Codes/i-can-app/src/services/supabase.ts)
+- [D:\Codes\i-can-app\src\components\common\TopNavbar.tsx](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 8 (100%)
+- EXTRACTED: 12 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

@@ -4,7 +4,7 @@
 > **Stack:** React 18 + Vite (Netlify) + Supabase (PostgreSQL, Auth, Storage) + Gemini 1.5 Flash  
 > **UI/UX Reference:** [design.md](../.ref/design.md) & [Stitch Design System](../.ref/i_can_platform_design_system/stitch_i_can_platform_design_system/i_can_design_specification_design.md)  
 > **Total Monthly Cost:** **$0.00** (Free Tier dengan buffer keamanan >85%)  
-> **Status:** Sprint 1 Done • Ready for Sprint 2  
+> **Status:** Sprint 1, 2, 3 & 4.1 Done • Ready for Sprint 4.2 Netlify Deployment  
 
 ---
 
@@ -30,11 +30,11 @@ flowchart TD
     subgraph Client["📱 Frontend (React 18 + Vite di Netlify)"]
         UI[UI 8 Layar - Material 3 Eco Theme]
         Canvas[Canvas Image Compressor <200KB]
-        Store[Zustand State + Supabase SDK]
+        Store[Zustand State + Supabase SDK + Web Crypto Auth]
     end
 
     subgraph SupabaseCloud["⚡ Backend All-in-One (Supabase Free)"]
-        Auth[Supabase Auth / NIM Login]
+        Auth[Supabase Auth / Password Sign-In & Sign-Up]
         DB[(PostgreSQL 15 + RLS)]
         Storage[Storage: action-photos]
     end
@@ -46,15 +46,15 @@ flowchart TD
     UI -->|Kompres Foto di Browser| Canvas
     Canvas -->|Direct Upload via SDK| Storage
     UI -->|Query / Mutasi Data + RLS| DB
-    UI -->|Login NIM / OTP| Auth
+    UI -->|Login Password / Registrasi| Auth
     UI -->|Validasi Foto Aksi| Gemini
 ```
 
 ### Prinsip Penyederhanaan:
 1. **Direct SDK Connection:** Frontend langsung berkomunikasi dengan Supabase melalui `@supabase/supabase-js` dengan proteksi Row Level Security (RLS). Tidak memerlukan server middleware tambahan.
-2. **Client-Side Canvas Compression:** Menggunakan elemen `<canvas>` standar browser (15 baris kode) untuk mengompresi foto menjadi WebP/JPEG max 1280px (<200 KB) sebelum upload.
+2. **Client-Side Canvas Compression:** Menggunakan elemen `<canvas>` standar browser untuk mengompresi foto menjadi WebP/JPEG max 1280px (<200 KB) sebelum upload.
 3. **Single-Call AI Verification:** Validasi foto dilakukan dengan 1 pemanggilan langsung ke API Google Gemini 1.5 Flash (gratis via Google AI Studio).
-4. **Mock-First Campus Mode:** Fitur validasi NIM dan ekspor SAT Point berjalan 100% lokal dengan data simulasi sehingga tidak bergantung pada izin IT kampus.
+4. **Dual-Engine Password Auth & Mock-First Campus Mode:** Sistem registrasi & login mahasiswa berbasis sandi terenkripsi aman (*Web Crypto SHA-256* & Supabase Auth) dengan opsi demonstrasi 1-klik untuk juri.
 
 ---
 
@@ -69,7 +69,7 @@ flowchart LR
 
 ---
 
-### Sprint 1: Setup Proyek & Skema Supabase
+### Sprint 1: Setup Proyek, Skema Supabase & Autentikasi Mahasiswa
 
 - [x] **1.1 Inisialisasi Frontend**
   - [x] Setup Vite + React 18 + TypeScript.
@@ -89,12 +89,12 @@ flowchart LR
   - [x] Aktifkan RLS dasar (User hanya bisa edit aksinya sendiri; Verifikator/Admin bisa review status aksi).
   - [x] Siapkan definisi storage bucket: `action-photos` (Public).
 
-- [x] **1.3 Simple Auth, QR Banner Onboarding & Role Switcher**
-  - [x] Setup `src/services/supabase.ts`.
-  - [x] Buat halaman Login/Onboarding (`src/pages/LoginPage.tsx`):
-    - [x] Direct URL & QR Code banner entry support (akses instan via scan spanduk kampus).
-    - [x] Registrasi/Login identitas email BINUS (`@binus.ac.id`) & NIM.
-    - [x] Quick Role Switcher (Mahasiswa / Verifikator / SSO Admin) untuk mempermudah demonstrasi juri.
+- [x] **1.3 Sistem Registrasi & Login Mahasiswa (Simple Password Auth)**
+  - [x] Setup `src/services/authService.ts` dengan hashing SHA-256 Web Crypto API yang aman.
+  - [x] Halaman `LoginPage.tsx` dengan dual-tab: **Masuk Akun (Sign In)** & **Daftar Mahasiswa Baru (Sign Up)**.
+  - [x] Input NIM, Nama Lengkap, Email BINUS (`@binus.ac.id`), Pilihan Fakultas, Kata Sandi, dan Konfirmasi Sandi.
+  - [x] Bonus selamat datang +50 Green Coins otomatis untuk akun mahasiswa baru.
+  - [x] Quick Role Switcher (Mahasiswa / Verifikator) untuk mempermudah demonstrasi juri.
 
 ---
 
@@ -121,46 +121,46 @@ flowchart LR
 
 ### Sprint 3: Portal Verifikasi Dual-Track, Gamifikasi & Portofolio SAT
 
-- [ ] **3.1 Portal Eco-Volunteer & SSO Admin (Screen 4)**
-  - [ ] List antrean review aksi berstatus `PENDING` dengan filter kategori (Self Campaign vs TFI Aksi Nyata vs VBL).
-  - [ ] Detail modal review: Tampilkan foto aksi, link postingan medsos/video, catatan mahasiswa, data kelompok, dan rekomendasi skor AI.
-  - [ ] Tiga tombol keputusan verifikasi:
+- [x] **3.1 Portal Eco-Volunteer & SSO Admin (Screen 4)**
+  - [x] List antrean review aksi berstatus `PENDING` dengan filter kategori (Self Campaign vs TFI Aksi Nyata vs VBL).
+  - [x] Detail modal review: Tampilkan foto aksi, link postingan medsos/video, catatan mahasiswa, data kelompok, dan rekomendasi skor AI.
+  - [x] Tiga tombol keputusan verifikasi:
     - **Approve Coins Only** (Kredit Green Coins jika postingan sesuai guideline kampanye).
     - **Approve Full** (Kredit Green Coins + Poin SAT & Jam Comserv untuk aksi nyata lengkap).
     - **Reject** (Catat alasan feedback perbaikan ke mahasiswa).
 
-- [ ] **3.2 Formula Karbon, Kuantifikasi SDG & Green Coin Ledger**
-  - [ ] Helper kalkulasi karbon & dampak SDG (`src/utils/carbonCalc.ts`):
-    - [ ] Penanaman Pohon: 5.00 kg CO2e / 25 Green Coins / 4 SAT / SDG 15 & 13.
-    - [ ] Lubang Biopori: 0.50 kg CO2e / 20 Green Coins / 4 SAT / SDG 15 & 6.
-    - [ ] Wastafel / Sanitasi: 0.20 kg CO2e / 20 Green Coins / 4 SAT / SDG 6 & 3.
-    - [ ] Video Based Learning: 0.10 kg CO2e / 25 Green Coins / 3 SAT / SDG 4.
-    - [ ] Tumbler & Wadah: 0.05 kg CO2e / 10 Green Coins / SDG 12.
-    - [ ] Bus Kampus: 0.12 kg CO2e / 15 Green Coins / SDG 11 & 13.
-  - [ ] Update saldo `total_green_coins`, `total_sat_points`, dan `streak_days` secara atomik di database.
+- [x] **3.2 Formula Karbon, Kuantifikasi SDG & Green Coin Ledger**
+  - [x] Helper kalkulasi karbon & dampak SDG (`src/utils/carbonCalc.ts`):
+    - [x] Penanaman Pohon: 5.00 kg CO2e / 25 Green Coins / 4 SAT / SDG 15 & 13.
+    - [x] Lubang Biopori: 0.50 kg CO2e / 20 Green Coins / 4 SAT / SDG 15 & 6.
+    - [x] Wastafel / Sanitasi: 0.20 kg CO2e / 20 Green Coins / 4 SAT / SDG 6 & 3.
+    - [x] Video Based Learning: 0.10 kg CO2e / 25 Green Coins / 3 SAT / SDG 4.
+    - [x] Tumbler & Wadah: 0.05 kg CO2e / 10 Green Coins / SDG 12.
+    - [x] Bus Kampus: 0.12 kg CO2e / 15 Green Coins / SDG 11 & 13.
+  - [x] Update saldo `total_green_coins`, `total_sat_points`, dan `streak_days` secara atomik di database & local storage.
 
-- [ ] **3.3 Portofolio Aksi & Rekognisi SAT (Screen 5 — Direct Mapping SSO/TFI)**
-  - [ ] Tampilan saldo Green Coins untuk kompetisi Leaderboard dan nominasi tahunan **BEKEN Award**.
-  - [ ] Daftar Portofolio Aksi Nyata Terverifikasi (Daftar kegiatan TFI yang telah disetujui beserta poin SAT & jam Comserv).
-  - [ ] Fitur Ekspor Transkrip Kegiatan / Log Comserv (Format ringkasan terstruktur untuk sinkronisasi myBINUS / TFI Apps).
+- [x] **3.3 Portofolio Aksi & Rekognisi SAT (Screen 5 — Direct Mapping SSO/TFI)**
+  - [x] Tampilan saldo Green Coins untuk kompetisi Leaderboard dan nominasi tahunan **BEKEN Award**.
+  - [x] Daftar Portofolio Aksi Nyata Terverifikasi (Daftar kegiatan TFI yang telah disetujui beserta poin SAT & jam Comserv).
+  - [x] Fitur Ekspor Transkrip Kegiatan / Log Comserv (Format ringkasan terstruktur untuk sinkronisasi myBINUS / TFI Apps).
 
 ---
 
 ### Sprint 4: UI Polish (8 Screen design.md) & Netlify Deployment
 
-- [ ] **4.1 Implementasi 8 Screen Sesuai design.md**
-  - [ ] **Screen 1: Onboarding & Auth** (Hero illustration, NIM login, role switcher).
-  - [ ] **Screen 2: Home Dashboard** (Saldo Koin, kg CO2e, SAT Progress bar terverifikasi, Quick Actions TFI, Streak 🔥, Status BEKEN Award).
-  - [ ] **Screen 3: Upload Aksi & Storytelling** (Kamera, link medsos TFI, deteksi hashtag AI, preview dual reward).
-  - [ ] **Screen 4: Status Verifikasi & Review Queue** (State Pending, Approved Coins, Approved Full, Rejected).
-  - [ ] **Screen 5: Portofolio Aksi & Rekognisi SAT** (Saldo Green Coin, riwayat aksi nyata, rincian SAT/Comserv terverifikasi).
-  - [ ] **Screen 6: Community Feed & Storytelling Gallery** (Timeline postingan aksi & pameran konten edukatif teman kampus).
-  - [ ] **Screen 7: Leaderboard & Semester Activity Ranking** (Green Leaderboard $\rightarrow$ BEKEN Award Nominees vs Semester SAT Ranking).
-  - [ ] **Screen 8: Profile & SDG Impact Badge** (NIM card, koleksi badge SDG, rekap kontribusi kampus).
+- [x] **4.1 Implementasi 8 Screen Sesuai design.md**
+  - [x] **Screen 1: Onboarding, Registrasi & Login** (Hero illustration, tab login & sign up, NIM login, role switcher).
+  - [x] **Screen 2: Home Dashboard** (Saldo Koin, kg CO2e, SAT Progress bar terverifikasi, Quick Actions TFI, Streak 🔥, Status BEKEN Award).
+  - [x] **Screen 3: Upload Aksi & Storytelling** (Kamera, link medsos TFI, deteksi hashtag AI, preview dual reward).
+  - [x] **Screen 4: Status Verifikasi & Review Queue** (State Pending, Approved Coins, Approved Full, Rejected).
+  - [x] **Screen 5: Portofolio Aksi & Rekognisi SAT** (Saldo Green Coin, riwayat aksi nyata, rincian SAT/Comserv terverifikasi).
+  - [x] **Screen 6: Community Feed & Storytelling Gallery** (Timeline postingan aksi & pameran konten edukatif teman kampus).
+  - [x] **Screen 7: Leaderboard & Semester Activity Ranking** (Green Leaderboard $\rightarrow$ BEKEN Award Nominees vs Semester SAT Ranking).
+  - [x] **Screen 8: Profile & SDG Impact Badge** (NIM card, koleksi badge SDG, rekap kontribusi kampus, logout).
 
-- [ ] **4.2 Netlify Deployment (1-Click Setup)**
-  - [ ] Pastikan `netlify.toml` berada di root directory.
-  - [ ] Jalankan `npm run build` untuk memverifikasi tidak ada error TypeScript.
+- [ ] **4.2 Netlify Deployment (1-Click Setup - Menunggu Aksi User)**
+  - [x] Pastikan `netlify.toml` berada di root directory.
+  - [x] Jalankan `npm run build` untuk memverifikasi tidak ada error TypeScript.
   - [ ] Push ke GitHub $\rightarrow$ Hubungkan ke Netlify Dashboard.
   - [ ] Masukkan environment variables di Netlify (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_GEMINI_API_KEY`).
   - [ ] Test live URL di smartphone (tambahkan ke Home Screen sebagai PWA).
@@ -169,10 +169,10 @@ flowchart LR
 
 ## 🎯 Definition of Done (DoD) untuk Demo MVP
 
-1. [ ] Pengguna dapat login dengan NIM dan memilih role (Mahasiswa / Verifikator / SSO Admin).
-2. [ ] Mahasiswa berhasil mengupload foto aksi nyata/link konten medsos dengan validasi hashtag resmi TFI.
-3. [ ] Gemini Flash memberikan analisis validasi visual kesesuaian guideline TFI dan kelengkapan aksi secara otomatis.
-4. [ ] Verifikator/Admin dapat melakukan review dual-track (Approve Coins Only, Approve Full + SAT, Reject with reason).
-5. [ ] Saldo Green Coin bertambah untuk Leaderboard BEKEN Award dan Poin SAT bertambah langsung di Portofolio Aksi.
-6. [ ] Dashboard menampilkan agregasi pengurangan emisi kg CO2e dan progres SAT dari aksi nyata yang terverifikasi (bebas dari konversi arbitrer).
+1. [x] Pengguna dapat mendaftarkan akun mahasiswa baru dan login dengan NIM/Email + Kata Sandi serta memilih role (Mahasiswa / Verifikator / SSO Admin).
+2. [x] Mahasiswa berhasil mengupload foto aksi nyata/link konten medsos dengan validasi hashtag resmi TFI.
+3. [x] Gemini Flash memberikan analisis validasi visual kesesuaian guideline TFI dan kelengkapan aksi secara otomatis.
+4. [x] Verifikator/Admin dapat melakukan review dual-track (Approve Coins Only, Approve Full + SAT, Reject with reason).
+5. [x] Saldo Green Coin bertambah untuk Leaderboard BEKEN Award dan Poin SAT bertambah langsung di Portofolio Aksi.
+6. [x] Dashboard menampilkan agregasi pengurangan emisi kg CO2e dan progres SAT dari aksi nyata yang terverifikasi (bebas dari konversi arbitrer).
 7. [ ] Aplikasi live di Netlify, responsif di HP, dan 100% gratis ($0).

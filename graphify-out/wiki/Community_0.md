@@ -1,24 +1,35 @@
 # Community 0
 
-> 15 nodes · cohesion 0.17
+> 26 nodes · cohesion 0.08
 
 ## Key Concepts
 
-- [VerificationPage.tsx](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L1) (8 connections)
-- [getActions()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L12) (5 connections)
-- [updateActionVerification()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L138) (4 connections)
-- [actionService.ts](file:///D:/Codes/i-can-app/src/services/actionService.ts#L1) (4 connections)
-- [submitGreenAction()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L69) (2 connections)
-- [confirmReject()](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L130) (2 connections)
-- [handleDecision()](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L114) (2 connections)
-- [load()](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L104) (2 connections)
-- [load()](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L86) (2 connections)
-- [LOCAL_ACTIONS_KEY](file:///D:/Codes/i-can-app/src/services/actionService.ts#L9) (1 connections)
-- [defaultSampleQueue](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L28) (1 connections)
-- [[loading, setLoading]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L23) (1 connections)
-- [[queue, setQueue]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L22) (1 connections)
-- [[rejectionReason, setRejectionReason]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L25) (1 connections)
-- [[rejectModalId, setRejectModalId]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L24) (1 connections)
+- [UploadPage.tsx](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L1) (26 connections)
+- [[aiResult, setAiResult]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L105) (1 connections)
+- [[campaignUrl, setCampaignUrl]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L113) (1 connections)
+- [CATEGORIES](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L46) (1 connections)
+- [[copiedHashtags, setCopiedHashtags]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L118) (1 connections)
+- [[copiedStoryCard, setCopiedStoryCard]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L119) (1 connections)
+- [fileInputRef](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L100) (1 connections)
+- [[groupMembers, setGroupMembers]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L115) (1 connections)
+- [[groupNimInput, setGroupNimInput]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L114) (1 connections)
+- [handleAddMember()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L157) (1 connections)
+- [handleCopyHashtags()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L123) (1 connections)
+- [handleCopyStoryShare()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L215) (1 connections)
+- [handlePhotoSelect()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L129) (1 connections)
+- [handleRemoveMember()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L165) (1 connections)
+- [Icon](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L348) (1 connections)
+- [[isAnalyzing, setIsAnalyzing]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L104) (1 connections)
+- [isSelected](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L347) (1 connections)
+- [[isSubmitting, setIsSubmitting]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L116) (1 connections)
+- [navigate](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L98) (1 connections)
+- [officialHashtags](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L121) (1 connections)
+- [[photoPreview, setPhotoPreview]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L103) (1 connections)
+- [runAiAnalysis()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L142) (1 connections)
+- [[selectedCategory, setSelectedCategory]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L102) (1 connections)
+- [[story, setStory]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L112) (1 connections)
+- [[submittedSuccess, setSubmittedSuccess]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L117) (1 connections)
+- *... and 1 more nodes in this community*
 
 ## Relationships
 
@@ -26,14 +37,12 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\pages\VerificationPage.tsx](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx)
-- [D:\Codes\i-can-app\src\pages\WalletPage.tsx](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx)
-- [D:\Codes\i-can-app\src\services\actionService.ts](file:///D:/Codes/i-can-app/src/services/actionService.ts)
+- [D:\Codes\i-can-app\src\pages\UploadPage.tsx](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 29 (78%)
-- INFERRED: 8 (22%)
+- EXTRACTED: 51 (100%)
+- INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 
 ---

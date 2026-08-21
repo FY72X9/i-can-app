@@ -11,8 +11,9 @@ sequenceDiagram
     participant P2 as handleDecision()
     participant P3 as confirmReject()
     participant P4 as submitGreenAction()
-    participant P5 as load()
+    participant P5 as handleSubmit()
     participant P6 as load()
+    participant P7 as load()
     P0->>+ P1: calls
     P1-->>- P0: return
     P1->>+ P0: calls
@@ -29,14 +30,18 @@ sequenceDiagram
     P4-->>- P0: return
     P4->>+ P0: calls
     P0-->>- P4: return
-    P0->>+ P5: calls
-    P5-->>- P0: return
-    P5->>+ P0: calls
-    P0-->>- P5: return
+    P4->>+ P5: calls
+    P5-->>- P4: return
+    P5->>+ P4: calls
+    P4-->>- P5: return
     P0->>+ P6: calls
     P6-->>- P0: return
     P6->>+ P0: calls
     P0-->>- P6: return
+    P0->>+ P7: calls
+    P7-->>- P0: return
+    P7->>+ P0: calls
+    P0-->>- P7: return
 ```
 
 ## Connections by Relation

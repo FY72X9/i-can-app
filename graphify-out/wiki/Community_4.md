@@ -1,14 +1,17 @@
 # Community 4
 
-> 5 nodes · cohesion 0.40
+> 8 nodes · cohesion 0.25
 
 ## Key Concepts
 
-- [BottomNav.tsx](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L1) (4 connections)
-- [Icon](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L22) (1 connections)
-- [isVerifier](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L8) (1 connections)
-- [navItems](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L10) (1 connections)
-- [{ user }](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L7) (1 connections)
+- [HomePage.tsx](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L1) (7 connections)
+- [[cheers, setCheers]](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L27) (1 connections)
+- [flashQuests](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L101) (1 connections)
+- [handleCheer()](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L34) (1 connections)
+- [[hasCheered, setHasCheered]](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L32) (1 connections)
+- [Icon](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L266) (1 connections)
+- [programs](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L42) (1 connections)
+- [{ user }](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L26) (1 connections)
 
 ## Relationships
 
@@ -16,11 +19,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\components\common\BottomNav.tsx](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx)
+- [D:\Codes\i-can-app\src\pages\HomePage.tsx](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 8 (100%)
+- EXTRACTED: 14 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

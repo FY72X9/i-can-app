@@ -1,6 +1,6 @@
 # confirmReject()
 
-> God node · 2 connections · [D:\Codes\i-can-app\src\pages\VerificationPage.tsx](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L130)
+> God node · 2 connections · [D:\Codes\i-can-app\src\pages\VerificationPage.tsx](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L135)
 
 ## Call Trace Diagram
 

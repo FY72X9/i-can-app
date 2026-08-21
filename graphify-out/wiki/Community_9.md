@@ -1,12 +1,13 @@
 # Community 9
 
-> 3 nodes · cohesion 0.67
+> 4 nodes · cohesion 0.50
 
 ## Key Concepts
 
-- [TopNavbar.tsx](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L1) (2 connections)
-- [toggleRole()](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L12) (1 connections)
-- [{ user, loginAs }](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L10) (1 connections)
+- [Button.tsx](file:///D:/Codes/i-can-app/src/components/common/Button.tsx#L1) (3 connections)
+- [baseStyles](file:///D:/Codes/i-can-app/src/components/common/Button.tsx#L24) (1 connections)
+- [sizeStyles](file:///D:/Codes/i-can-app/src/components/common/Button.tsx#L26) (1 connections)
+- [variantStyles](file:///D:/Codes/i-can-app/src/components/common/Button.tsx#L32) (1 connections)
 
 ## Relationships
 
@@ -14,11 +15,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\components\common\TopNavbar.tsx](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx)
+- [D:\Codes\i-can-app\src\components\common\Button.tsx](file:///D:/Codes/i-can-app/src/components/common/Button.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 4 (100%)
+- EXTRACTED: 6 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

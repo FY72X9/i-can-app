@@ -5,8 +5,8 @@
 ## Key Concepts
 
 - [ProfilePage.tsx](file:///D:/Codes/i-can-app/src/pages/ProfilePage.tsx#L1) (2 connections)
-- [Icon](file:///D:/Codes/i-can-app/src/pages/ProfilePage.tsx#L71) (1 connections)
-- [ProfilePage](file:///D:/Codes/i-can-app/src/pages/ProfilePage.tsx#L12) (1 connections)
+- [Icon](file:///D:/Codes/i-can-app/src/pages/ProfilePage.tsx#L93) (1 connections)
+- [ProfilePage](file:///D:/Codes/i-can-app/src/pages/ProfilePage.tsx#L20) (1 connections)
 
 ## Relationships
 

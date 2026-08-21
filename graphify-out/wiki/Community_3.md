@@ -1,16 +1,18 @@
 # Community 3
 
-> 7 nodes · cohesion 0.29
+> 9 nodes · cohesion 0.22
 
 ## Key Concepts
 
-- [FeedPage.tsx](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L1) (6 connections)
-- [[activeTab, setActiveTab]](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L7) (1 connections)
-- [filteredPosts](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L80) (1 connections)
-- [[hasLiked, setHasLiked]](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L14) (1 connections)
-- [[likes, setLikes]](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L8) (1 connections)
-- [samplePosts](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L24) (1 connections)
-- [toggleLike()](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L16) (1 connections)
+- [WalletPage.tsx](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L1) (9 connections)
+- [[copiedTranscript, setCopiedTranscript]](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L28) (1 connections)
+- [defaultVerified](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L31) (1 connections)
+- [handleExportTranscript()](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L101) (1 connections)
+- [totalCoins](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L99) (1 connections)
+- [totalComserv](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L98) (1 connections)
+- [totalSat](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L97) (1 connections)
+- [{ user }](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L26) (1 connections)
+- [[verifiedActions, setVerifiedActions]](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L27) (1 connections)
 
 ## Relationships
 
@@ -18,11 +20,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\pages\FeedPage.tsx](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx)
+- [D:\Codes\i-can-app\src\pages\WalletPage.tsx](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 12 (100%)
+- EXTRACTED: 17 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

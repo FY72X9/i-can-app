@@ -1,18 +1,18 @@
 {
   "hotspots": [
     {
-      "label": "UploadPage",
-      "risk": 0.622,
+      "label": "AppLayout()",
+      "risk": 0.615,
       "type": "FUNCTION"
     },
     {
       "label": "LoginPage()",
-      "risk": 0.371,
+      "risk": 0.44,
       "type": "FUNCTION"
     },
     {
-      "label": "postcss.config.js",
-      "risk": 0.204,
+      "label": "verifyActionWithGemini()",
+      "risk": 0.219,
       "type": "FUNCTION"
     },
     {
@@ -21,7 +21,7 @@
       "type": "FUNCTION"
     },
     {
-      "label": "vite.config.ts",
+      "label": "UploadPage.tsx",
       "risk": 0.204,
       "type": "FUNCTION"
     }
@@ -29,8 +29,8 @@
   "blast_radius": {
     "getActions()": 5,
     "updateActionVerification()": 4,
-    "LoginPage()": 2,
-    "load()": 2,
-    "handleDecision()": 2
+    "submitGreenAction()": 3,
+    "useAuthStore": 3,
+    "AppLayout()": 2
   }
 }

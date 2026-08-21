@@ -25,4 +25,3 @@
 | 20 | Community 20 | Unable to determine domain due to missing code entities. |
 | 21 | Community 21 | Unable to determine domain due to missing code entities. |
 | 22 | Community 22 | Unable to determine domain due to missing code entities. |
-| 23 | Community 23 |  |

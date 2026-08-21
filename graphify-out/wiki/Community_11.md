@@ -4,9 +4,9 @@
 
 ## Key Concepts
 
-- [UploadPage.tsx](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L1) (2 connections)
-- [CATEGORIES](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L51) (1 connections)
-- [UploadPage](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L164) (1 connections)
+- [carbonCalc.ts](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts#L1) (2 connections)
+- [calculateActionImpact()](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts#L85) (1 connections)
+- [EMISSION_FACTORS](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts#L16) (1 connections)
 
 ## Relationships
 
@@ -14,7 +14,7 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\pages\UploadPage.tsx](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx)
+- [D:\Codes\i-can-app\src\utils\carbonCalc.ts](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts)
 
 ## Audit Trail
 

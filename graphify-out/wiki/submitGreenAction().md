@@ -1,6 +1,6 @@
 # submitGreenAction()
 
-> God node · 2 connections · [D:\Codes\i-can-app\src\services\actionService.ts](file:///D:/Codes/i-can-app/src/services/actionService.ts#L69)
+> God node · 3 connections · [D:\Codes\i-can-app\src\services\actionService.ts](file:///D:/Codes/i-can-app/src/services/actionService.ts#L69)
 
 ## Call Trace Diagram
 
@@ -13,6 +13,7 @@ sequenceDiagram
     participant P4 as confirmReject()
     participant P5 as load()
     participant P6 as load()
+    participant P7 as handleSubmit()
     P0->>+ P1: calls
     P1-->>- P0: return
     P1->>+ P2: calls
@@ -33,12 +34,17 @@ sequenceDiagram
     P6-->>- P1: return
     P6->>+ P1: calls
     P1-->>- P6: return
+    P0->>+ P7: calls
+    P7-->>- P0: return
+    P7->>+ P0: calls
+    P0-->>- P7: return
 ```
 
 ## Connections by Relation
 
 ### calls
 - [[getActions()]] `EXTRACTED`
+- [[handleSubmit()]] `INFERRED`
 
 ### contains
 - [[actionService.ts]] `EXTRACTED`

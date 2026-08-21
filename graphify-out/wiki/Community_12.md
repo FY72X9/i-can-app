@@ -1,12 +1,11 @@
 # Community 12
 
-> 3 nodes · cohesion 0.67
+> 2 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- [carbonCalc.ts](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts#L1) (2 connections)
-- [calculateActionImpact()](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts#L85) (1 connections)
-- [EMISSION_FACTORS](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts#L16) (1 connections)
+- [Badge()](file:///D:/Codes/i-can-app/src/components/common/Badge.tsx#L11) (1 connections)
+- [Badge.tsx](file:///D:/Codes/i-can-app/src/components/common/Badge.tsx#L1) (1 connections)
 
 ## Relationships
 
@@ -14,11 +13,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\utils\carbonCalc.ts](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts)
+- [D:\Codes\i-can-app\src\components\common\Badge.tsx](file:///D:/Codes/i-can-app/src/components/common/Badge.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 4 (100%)
+- EXTRACTED: 2 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 
