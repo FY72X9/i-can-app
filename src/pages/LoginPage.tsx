@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
+import { useLogto } from '@logto/react';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
+import { isLogtoConfigured } from '@/services/logto';
 import { 
   Leaf, 
   GraduationCap, 
@@ -20,7 +22,9 @@ import {
   EyeOff, 
   AlertCircle,
   CheckCircle2,
-  Gift
+  Gift,
+  KeyRound,
+  Shield
 } from 'lucide-react';
 
 const FACULTIES = [
@@ -35,7 +39,8 @@ const FACULTIES = [
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { loginAs, loginWithPassword, register, authError, clearError, isLoading } = useAuthStore();
+  const { isAuthenticated, loginAs, loginWithPassword, register, authError, clearError, isLoading } = useAuthStore();
+  const { signIn: logtoSignIn } = useLogto();
 
   const [activeTab, setActiveTab] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
   
@@ -53,6 +58,13 @@ export const LoginPage: React.FC = () => {
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [formValidationMsg, setFormValidationMsg] = useState<string | null>(null);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleTabSwitch = (tab: 'LOGIN' | 'REGISTER') => {
     setActiveTab(tab);
@@ -111,6 +123,24 @@ export const LoginPage: React.FC = () => {
         colors: ['#2E8B57', '#00FF66', '#E5A93C'],
       });
       navigate('/');
+    }
+  };
+
+  const handleLogtoSSO = async () => {
+    clearError();
+    setFormValidationMsg(null);
+
+    if (isLogtoConfigured) {
+      try {
+        const redirectUri = `${window.location.origin}/callback`;
+        await logtoSignIn(redirectUri);
+      } catch (err: any) {
+        setFormValidationMsg(`Gagal memulai sesi Logto: ${err.message || 'Periksa koneksi provider'}`);
+      }
+    } else {
+      setFormValidationMsg(
+        'Logto SSO belum aktif. Silakan masukkan VITE_LOGTO_ENDPOINT & VITE_LOGTO_APP_ID di file .env, atau gunakan login password / akses cepat di bawah.'
+      );
     }
   };
 
@@ -177,11 +207,34 @@ export const LoginPage: React.FC = () => {
             </button>
           </div>
 
+          {/* Logto SSO Quick Action Button */}
+          <button
+            type="button"
+            onClick={handleLogtoSSO}
+            className="w-full py-2.5 px-3 rounded-2xl border border-indigo-200 bg-gradient-to-r from-indigo-50/80 via-purple-50/60 to-pink-50/80 hover:from-indigo-100 hover:to-purple-100 text-indigo-950 flex items-center justify-center gap-2 text-xs font-black transition-all shadow-xs group active:scale-98"
+          >
+            <div className="w-5 h-5 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+              <Shield className="w-3 h-3" />
+            </div>
+            <span>Masuk via Logto SSO (BINUS Identity)</span>
+            <span className="text-[9px] font-bold bg-indigo-200/80 text-indigo-900 px-1.5 py-0.2 rounded-md uppercase ml-auto">
+              OIDC
+            </span>
+          </button>
+
+          <div className="flex items-center gap-2">
+            <div className="h-px bg-surface-border flex-1" />
+            <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">
+              atau gunakan kata sandi
+            </span>
+            <div className="h-px bg-surface-border flex-1" />
+          </div>
+
           {/* Error Banner */}
           {(authError || formValidationMsg) && (
             <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-2 text-xs text-rose-700 animate-in fade-in duration-200">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
-              <p className="flex-1 font-medium">{authError || formValidationMsg}</p>
+              <p className="flex-1 font-medium text-[11px] leading-tight">{authError || formValidationMsg}</p>
             </div>
           )}
 

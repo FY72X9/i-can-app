@@ -53,9 +53,16 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => {
-  // Load saved state or default to student demo profile
+  // Load saved state from localStorage (null if unauthenticated)
   const savedUser = localStorage.getItem('i_can_user');
-  const initialUser = savedUser ? JSON.parse(savedUser) : DEMO_PROFILES.student;
+  let initialUser: UserProfile | null = null;
+  if (savedUser) {
+    try {
+      initialUser = JSON.parse(savedUser);
+    } catch {
+      initialUser = null;
+    }
+  }
 
   return {
     user: initialUser,

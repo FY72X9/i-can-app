@@ -1,7 +1,10 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { LogtoProvider } from '@logto/react';
+import { logtoConfig } from '@/services/logto';
 import { TopNavbar } from '@/components/common/TopNavbar';
 import { BottomNav } from '@/components/common/BottomNav';
+import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { HomePage } from '@/pages/HomePage';
 import { FeedPage } from '@/pages/FeedPage';
 import { UploadPage } from '@/pages/UploadPage';
@@ -9,6 +12,7 @@ import { WalletPage } from '@/pages/WalletPage';
 import { VerificationPage } from '@/pages/VerificationPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { LoginPage } from '@/pages/LoginPage';
+import { CallbackPage } from '@/pages/CallbackPage';
 import { useAuthStore } from '@/stores/authStore';
 import { 
   Sparkles, 
@@ -16,11 +20,7 @@ import {
   ShieldCheck, 
   GraduationCap, 
   Leaf, 
-  Flame, 
-  ExternalLink,
   Award,
-  Users,
-  Compass,
   Zap,
   Radio
 } from 'lucide-react';
@@ -83,7 +83,7 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
               >
                 <GraduationCap className="w-4 h-4 mb-1 text-eco-neon" />
                 <div className="text-xs font-black leading-tight">Mahasiswa</div>
-                <div className="text-[9px] opacity-80 truncate">Budi Santoso</div>
+                <div className="text-[9px] opacity-80 truncate">{user?.role === 'STUDENT' ? user.fullName.split(' ')[0] : 'Budi'}</div>
               </button>
 
               <button
@@ -194,65 +194,79 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
 
 export const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
+    <LogtoProvider config={logtoConfig}>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Authentication Routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/callback" element={<CallbackPage />} />
 
-        {/* Protected App Routes */}
-        <Route
-          path="/"
-          element={
-            <AppLayout>
-              <HomePage />
-            </AppLayout>
-          }
-        />
-        <Route
-          path="/feed"
-          element={
-            <AppLayout title="Community Feed" subtitle="Storytelling & Aksi Mahasiswa">
-              <FeedPage />
-            </AppLayout>
-          }
-        />
-        <Route
-          path="/upload"
-          element={
-            <AppLayout title="Pelaporan Aksi" subtitle="AI Scanning & Klaim SAT">
-              <UploadPage />
-            </AppLayout>
-          }
-        />
-        <Route
-          path="/wallet"
-          element={
-            <AppLayout title="Portofolio Rekognisi" subtitle="Transkrip SAT & BEKEN Track">
-              <WalletPage />
-            </AppLayout>
-          }
-        />
-        <Route
-          path="/verify"
-          element={
-            <AppLayout title="Portal Verifikasi" subtitle="Validasi Admin SSO & TFI">
-              <VerificationPage />
-            </AppLayout>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <AppLayout title="Profil Mahasiswa" subtitle="Rekam Jejak & Rarity Badges">
-              <ProfilePage />
-            </AppLayout>
-          }
-        />
+          {/* Protected Main Application Routes */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <HomePage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/feed"
+            element={
+              <ProtectedRoute>
+                <AppLayout title="Community Feed" subtitle="Storytelling & Aksi Mahasiswa">
+                  <FeedPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/upload"
+            element={
+              <ProtectedRoute>
+                <AppLayout title="Pelaporan Aksi" subtitle="AI Scanning & Klaim SAT">
+                  <UploadPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/wallet"
+            element={
+              <ProtectedRoute>
+                <AppLayout title="Portofolio Rekognisi" subtitle="Transkrip SAT & BEKEN Track">
+                  <WalletPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/verify"
+            element={
+              <ProtectedRoute>
+                <AppLayout title="Portal Verifikasi" subtitle="Validasi Admin SSO & TFI">
+                  <VerificationPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <AppLayout title="Profil Mahasiswa" subtitle="Rekam Jejak & Rarity Badges">
+                  <ProfilePage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Catch-all route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+          {/* Catch-all route -> redirect to home (which will route to /login if unauthenticated) */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </LogtoProvider>
   );
 };
-
-
