@@ -21,20 +21,30 @@ export interface UserProfile {
   createdAt: string;
 }
 
-export type ActionType = 'BINA_DIRI' | 'BINA_LINGKUNGAN' | 'VIRTUAL_VOLUNTEER' | 'CSA';
+export type ActionType = 
+  | 'SELF_GREEN_CAMPAIGN' 
+  | 'PENYULUHAN_AKSI_NYATA' 
+  | 'VIDEO_BASED_LEARNING' 
+  | 'BINA_DIRI' 
+  | 'BINA_LINGKUNGAN' 
+  | 'VIRTUAL_VOLUNTEER' 
+  | 'CSA';
 
 export interface ActionCategory {
   id: string;
   name: string;
   type: ActionType;
-  icon: string; // Lucide icon name (e.g., 'CupSoda', 'Bus', 'Trash2', 'Zap')
+  icon: string; // Lucide icon name (e.g., 'TreePine', 'Droplets', 'Video', 'CupSoda', 'Bus', 'Trash2', 'Zap')
   emissionFactor: number; // kg CO2e per action
   baseCoins: number;
   satEquivalent: number;
+  comservHours?: number;
+  sdgTarget?: string; // e.g., 'SDG 13', 'SDG 15', 'SDG 6', 'SDG 4'
   description: string;
 }
 
 export type ActionStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type VerificationDecision = 'APPROVED_COINS_ONLY' | 'APPROVED_FULL' | 'REJECTED';
 
 export interface GreenAction {
   id: string;
@@ -45,20 +55,41 @@ export interface GreenAction {
   categoryId: string;
   categoryName?: string;
   categoryIcon?: string;
+  submissionType?: ActionType;
   photoUrl: string;
+  campaignUrl?: string; // Link postingan Instagram / TikTok
+  videoUrl?: string; // Link Video YouTube / GDrive (VBL)
+  groupMembers?: string[]; // List NIM anggota (max 3 orang)
   story?: string;
   gpsLat?: number;
   gpsLng?: number;
   status: ActionStatus;
+  decision?: VerificationDecision;
   aiConfidence?: number; // 0.00 - 1.00
+  aiGuidelineScore?: number;
+  aiCompletenessScore?: number;
   aiAnalysisReason?: string;
   greenCoinsEarned: number;
   carbonImpactKg: number;
   satPointsEarned: number;
+  comservHoursEarned?: number;
+  guidelineComplied?: boolean;
+  realActivityVerified?: boolean;
   submittedAt: string;
   verifiedAt?: string;
   verifiedBy?: string;
   rejectionReason?: string;
+}
+
+export interface SatRecognition {
+  id: string;
+  userId: string;
+  actionId: string;
+  activityTitle: string;
+  satPointsAwarded: number;
+  comservHoursAwarded: number;
+  status: 'VERIFIED' | 'EXPORTED' | 'SYNCED';
+  recognizedAt: string;
 }
 
 export interface SatConversion {

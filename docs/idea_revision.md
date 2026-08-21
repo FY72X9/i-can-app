@@ -1,4 +1,4 @@
-## Business Process Changes
+## Business Process Changes (20/08/2026)
 
 1. Arahan dari tim kolaborator Student Service Office memiliki regulasi bahwa konversi tidak memungkinkan dari segi skor saja, harus dipetakan langsung berupa kegiatan yang real dilaksanakan oleh mahasiswa
 2. Alur pemanfaatan green coin berubah menjadi sebagai berikut: 
@@ -20,7 +20,7 @@ flowchart LR
 ```
 
 
-3. Panduan untuk kegiatan yang serupa dan dapat dikonversikan dengan poin SAT/Community Service: 
+3. Panduan untuk kegiatan yang serupa dan dapat dikonversikan dengan poin SAT/Community Service. ini bukan sebagai tambahan, tetapi sebagai acuan dasar sesuai regulasi dari Teach For Indonesia (TFI): 
 ```
 4. Penyuluhan dan Aksi Nyata 
 Penyuluhan dan Aksi Nyata merupakan kegiatan yang dilakukan secara langsung oleh 
@@ -129,4 +129,14 @@ disetujui melalui TFI Apps.
 
 ```
 
-4. dengan aplikasi I-CAN ini harapannya 
+4. Dengan aplikasi I-CAN ini harapannya: 1. mahasiswa dapat melakukan activity dan service dengan mudah dan mandiri, 2. SDG prioritas kampus dapat diukur terkuantifikasi dan memonitor capaian SDG kampus, 3. meningkatkan kemampuan storytelling dan digital content creation mahasiswa dalam menyampaikan dampak nyata dari kegiatan mahasiswa agar dapat terpublikasi dengan baik dan ter-arsip dengan baik di BINUS.
+
+5. Reporting ke app:
+    - Mahasiswa  dapat langsung akses ke url-nya, atau bisa scan qr di spanduk yang disediakan 
+    - mahasiswa  dapat mengisi identitas untuk register sesuai email binus mereka
+    - mahasiswa dapat memilih jenis kegiatan apa yang akan mereka laporkan, dan mereka sudah dikategorikan/mapping berdasarkan kegiatan di TFI dan SDG secara nyata dan otomatis saat entry di formnya. 
+    - mahasiswa dapat mengisi data-data yang diperlukan sesuai dengan jenis kegiatan yang mereka pilih
+    - mahasiswa dapat mengunggah bukti-bukti yang diperlukan
+    - foto langsung diupload / drag and drop ke halaman report
+    - jika mereka mengunggah video / reels / youtube, bisa link yang diattach di form.
+    - mahasiswa dapat melihat history aktivitas mereka

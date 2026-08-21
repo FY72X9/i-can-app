@@ -80,74 +80,83 @@ flowchart LR
 - [x] **1.2 Skema Database Supabase (Jalankan via Supabase SQL Editor)**
   - [x] Buat 6 tabel esensial di `supabase/schema.sql`:
     1. `users` (id, nim, full_name, email, role: 'STUDENT'/'VERIFIER'/'ADMIN', total_green_coins, total_sat_points, streak_days).
-    2. `action_categories` (id, name, type, emission_factor, base_coins, sat_equivalent).
-    3. `actions` (id, user_id, category_id, photo_url, story, gps_lat, gps_lng, status: 'PENDING'/'APPROVED'/'REJECTED', ai_confidence, created_at).
-    4. `verifications` (id, action_id, verifier_id, status, notes, created_at).
-    5. `sat_conversions` (id, user_id, coins_spent, sat_points_added, created_at).
+    2. `action_categories` (id, name, type: 'SELF_GREEN_CAMPAIGN'/'PENYULUHAN_AKSI_NYATA'/'VIDEO_BASED_LEARNING', sdg_target, emission_factor, base_coins, sat_point_awarded, comserv_hours).
+    3. `actions` (id, user_id, category_id, submission_type, photo_url, campaign_url, video_url, group_members, story, gps_lat, gps_lng, status: 'PENDING'/'APPROVED'/'REJECTED', guideline_complied, real_activity_verified, green_coins_earned, sat_points_earned, comserv_hours, created_at).
+    4. `verifications` (id, action_id, verifier_id, decision: 'APPROVED_COINS_ONLY'/'APPROVED_FULL'/'REJECTED', notes, rejection_reason, created_at).
+    5. `sat_recognitions` (id, user_id, action_id, sat_points_awarded, comserv_hours_awarded, status: 'VERIFIED'/'EXPORTED'/'SYNCED', created_at) — *Direct Activity Mapping sesuai regulasi SSO & TFI*.
     6. `badges` & `user_badges` (id, name, icon, criteria).
-  - [x] Seed kategori awal (Tumbler, Bus Kampus, Pilah Sampah, Hemat Listrik).
-  - [x] Aktifkan RLS dasar (User hanya bisa edit aksinya sendiri; Verifikator bisa edit status aksi).
+  - [x] Seed kategori awal sesuai standar TFI & Green Campaign (Penanaman Pohon, Pembuatan Lubang Biopori, Wastafel/Sanitasi, Video Based Learning, Tumbler, Bus Kampus, Pilah Sampah).
+  - [x] Aktifkan RLS dasar (User hanya bisa edit aksinya sendiri; Verifikator/Admin bisa review status aksi).
   - [x] Siapkan definisi storage bucket: `action-photos` (Public).
 
-- [x] **1.3 Simple Auth & Role Switcher**
+- [x] **1.3 Simple Auth, QR Banner Onboarding & Role Switcher**
   - [x] Setup `src/services/supabase.ts`.
-  - [x] Buat halaman Login/Onboarding (`src/pages/LoginPage.tsx`) dengan input NIM & Password / Quick Role Switcher (Mahasiswa / Verifikator) untuk mempermudah demonstrasi juri.
+  - [x] Buat halaman Login/Onboarding (`src/pages/LoginPage.tsx`):
+    - [x] Direct URL & QR Code banner entry support (akses instan via scan spanduk kampus).
+    - [x] Registrasi/Login identitas email BINUS (`@binus.ac.id`) & NIM.
+    - [x] Quick Role Switcher (Mahasiswa / Verifikator / SSO Admin) untuk mempermudah demonstrasi juri.
 
 ---
 
-### Sprint 2: Upload Aksi Hijau, Kompresi & AI Verification
+### Sprint 2: Upload Aksi Hijau, Dynamic Reporting & AI Verification
 
-- [x] **2.1 Upload Aksi (Screen 3 - Stitch Blueprint)**
-  - [x] Selector kategori aksi (Grid tombol icon: Tumbler, Transportasi, Daur Ulang, Energi).
-  - [x] Camera capture / Image picker HTML5 dengan overlay metadata GPS & Jam.
+- [x] **2.1 Upload Aksi, Dynamic Form & Storytelling (Screen 3 - Stitch Blueprint)**
+  - [x] Auto-mapping kategori ke program TFI & prioritas SDG (SDG 13, 15, 6, 4) secara otomatis saat memilih jenis kegiatan.
+  - [x] Dynamic Form adaptif: Form hanya menampilkan field yang relevan sesuai jenis kegiatan yang dipilih.
+  - [x] Multi-upload fleksibel: Kamera ponsel langsung & **Drag & Drop** area foto bukti.
+  - [x] Lampiran tautan media digital (Instagram Reels, TikTok, YouTube, atau Google Drive) untuk konten Video Based Learning & campaign.
   - [x] Helper kompresi gambar berbasis Canvas (`src/utils/imageCompressor.ts`): Resize ke 1280px & convert ke WebP/JPEG max 200KB.
-  - [x] Geolocation metadata extractor untuk menandai kampus BINUS.
-  - [x] Input cerita/deskripsi singkat aksi & Banner Estimasi Reward (+Green Coins, +SAT Points, kg CO2e).
+  - [x] Banner Estimasi Dual-Reward (+Green Coins untuk BEKEN Leaderboard, +SAT Points/Comserv untuk Semester Ranking, kg CO2e).
 
-- [x] **2.2 Gemini 1.5 Flash AI Verification**
+- [x] **2.2 Gemini 1.5 Flash AI Pre-Verification**
   - [x] Helper service `src/services/gemini.ts` terhubung ke Google AI Studio endpoint (`gemini-1.5-flash:generateContent`).
-  - [x] Prompt AI terstruktur untuk validasi visual kesesuaian aksi hijau kampus & deteksi manipulasi foto.
-  - [x] Auto-approval router & Confidence indicator badge.
+  - [x] Prompt AI terstruktur untuk validasi visual aksi hijau, deteksi objek TFI (pohon, biopori, wastafel), pemakaian jaket almamater, logo TFI, dan kelayakan hashtag kampanye.
+  - [x] Output rekomendasi AI terpisah: `guideline_compliance_score` (Green Coins) dan `activity_completeness_score` (SAT Point).
 
-- [x] **2.3 Direct Storage & DB Insert + Verification Success Screen**
-  - [x] Layanan `src/services/actionService.ts` untuk direct upload foto ke bucket Supabase `action-photos` & insert data aksi.
-  - [x] Screen Status Verifikasi Berhasil (Bento Grid 3 Card: +GC, kg CO2e, +SAT Point) lengkap dengan efek confetti.
+- [x] **2.3 Direct Storage & DB Insert + Verification Status Screen**
+  - [x] Layanan `src/services/actionService.ts` untuk direct upload foto ke bucket Supabase `action-photos` & insert data aksi lengkap dengan metadata TFI.
+  - [x] Screen Status Verifikasi (Bento Grid 3 Card: +GC/BEKEN Track, kg CO2e/SDG, +SAT Point/Comserv Track).
 
 ---
 
-### Sprint 3: Portal Verifikasi, Gamifikasi & Wallet
+### Sprint 3: Portal Verifikasi Dual-Track, Gamifikasi & Portofolio SAT
 
-- [ ] **3.1 Portal Eco-Volunteer (Screen 4)**
-  - [ ] List antrean aksi berstatus `PENDING`.
-  - [ ] Detail modal review: Tampilkan foto, lokasi GPS, catatan mahasiswa, dan saran AI confidence.
-  - [ ] Tombol **Approve** (Kredit koin otomatis & update status) dan **Reject** (Catat alasan).
+- [ ] **3.1 Portal Eco-Volunteer & SSO Admin (Screen 4)**
+  - [ ] List antrean review aksi berstatus `PENDING` dengan filter kategori (Self Campaign vs TFI Aksi Nyata vs VBL).
+  - [ ] Detail modal review: Tampilkan foto aksi, link postingan medsos/video, catatan mahasiswa, data kelompok, dan rekomendasi skor AI.
+  - [ ] Tiga tombol keputusan verifikasi:
+    - **Approve Coins Only** (Kredit Green Coins jika postingan sesuai guideline kampanye).
+    - **Approve Full** (Kredit Green Coins + Poin SAT & Jam Comserv untuk aksi nyata lengkap).
+    - **Reject** (Catat alasan feedback perbaikan ke mahasiswa).
 
-- [ ] **3.2 Formula Karbon & Green Coin Ledger**
-  - [ ] Helper kalkulasi karbon (`src/utils/carbonCalc.ts`):
-    - [ ] Tumbler: 0.05 kg CO2e / 10 Green Coins.
-    - [ ] Bus Kampus: 0.12 kg CO2e / 15 Green Coins.
-    - [ ] Pilah Sampah: 0.08 kg CO2e / 10 Green Coins.
-    - [ ] Hemat Listrik: 0.30 kg CO2e / 20 Green Coins.
-  - [ ] Update saldo `total_green_coins` dan `streak_days` saat aksi disetujui.
+- [ ] **3.2 Formula Karbon, Kuantifikasi SDG & Green Coin Ledger**
+  - [ ] Helper kalkulasi karbon & dampak SDG (`src/utils/carbonCalc.ts`):
+    - [ ] Penanaman Pohon: 5.00 kg CO2e / 25 Green Coins / 4 SAT / SDG 15 & 13.
+    - [ ] Lubang Biopori: 0.50 kg CO2e / 20 Green Coins / 4 SAT / SDG 15 & 6.
+    - [ ] Wastafel / Sanitasi: 0.20 kg CO2e / 20 Green Coins / 4 SAT / SDG 6 & 3.
+    - [ ] Video Based Learning: 0.10 kg CO2e / 25 Green Coins / 3 SAT / SDG 4.
+    - [ ] Tumbler & Wadah: 0.05 kg CO2e / 10 Green Coins / SDG 12.
+    - [ ] Bus Kampus: 0.12 kg CO2e / 15 Green Coins / SDG 11 & 13.
+  - [ ] Update saldo `total_green_coins`, `total_sat_points`, dan `streak_days` secara atomik di database.
 
-- [ ] **3.3 Wallet & Konversi SAT Point (Screen 5)**
-  - [ ] Tampilan saldo Green Coin & riwayat aksi.
-  - [ ] Kalkulator konversi: 50 Green Coins = 1 SAT Point.
-  - [ ] Tombol konversi dengan animasi `canvas-confetti` dan update mock balance SAT Point.
+- [ ] **3.3 Portofolio Aksi & Rekognisi SAT (Screen 5 — Direct Mapping SSO/TFI)**
+  - [ ] Tampilan saldo Green Coins untuk kompetisi Leaderboard dan nominasi tahunan **BEKEN Award**.
+  - [ ] Daftar Portofolio Aksi Nyata Terverifikasi (Daftar kegiatan TFI yang telah disetujui beserta poin SAT & jam Comserv).
+  - [ ] Fitur Ekspor Transkrip Kegiatan / Log Comserv (Format ringkasan terstruktur untuk sinkronisasi myBINUS / TFI Apps).
 
 ---
 
 ### Sprint 4: UI Polish (8 Screen design.md) & Netlify Deployment
 
 - [ ] **4.1 Implementasi 8 Screen Sesuai design.md**
-  - [ ] **Screen 1: Onboarding & Auth** (Hero illustration, NIM login, role switch).
-  - [ ] **Screen 2: Home Dashboard** (Saldo Koin, kg CO2e, SAT Progress bar 45/120, Quick Actions, Streak 🔥).
-  - [ ] **Screen 3: Upload Aksi Hijau** (Kamera, GPS tag, AI check preview).
-  - [ ] **Screen 4: Status Verifikasi & Review Queue** (State Pending vs State Success Verified).
-  - [ ] **Screen 5: Wallet & Convert SAT** (Saldo koin, convert card, riwayat mutasi).
-  - [ ] **Screen 6: Community Feed** (Timeline postingan aksi teman kampus + Cheer button).
-  - [ ] **Screen 7: Leaderboard** (Podium Top 3, filter Fakultas vs Global, grafik tren Recharts).
-  - [ ] **Screen 8: Profile & Badges** (NIM card, koleksi badge, tombol Apply Eco-Volunteer).
+  - [ ] **Screen 1: Onboarding & Auth** (Hero illustration, NIM login, role switcher).
+  - [ ] **Screen 2: Home Dashboard** (Saldo Koin, kg CO2e, SAT Progress bar terverifikasi, Quick Actions TFI, Streak 🔥, Status BEKEN Award).
+  - [ ] **Screen 3: Upload Aksi & Storytelling** (Kamera, link medsos TFI, deteksi hashtag AI, preview dual reward).
+  - [ ] **Screen 4: Status Verifikasi & Review Queue** (State Pending, Approved Coins, Approved Full, Rejected).
+  - [ ] **Screen 5: Portofolio Aksi & Rekognisi SAT** (Saldo Green Coin, riwayat aksi nyata, rincian SAT/Comserv terverifikasi).
+  - [ ] **Screen 6: Community Feed & Storytelling Gallery** (Timeline postingan aksi & pameran konten edukatif teman kampus).
+  - [ ] **Screen 7: Leaderboard & Semester Activity Ranking** (Green Leaderboard $\rightarrow$ BEKEN Award Nominees vs Semester SAT Ranking).
+  - [ ] **Screen 8: Profile & SDG Impact Badge** (NIM card, koleksi badge SDG, rekap kontribusi kampus).
 
 - [ ] **4.2 Netlify Deployment (1-Click Setup)**
   - [ ] Pastikan `netlify.toml` berada di root directory.
@@ -160,10 +169,10 @@ flowchart LR
 
 ## 🎯 Definition of Done (DoD) untuk Demo MVP
 
-1. [ ] Pengguna dapat login dengan NIM dan memilih role (Mahasiswa / Verifikator).
-2. [ ] Mahasiswa berhasil mengambil foto, foto otomatis terkompresi (<200KB), dan tersimpan di Supabase Storage.
-3. [ ] Gemini Flash memberikan analisis validasi kesesuaian foto secara otomatis.
-4. [ ] Verifikator dapat menyetujui aksi di halaman antrean review.
-5. [ ] Saldo Green Coin bertambah dan kalkulasi kg CO2e ditampilkan di Dashboard.
-6. [ ] Fitur convert 50 Green Coins $\rightarrow$ 1 SAT Point berhasil dijalankan.
+1. [ ] Pengguna dapat login dengan NIM dan memilih role (Mahasiswa / Verifikator / SSO Admin).
+2. [ ] Mahasiswa berhasil mengupload foto aksi nyata/link konten medsos dengan validasi hashtag resmi TFI.
+3. [ ] Gemini Flash memberikan analisis validasi visual kesesuaian guideline TFI dan kelengkapan aksi secara otomatis.
+4. [ ] Verifikator/Admin dapat melakukan review dual-track (Approve Coins Only, Approve Full + SAT, Reject with reason).
+5. [ ] Saldo Green Coin bertambah untuk Leaderboard BEKEN Award dan Poin SAT bertambah langsung di Portofolio Aksi.
+6. [ ] Dashboard menampilkan agregasi pengurangan emisi kg CO2e dan progres SAT dari aksi nyata yang terverifikasi (bebas dari konversi arbitrer).
 7. [ ] Aplikasi live di Netlify, responsif di HP, dan 100% gratis ($0).
