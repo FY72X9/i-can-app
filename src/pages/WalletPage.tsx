@@ -10,16 +10,14 @@ import {
   History, 
   GraduationCap,
   Clock,
-  Download,
   FileCheck2,
   TreePine,
   Sparkles,
   Trophy,
-  Share2,
   CheckCircle2,
-  Check,
   Copy,
-  ExternalLink,
+  Zap,
+  Target,
   ShieldCheck,
   Award
 } from 'lucide-react';
@@ -34,9 +32,9 @@ export const WalletPage: React.FC = () => {
     {
       id: 'act-done-1',
       userId: user?.id || 'usr-student-001',
-      userName: user?.fullName || 'Mahasiswa BINUS',
+      userName: user?.fullName || 'Budi Santoso',
       categoryId: 'tree',
-      categoryName: 'Penanaman Bibit Pohon',
+      categoryName: 'Penanaman Bibit Pohon Tabebuya',
       submissionType: 'PENYULUHAN_AKSI_NYATA',
       photoUrl: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&auto=format&fit=crop&q=80',
       story: 'Penyuluhan medsos & tanam 5 bibit pohon keras di fasilitas umum.',
@@ -52,9 +50,9 @@ export const WalletPage: React.FC = () => {
     {
       id: 'act-done-2',
       userId: user?.id || 'usr-student-001',
-      userName: user?.fullName || 'Mahasiswa BINUS',
+      userName: user?.fullName || 'Budi Santoso',
       categoryId: 'biopori',
-      categoryName: 'Pembuatan Lubang Biopori',
+      categoryName: 'Pembuatan 5 Lubang Biopori',
       submissionType: 'PENYULUHAN_AKSI_NYATA',
       photoUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=600&auto=format&fit=crop&q=80',
       story: 'Pembuatan 5 lubang biopori bersama pengelola lingkungan RT setempat.',
@@ -70,9 +68,9 @@ export const WalletPage: React.FC = () => {
     {
       id: 'act-done-3',
       userId: user?.id || 'usr-student-001',
-      userName: user?.fullName || 'Mahasiswa BINUS',
+      userName: user?.fullName || 'Budi Santoso',
       categoryId: 'bus',
-      categoryName: 'Shuttle Bus & Transportasi Hijau',
+      categoryName: 'Shuttle Bus BINUS Campus',
       submissionType: 'SELF_GREEN_CAMPAIGN',
       photoUrl: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=600&auto=format&fit=crop&q=80',
       story: 'Menggunakan shuttle bus kampus BINUS Anggrek-Syahdan.',
@@ -102,8 +100,8 @@ export const WalletPage: React.FC = () => {
 
   const handleExportTranscript = () => {
     const transcriptText = `--- TRANSKRIP PORTOFOLIO AKSI I-CAN & TFI ---
-Nama: ${user?.fullName || 'Mahasiswa BINUS'}
-NIM: ${user?.nim || '2602199841'}
+Nama: ${user?.fullName || 'Budi Santoso'}
+NIM: ${user?.nim || '2602158890'}
 Fakultas: ${user?.facultyName || 'School of Computer Science'}
 Total Poin SAT: ${totalSat} SAT
 Total Jam Community Service: ${totalComserv} Jam
@@ -122,35 +120,35 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
   return (
     <div className="space-y-4 pb-4">
       {/* 1. Header Dual-Track Standing Card */}
-      <Card variant="eco" className="relative overflow-hidden text-center py-6 px-4 shadow-eco-float">
+      <Card variant="eco" className="relative overflow-hidden text-center py-6 px-4 shadow-eco-float border-white/20">
         <div className="relative z-10 space-y-3.5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-eco-100 text-[11px] font-extrabold backdrop-blur-md border border-white/20">
-            <Trophy className="w-3.5 h-3.5 text-gold-400" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-eco-100 text-[11px] font-black backdrop-blur-md border border-white/25 shadow-xs">
+            <Trophy className="w-3.5 h-3.5 text-gold-neon" />
             Portofolio Rekognisi & Transkrip Mahasiswa
           </div>
 
           {/* Dual Balance Display Bento */}
           <div className="grid grid-cols-2 gap-2.5 max-w-sm mx-auto pt-1">
             {/* Track A: Green Coins (BEKEN Track) */}
-            <div className="bg-white/10 rounded-2xl p-3 text-center border border-white/15 backdrop-blur-md">
-              <span className="text-[10px] text-eco-100 font-extrabold uppercase tracking-wider block mb-0.5">
+            <div className="bg-black/25 rounded-2xl p-3.5 text-center border border-white/15 backdrop-blur-md">
+              <span className="text-[10px] text-eco-200 font-black uppercase tracking-wider block mb-0.5">
                 BEKEN Credits
               </span>
-              <div className="text-2xl font-black text-white">
-                {totalCoins} <span className="text-xs font-semibold text-gold-300">GC</span>
+              <div className="text-2xl sm:text-3xl font-black text-white">
+                {totalCoins} <span className="text-xs font-semibold text-gold-neon">GC</span>
               </div>
-              <span className="text-[10px] text-gold-300 font-bold mt-0.5 inline-block">Top 15% Nominee</span>
+              <span className="text-[10px] text-gold-neon font-black mt-0.5 inline-block">⚡ Top 15% Nominee</span>
             </div>
 
             {/* Track B: SAT & Comserv (Academic Track) */}
-            <div className="bg-white/10 rounded-2xl p-3 text-center border border-white/15 backdrop-blur-md">
-              <span className="text-[10px] text-eco-100 font-extrabold uppercase tracking-wider block mb-0.5">
+            <div className="bg-black/25 rounded-2xl p-3.5 text-center border border-white/15 backdrop-blur-md">
+              <span className="text-[10px] text-eco-200 font-black uppercase tracking-wider block mb-0.5">
                 Transkrip SAT
               </span>
-              <div className="text-2xl font-black text-white">
-                {totalSat} <span className="text-xs font-semibold text-eco-200">SAT</span>
+              <div className="text-2xl sm:text-3xl font-black text-white">
+                {totalSat} <span className="text-xs font-semibold text-eco-neon">SAT</span>
               </div>
-              <span className="text-[10px] text-eco-100 font-bold mt-0.5 inline-block">{totalComserv} Jam Comserv</span>
+              <span className="text-[10px] text-eco-neon font-black mt-0.5 inline-block">{totalComserv} Jam Comserv</span>
             </div>
           </div>
 
@@ -179,7 +177,7 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
         <Button
           variant="secondary"
           size="sm"
-          className="w-full text-xs font-extrabold flex items-center justify-center gap-1.5 py-2.5"
+          className="w-full text-xs font-black flex items-center justify-center gap-1.5 py-3 shadow-xs"
           onClick={handleExportTranscript}
         >
           {copiedTranscript ? (
@@ -199,7 +197,7 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
       {/* 3. List of Verified Real Actions */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-xs font-extrabold text-text-secondary uppercase tracking-wider flex items-center gap-1.5">
+          <h3 className="text-xs font-black text-text-secondary uppercase tracking-wider flex items-center gap-1.5">
             <History className="w-3.5 h-3.5 text-text-muted" />
             Daftar Kegiatan Riil Terverifikasi
           </h3>
@@ -209,7 +207,7 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
           <Card key={action.id} className="p-3.5 bg-white border-surface-border shadow-eco-sm space-y-2 hover:border-eco-300 transition-colors">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-2xl bg-eco-50 text-eco-700 flex items-center justify-center font-bold shadow-xs">
+                <div className="w-10 h-10 rounded-2xl bg-eco-50 text-eco-700 flex items-center justify-center font-bold shadow-xs">
                   {action.categoryId === 'tree' ? (
                     <TreePine className="w-5 h-5" />
                   ) : action.categoryId === 'vbl' ? (
@@ -219,7 +217,7 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
                   )}
                 </div>
                 <div>
-                  <h4 className="text-xs font-extrabold text-text-primary">{action.categoryName}</h4>
+                  <h4 className="text-xs font-black text-text-primary">{action.categoryName}</h4>
                   <p className="text-[10px] text-text-muted">
                     {new Date(action.submittedAt).toLocaleDateString('id-ID', {
                       day: 'numeric',
@@ -235,7 +233,7 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
                 <span className="text-xs font-black text-blue-700 block">
                   {action.satPointsEarned > 0 ? `+${action.satPointsEarned} SAT` : '+0 SAT'}
                 </span>
-                <p className="text-[10px] font-bold text-amber-800">+{action.greenCoinsEarned} GC</p>
+                <p className="text-[10px] font-black text-amber-800">+{action.greenCoinsEarned} GC</p>
               </div>
             </div>
 
@@ -247,7 +245,7 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
 
             <div className="flex items-center justify-between text-[10px] text-text-muted pt-1 border-t border-slate-100">
               <span>Status: <strong className="text-eco-800 font-bold">Directly Mapped</strong></span>
-              <span>Dampak: <strong className="text-eco-900 font-bold">{action.carbonImpactKg} kg CO2e</strong></span>
+              <span>Dampak: <strong className="text-eco-900 font-black">{action.carbonImpactKg} kg CO2e</strong></span>
             </div>
           </Card>
         ))}
@@ -255,4 +253,3 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
     </div>
   );
 };
-

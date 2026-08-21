@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
-import { Button } from '@/components/common/Button';
 import { 
   Heart, 
   MessageCircle, 
@@ -16,24 +15,47 @@ import {
   Video, 
   CupSoda,
   Award,
-  Filter
+  Flame,
+  Zap
 } from 'lucide-react';
 
 export const FeedPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'ALL' | 'TFI' | 'VBL' | 'SELF'>('ALL');
   const [likes, setLikes] = useState<Record<string, number>>({
-    '1': 42,
-    '2': 31,
-    '3': 18,
+    '1': 48,
+    '2': 34,
+    '3': 22,
   });
 
   const [hasLiked, setHasLiked] = useState<Record<string, boolean>>({});
+  const [reactions, setReactions] = useState<Record<string, { emoji: string; count: number }[]>>({
+    '1': [{ emoji: '🔥', count: 18 }, { emoji: '🌱', count: 24 }, { emoji: '👏', count: 12 }],
+    '2': [{ emoji: '🎬', count: 15 }, { emoji: '⚡', count: 19 }, { emoji: '🎓', count: 8 }],
+    '3': [{ emoji: '💚', count: 14 }, { emoji: '🥤', count: 9 }],
+  });
 
   const toggleLike = (id: string) => {
     setHasLiked((prev) => {
       const isLiked = !prev[id];
       setLikes((l) => ({ ...l, [id]: (l[id] || 0) + (isLiked ? 1 : -1) }));
       return { ...prev, [id]: isLiked };
+    });
+  };
+
+  const addReaction = (postId: string, emoji: string) => {
+    setReactions((prev) => {
+      const current = prev[postId] || [];
+      const exists = current.find((r) => r.emoji === emoji);
+      if (exists) {
+        return {
+          ...prev,
+          [postId]: current.map((r) => (r.emoji === emoji ? { ...r, count: r.count + 1 } : r)),
+        };
+      }
+      return {
+        ...prev,
+        [postId]: [...current, { emoji, count: 1 }],
+      };
     });
   };
 
@@ -128,7 +150,7 @@ export const FeedPage: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`text-xs font-extrabold px-3 py-1.5 rounded-xl transition-all whitespace-nowrap ${
+            className={`text-xs font-black px-3 py-1.5 rounded-2xl transition-all whitespace-nowrap ${
               activeTab === tab.id
                 ? 'bg-eco-700 text-white shadow-sm'
                 : 'bg-white text-text-secondary border border-surface-border hover:bg-surface-subtle'
@@ -142,14 +164,14 @@ export const FeedPage: React.FC = () => {
       {/* Post List */}
       <div className="space-y-3.5">
         {filteredPosts.map((post) => (
-          <Card key={post.id} className="p-4 space-y-3 bg-white border-surface-border shadow-eco-soft">
+          <Card key={post.id} className="p-4 space-y-3 bg-white border-surface-border shadow-eco-card relative">
             {/* Header Author */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2.5">
                 <img
                   src={post.avatar}
                   alt={post.author}
-                  className="w-10 h-10 rounded-full object-cover ring-2 ring-eco-500/30 shadow-xs"
+                  className="w-10 h-10 rounded-2xl object-cover ring-2 ring-eco-neon/60 shadow-xs"
                 />
                 <div>
                   <h4 className="text-xs font-black text-text-primary flex items-center gap-1">
@@ -160,7 +182,7 @@ export const FeedPage: React.FC = () => {
                       </span>
                     )}
                   </h4>
-                  <p className="text-[10px] text-text-secondary">{post.faculty}</p>
+                  <p className="text-[10px] text-text-secondary font-medium">{post.faculty}</p>
                 </div>
               </div>
               <Badge variant={post.type === 'TFI' ? 'success' : post.type === 'VBL' ? 'purple' : 'neutral'} size="sm">
@@ -168,25 +190,25 @@ export const FeedPage: React.FC = () => {
               </Badge>
             </div>
 
-            {/* Action Image */}
-            <div className="relative rounded-2xl overflow-hidden aspect-[16/10] bg-slate-100 border border-slate-200">
+            {/* Action Image with Double-Tap Vibe */}
+            <div className="relative rounded-3xl overflow-hidden aspect-[16/10] bg-slate-900 border border-surface-border group">
               <img
                 src={post.photo}
                 alt={post.actionTitle}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
               <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between">
-                <span className="bg-black/70 backdrop-blur-md text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-eco-400" />
+                <span className="bg-black/75 backdrop-blur-md text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
+                  <MapPin className="w-3 h-3 text-eco-neon" />
                   {post.location}
                 </span>
-                <span className="bg-eco-700/90 backdrop-blur-md text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-xs">
+                <span className="bg-eco-700/90 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-neon-glow">
                   {post.coinsEarned}
                 </span>
               </div>
             </div>
 
-            {/* Description & Impact */}
+            {/* Description & Story */}
             <div className="space-y-1">
               <h3 className="text-xs font-black text-text-primary leading-snug">{post.actionTitle}</h3>
               <p className="text-xs text-text-secondary leading-relaxed">{post.story}</p>
@@ -194,7 +216,7 @@ export const FeedPage: React.FC = () => {
 
             {/* Social Media Publication Link if available */}
             {post.campaignUrl && (
-              <div className="bg-blue-50/90 p-2.5 rounded-xl border border-blue-200/80 flex items-center justify-between">
+              <div className="bg-blue-50/90 p-2.5 rounded-2xl border border-blue-200/80 flex items-center justify-between">
                 <span className="text-[11px] font-mono text-blue-900 truncate max-w-[200px]">
                   {post.campaignUrl}
                 </span>
@@ -202,7 +224,7 @@ export const FeedPage: React.FC = () => {
                   href={post.campaignUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[10px] font-bold text-blue-700 hover:text-blue-800 flex items-center gap-1 shrink-0 ml-2"
+                  className="text-[10px] font-black text-blue-700 hover:text-blue-800 flex items-center gap-1 shrink-0 ml-2"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   Lihat Konten
@@ -211,22 +233,48 @@ export const FeedPage: React.FC = () => {
             )}
 
             {/* SAT & Impact Badge */}
-            <div className="flex items-center justify-between text-[10px] font-extrabold bg-slate-50 p-2 rounded-xl border border-slate-200">
+            <div className="flex items-center justify-between text-[10px] font-black bg-surface-subtle p-2 rounded-xl border border-surface-border/60">
               <span className="text-blue-700">{post.satEarned}</span>
               <span className="text-eco-800">{post.carbonSaved}</span>
             </div>
 
-            {/* Footer Interactions */}
-            <div className="flex items-center justify-between pt-1 border-t border-surface-border/60 text-xs text-text-secondary">
+            {/* Emoji Reaction Bar (Gen Z Interaction) */}
+            <div className="flex items-center gap-1.5 pt-1 overflow-x-auto no-scrollbar">
+              {(reactions[post.id] || []).map((r, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => addReaction(post.id, r.emoji)}
+                  className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-xs font-black flex items-center gap-1 transition-all active:scale-90"
+                >
+                  <span>{r.emoji}</span>
+                  <span className="text-[10px] text-text-secondary font-mono">{r.count}</span>
+                </button>
+              ))}
+
+              <div className="flex items-center gap-1 pl-1 border-l border-slate-200">
+                {['🔥', '🌱', '⚡'].map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => addReaction(post.id, emoji)}
+                    className="w-7 h-7 rounded-full bg-white hover:bg-eco-50 border border-surface-border text-xs flex items-center justify-center transition-all active:scale-95 shadow-2xs"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer Likes & Timestamp */}
+            <div className="flex items-center justify-between pt-2 border-t border-surface-border/60 text-xs text-text-secondary">
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => toggleLike(post.id)}
-                  className={`flex items-center gap-1.5 font-bold transition-all active:scale-95 ${
+                  className={`flex items-center gap-1.5 font-black transition-all active:scale-95 ${
                     hasLiked[post.id] ? 'text-rose-600' : 'hover:text-rose-600'
                   }`}
                 >
                   <Heart className={`w-4 h-4 ${hasLiked[post.id] ? 'fill-rose-600 text-rose-600' : ''}`} />
-                  <span>{likes[post.id]}</span>
+                  <span>{likes[post.id]} Suka</span>
                 </button>
 
                 <button 
@@ -249,4 +297,3 @@ export const FeedPage: React.FC = () => {
     </div>
   );
 };
-

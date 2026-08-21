@@ -13,42 +13,58 @@
   }
 }
 
-/* Custom UI Utilities */
+/* Custom Gen Z Cyber-Eco Utilities */
 @layer components {
   .eco-glass {
     background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
   }
   
   .eco-glass-card {
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(226, 232, 240, 0.85);
   }
 
   .eco-glass-dark {
-    background: rgba(12, 39, 22, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(8, 23, 13, 0.88);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
     border: 1px solid rgba(255, 255, 255, 0.12);
   }
   
   .eco-gradient-hero {
-    background: linear-gradient(135deg, #164326 0%, #1E5631 45%, #2E8B57 100%);
+    background: linear-gradient(135deg, #0A2914 0%, #14532D 40%, #16A34A 80%, #00E676 100%);
+  }
+
+  .eco-gradient-mesh {
+    background: radial-gradient(at 0% 0%, rgba(0, 230, 118, 0.18) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(255, 215, 0, 0.15) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                #F8FAF9;
+  }
+
+  .eco-gradient-cyber {
+    background: linear-gradient(135deg, #16A34A 0%, #00E676 50%, #06B6D4 100%);
   }
 
   .eco-gradient-subtle {
-    background: linear-gradient(135deg, #F0F9F3 0%, #E8F5EE 100%);
+    background: linear-gradient(135deg, #F0FDF4 0%, #E8F5EE 100%);
   }
   
   .gold-gradient-badge {
-    background: linear-gradient(135deg, #FFB800 0%, #E5A93C 100%);
+    background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%);
   }
 
   .gold-gradient-card {
-    background: linear-gradient(135deg, #FFF9E6 0%, #FFF3CC 100%);
+    background: linear-gradient(135deg, #FEFCE8 0%, #FEF08A 100%);
+  }
+
+  .neon-border {
+    border: 1px solid rgba(0, 230, 118, 0.4);
+    box-shadow: 0 0 15px rgba(0, 230, 118, 0.2);
   }
 }
 
@@ -63,16 +79,17 @@
 
 /* Custom subtle scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(30, 86, 49, 0.15);
+  background: rgba(22, 163, 74, 0.2);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(30, 86, 49, 0.3);
+  background: rgba(22, 163, 74, 0.4);
 }
+
