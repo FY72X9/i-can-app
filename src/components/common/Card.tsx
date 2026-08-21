@@ -3,7 +3,7 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'eco' | 'subtle' | 'outline';
+  variant?: 'default' | 'eco' | 'subtle' | 'outline' | 'glass' | 'gold';
   hoverable?: boolean;
 }
 
@@ -17,13 +17,15 @@ export const Card: React.FC<CardProps> = ({
   const baseStyles = "rounded-card p-4 sm:p-5 transition-all duration-200";
 
   const variantStyles = {
-    default: 'bg-white shadow-eco-soft border border-surface-border/60',
-    eco: 'bg-gradient-to-br from-eco-600 to-eco-700 text-white shadow-eco-float',
-    subtle: 'bg-surface-subtle border border-surface-border/40',
+    default: 'bg-white shadow-eco-soft border border-surface-border/70',
+    eco: 'eco-gradient-hero text-white shadow-eco-float border border-white/15',
+    subtle: 'bg-surface-subtle border border-surface-border/60',
     outline: 'bg-transparent border border-surface-border',
+    glass: 'eco-glass-card shadow-eco-soft',
+    gold: 'gold-gradient-card border border-amber-200/80 shadow-eco-soft text-text-primary',
   };
 
-  const hoverStyles = hoverable ? 'hover:shadow-eco-card hover:-translate-y-0.5 cursor-pointer' : '';
+  const hoverStyles = hoverable ? 'hover:shadow-eco-card hover:-translate-y-0.5 cursor-pointer active:translate-y-0' : '';
 
   return (
     <div className={twMerge(clsx(baseStyles, variantStyles[variant], hoverStyles, className))} {...props}>
@@ -31,3 +33,4 @@ export const Card: React.FC<CardProps> = ({
     </div>
   );
 };
+

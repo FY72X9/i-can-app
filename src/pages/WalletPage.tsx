@@ -1,210 +1,258 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
+import { getActions } from '@/services/actionService';
+import { GreenAction } from '@/types';
 import { 
   Coins, 
-  ArrowRight, 
   History, 
-  CheckCircle2
+  GraduationCap,
+  Clock,
+  Download,
+  FileCheck2,
+  TreePine,
+  Sparkles,
+  Trophy,
+  Share2,
+  CheckCircle2,
+  Check,
+  Copy,
+  ExternalLink,
+  ShieldCheck,
+  Award
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 
 export const WalletPage: React.FC = () => {
-  const { user, updateUserStats } = useAuthStore();
-  const [convertAmount, setConvertAmount] = useState<number>(100);
-  const [isConverting, setIsConverting] = useState(false);
-  const [successModal, setSuccessModal] = useState<{ satReceived: number; coinsSpent: number } | null>(null);
+  const { user } = useAuthStore();
+  const [verifiedActions, setVerifiedActions] = useState<GreenAction[]>([]);
+  const [copiedTranscript, setCopiedTranscript] = useState(false);
 
-  // Conversion rate: 50 Green Coins = 1 SAT Point
-  const CONVERSION_RATE = 50;
-  const satEquivalent = Math.floor(convertAmount / CONVERSION_RATE);
-
-  const handleConvert = () => {
-    if (!user || user.totalGreenCoins < convertAmount) {
-      alert('Saldo Green Coin Anda tidak mencukupi untuk nominal konversi ini!');
-      return;
-    }
-
-    if (convertAmount < CONVERSION_RATE) {
-      alert(`Minimal konversi adalah ${CONVERSION_RATE} Green Coins (1 SAT Point).`);
-      return;
-    }
-
-    setIsConverting(true);
-
-    setTimeout(() => {
-      updateUserStats({
-        greenCoins: -convertAmount,
-        satPoints: satEquivalent,
-      });
-
-      confetti({
-        particleCount: 100,
-        spread: 80,
-        origin: { y: 0.5 },
-        colors: ['#FFB800', '#E5A93C', '#2E8B57', '#1E5631'],
-      });
-
-      setIsConverting(false);
-      setSuccessModal({ satReceived: satEquivalent, coinsSpent: convertAmount });
-    }, 800);
-  };
-
-  const sampleHistory = [
-    { id: '1', title: 'Konversi ke SAT Point', type: 'OUT', amount: '-100 GC', sat: '+2 SAT', date: 'Hari ini, 10:30' },
-    { id: '2', title: 'Aksi Bawa Tumbler', type: 'IN', amount: '+10 GC', sat: '', date: 'Kemarin, 14:15' },
-    { id: '3', title: 'Aksi Shuttle Bus BINUS', type: 'IN', amount: '+15 GC', sat: '+1 SAT', date: '17 Agt 2026' },
+  // Sample default verified actions if local storage is empty
+  const defaultVerified: GreenAction[] = [
+    {
+      id: 'act-done-1',
+      userId: user?.id || 'usr-student-001',
+      userName: user?.fullName || 'Mahasiswa BINUS',
+      categoryId: 'tree',
+      categoryName: 'Penanaman Bibit Pohon',
+      submissionType: 'PENYULUHAN_AKSI_NYATA',
+      photoUrl: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&auto=format&fit=crop&q=80',
+      story: 'Penyuluhan medsos & tanam 5 bibit pohon keras di fasilitas umum.',
+      status: 'APPROVED',
+      decision: 'APPROVED_FULL',
+      greenCoinsEarned: 25,
+      carbonImpactKg: 5.0,
+      satPointsEarned: 4,
+      comservHoursEarned: 2.0,
+      submittedAt: '2026-08-18T10:30:00Z',
+      verifiedAt: '2026-08-18T14:15:00Z',
+    },
+    {
+      id: 'act-done-2',
+      userId: user?.id || 'usr-student-001',
+      userName: user?.fullName || 'Mahasiswa BINUS',
+      categoryId: 'biopori',
+      categoryName: 'Pembuatan Lubang Biopori',
+      submissionType: 'PENYULUHAN_AKSI_NYATA',
+      photoUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=600&auto=format&fit=crop&q=80',
+      story: 'Pembuatan 5 lubang biopori bersama pengelola lingkungan RT setempat.',
+      status: 'APPROVED',
+      decision: 'APPROVED_FULL',
+      greenCoinsEarned: 20,
+      carbonImpactKg: 0.5,
+      satPointsEarned: 4,
+      comservHoursEarned: 2.0,
+      submittedAt: '2026-08-15T09:00:00Z',
+      verifiedAt: '2026-08-15T11:20:00Z',
+    },
+    {
+      id: 'act-done-3',
+      userId: user?.id || 'usr-student-001',
+      userName: user?.fullName || 'Mahasiswa BINUS',
+      categoryId: 'bus',
+      categoryName: 'Shuttle Bus & Transportasi Hijau',
+      submissionType: 'SELF_GREEN_CAMPAIGN',
+      photoUrl: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=600&auto=format&fit=crop&q=80',
+      story: 'Menggunakan shuttle bus kampus BINUS Anggrek-Syahdan.',
+      status: 'APPROVED',
+      decision: 'APPROVED_FULL',
+      greenCoinsEarned: 15,
+      carbonImpactKg: 0.12,
+      satPointsEarned: 1,
+      comservHoursEarned: 0.5,
+      submittedAt: '2026-08-12T08:15:00Z',
+      verifiedAt: '2026-08-12T09:00:00Z',
+    },
   ];
 
-  return (
-    <div className="space-y-4 pb-20">
-      {/* 1. Wallet Header Card */}
-      <Card variant="eco" className="relative overflow-hidden text-center py-6 px-4">
-        <div className="relative z-10 space-y-2">
-          <span className="text-xs font-semibold text-eco-100 uppercase tracking-wider flex items-center justify-center gap-1.5">
-            <Coins className="w-4 h-4 text-gold-400 fill-gold-400" />
-            Total Saldo Dompet Hijau
-          </span>
+  useEffect(() => {
+    async function load() {
+      const actions = await getActions();
+      const approved = actions.filter((a) => a.status === 'APPROVED');
+      setVerifiedActions(approved.length > 0 ? approved : defaultVerified);
+    }
+    load();
+  }, []);
 
-          <div className="text-3xl font-extrabold text-white tracking-tight">
-            {user?.totalGreenCoins || 450} <span className="text-sm font-medium text-eco-100">GC</span>
+  const totalSat = verifiedActions.reduce((acc, a) => acc + (a.satPointsEarned || 0), 0) || (user?.totalSatPoints || 9);
+  const totalComserv = verifiedActions.reduce((acc, a) => acc + (a.comservHoursEarned || 0), 0) || 4.5;
+  const totalCoins = user?.totalGreenCoins || 120;
+
+  const handleExportTranscript = () => {
+    const transcriptText = `--- TRANSKRIP PORTOFOLIO AKSI I-CAN & TFI ---
+Nama: ${user?.fullName || 'Mahasiswa BINUS'}
+NIM: ${user?.nim || '2602199841'}
+Fakultas: ${user?.facultyName || 'School of Computer Science'}
+Total Poin SAT: ${totalSat} SAT
+Total Jam Community Service: ${totalComserv} Jam
+Total Saldo Green Coins: ${totalCoins} GC
+
+DAFTAR KEGIATAN RIIL TERVERIFIKASI:
+${verifiedActions.map((a, idx) => `${idx + 1}. [${a.categoryName}] +${a.satPointsEarned} SAT (${a.comservHoursEarned || 0} Jam Comserv) - ${new Date(a.submittedAt).toLocaleDateString('id-ID')}`).join('\n')}
+
+Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia (TFI).`;
+
+    navigator.clipboard.writeText(transcriptText);
+    setCopiedTranscript(true);
+    setTimeout(() => setCopiedTranscript(false), 2500);
+  };
+
+  return (
+    <div className="space-y-4 pb-4">
+      {/* 1. Header Dual-Track Standing Card */}
+      <Card variant="eco" className="relative overflow-hidden text-center py-6 px-4 shadow-eco-float">
+        <div className="relative z-10 space-y-3.5">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-eco-100 text-[11px] font-extrabold backdrop-blur-md border border-white/20">
+            <Trophy className="w-3.5 h-3.5 text-gold-400" />
+            Portofolio Rekognisi & Transkrip Mahasiswa
           </div>
 
-          <p className="text-xs text-eco-100/90">
-            Ekuivalen: <b className="text-gold-300 font-bold">{Math.floor((user?.totalGreenCoins || 450) / CONVERSION_RATE)} SAT Point</b> siap dikonversi
+          {/* Dual Balance Display Bento */}
+          <div className="grid grid-cols-2 gap-2.5 max-w-sm mx-auto pt-1">
+            {/* Track A: Green Coins (BEKEN Track) */}
+            <div className="bg-white/10 rounded-2xl p-3 text-center border border-white/15 backdrop-blur-md">
+              <span className="text-[10px] text-eco-100 font-extrabold uppercase tracking-wider block mb-0.5">
+                BEKEN Credits
+              </span>
+              <div className="text-2xl font-black text-white">
+                {totalCoins} <span className="text-xs font-semibold text-gold-300">GC</span>
+              </div>
+              <span className="text-[10px] text-gold-300 font-bold mt-0.5 inline-block">Top 15% Nominee</span>
+            </div>
+
+            {/* Track B: SAT & Comserv (Academic Track) */}
+            <div className="bg-white/10 rounded-2xl p-3 text-center border border-white/15 backdrop-blur-md">
+              <span className="text-[10px] text-eco-100 font-extrabold uppercase tracking-wider block mb-0.5">
+                Transkrip SAT
+              </span>
+              <div className="text-2xl font-black text-white">
+                {totalSat} <span className="text-xs font-semibold text-eco-200">SAT</span>
+              </div>
+              <span className="text-[10px] text-eco-100 font-bold mt-0.5 inline-block">{totalComserv} Jam Comserv</span>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-eco-100/90 max-w-xs mx-auto leading-relaxed">
+            Pemberian poin SAT dipetakan langsung dari aksi nyata sesuai regulasi Student Service Office (SSO) & TFI.
           </p>
         </div>
       </Card>
 
-      {/* 2. SAT Converter Tool Card */}
-      <Card className="p-4 bg-white space-y-4">
+      {/* 2. Direct Activity Mapping Info & Export Banner */}
+      <Card className="p-4 bg-white space-y-3 border-surface-border shadow-eco-soft">
         <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-text-primary">Konversi ke SAT Point</h3>
-            <p className="text-[11px] text-text-secondary">Rate: 50 Green Coins = 1 SAT Point</p>
+          <div className="flex items-center gap-2">
+            <FileCheck2 className="w-4 h-4 text-eco-600" />
+            <h3 className="text-xs font-black text-text-primary">Portofolio Aksi Terverifikasi</h3>
           </div>
-          <Badge variant="gold" size="sm">
-            Instant Sync
+          <Badge variant="success" size="sm">
+            {verifiedActions.length} Aksi Selesai
           </Badge>
         </div>
 
-        {/* Quick Amount Selector */}
-        <div className="space-y-2">
-          <label className="text-xs font-bold text-text-secondary block">Pilih Jumlah Green Coin</label>
-          <div className="grid grid-cols-3 gap-2">
-            {[50, 100, 200].map((val) => (
-              <button
-                key={val}
-                type="button"
-                onClick={() => setConvertAmount(val)}
-                className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
-                  convertAmount === val
-                    ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
-                    : 'bg-surface-subtle text-text-primary border-surface-border hover:bg-slate-100'
-                }`}
-              >
-                {val} GC
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Conversion Calculator Box */}
-        <div className="bg-surface-subtle p-3 rounded-2xl border border-surface-border/80 flex items-center justify-between">
-          <div className="text-left">
-            <span className="text-[10px] text-text-secondary uppercase font-bold">Koin Ditukar</span>
-            <p className="text-base font-extrabold text-text-primary">{convertAmount} GC</p>
-          </div>
-
-          <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-eco-600">
-            <ArrowRight className="w-4 h-4" />
-          </div>
-
-          <div className="text-right">
-            <span className="text-[10px] text-eco-600 uppercase font-bold">SAT Didapat</span>
-            <p className="text-base font-extrabold text-eco-700">+{satEquivalent} SAT</p>
-          </div>
-        </div>
+        <p className="text-xs text-text-secondary leading-relaxed">
+          Seluruh kegiatan di bawah ini telah diverifikasi langsung oleh Admin SSO / Eco-Volunteer dan siap disinkronisasikan ke transkrip semester myBINUS.
+        </p>
 
         <Button
-          size="lg"
-          variant="gold"
-          onClick={handleConvert}
-          isLoading={isConverting}
-          className="w-full"
-          disabled={(user?.totalGreenCoins || 0) < convertAmount}
+          variant="secondary"
+          size="sm"
+          className="w-full text-xs font-extrabold flex items-center justify-center gap-1.5 py-2.5"
+          onClick={handleExportTranscript}
         >
-          Konversi Sekarang (+{satEquivalent} SAT)
+          {copiedTranscript ? (
+            <>
+              <CheckCircle2 className="w-4 h-4 text-eco-700" />
+              Transkrip Berhasil Disalin ke Clipboard!
+            </>
+          ) : (
+            <>
+              <Copy className="w-4 h-4 text-eco-700" />
+              Salin Ringkasan Transkrip (myBINUS / TFI)
+            </>
+          )}
         </Button>
       </Card>
 
-      {/* 3. Transaction History */}
-      <Card className="p-4 bg-white space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <History className="w-4 h-4 text-text-secondary" />
-            <h3 className="text-xs font-bold text-text-primary">Riwayat Transaksi Dompet</h3>
-          </div>
+      {/* 3. List of Verified Real Actions */}
+      <div className="space-y-2.5">
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-xs font-extrabold text-text-secondary uppercase tracking-wider flex items-center gap-1.5">
+            <History className="w-3.5 h-3.5 text-text-muted" />
+            Daftar Kegiatan Riil Terverifikasi
+          </h3>
         </div>
 
-        <div className="space-y-2.5 divide-y divide-surface-border/60">
-          {sampleHistory.map((item) => (
-            <div key={item.id} className="pt-2.5 first:pt-0 flex items-center justify-between">
-              <div>
-                <h4 className="text-xs font-bold text-text-primary">{item.title}</h4>
-                <p className="text-[10px] text-text-muted">{item.date}</p>
+        {verifiedActions.map((action) => (
+          <Card key={action.id} className="p-3.5 bg-white border-surface-border shadow-eco-sm space-y-2 hover:border-eco-300 transition-colors">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-eco-50 text-eco-700 flex items-center justify-center font-bold shadow-xs">
+                  {action.categoryId === 'tree' ? (
+                    <TreePine className="w-5 h-5" />
+                  ) : action.categoryId === 'vbl' ? (
+                    <GraduationCap className="w-5 h-5" />
+                  ) : (
+                    <Sparkles className="w-5 h-5" />
+                  )}
+                </div>
+                <div>
+                  <h4 className="text-xs font-extrabold text-text-primary">{action.categoryName}</h4>
+                  <p className="text-[10px] text-text-muted">
+                    {new Date(action.submittedAt).toLocaleDateString('id-ID', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })} • Terverifikasi SSO
+                  </p>
+                </div>
               </div>
 
+              {/* Award Badges */}
               <div className="text-right">
-                <span
-                  className={`text-xs font-extrabold ${
-                    item.type === 'IN' ? 'text-eco-600' : 'text-amber-600'
-                  }`}
-                >
-                  {item.amount}
+                <span className="text-xs font-black text-blue-700 block">
+                  {action.satPointsEarned > 0 ? `+${action.satPointsEarned} SAT` : '+0 SAT'}
                 </span>
-                {item.sat && (
-                  <p className="text-[10px] text-blue-600 font-semibold">{item.sat}</p>
-                )}
+                <p className="text-[10px] font-bold text-amber-800">+{action.greenCoinsEarned} GC</p>
               </div>
             </div>
-          ))}
-        </div>
-      </Card>
 
-      {/* Success Modal */}
-      {successModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="w-16 h-16 bg-eco-100 rounded-full flex items-center justify-center mx-auto text-eco-600">
-              <CheckCircle2 className="w-10 h-10" />
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-text-primary">Konversi Berhasil!</h3>
-              <p className="text-xs text-text-secondary mt-1">
-                <b>{successModal.coinsSpent} Green Coins</b> berhasil ditukar menjadi{' '}
-                <b className="text-eco-700">+{successModal.satReceived} SAT Point</b>.
+            {action.story && (
+              <p className="text-[11px] text-text-secondary bg-surface-subtle p-2 rounded-xl italic">
+                "{action.story}"
               </p>
-            </div>
+            )}
 
-            <div className="bg-eco-50 p-3 rounded-2xl text-xs text-eco-800 space-y-1">
-              <p className="font-bold">Status Sinkronisasi myBINUS:</p>
-              <p className="text-[11px] text-eco-700">✅ Terverifikasi & tercatat di log portofolio kampus</p>
+            <div className="flex items-center justify-between text-[10px] text-text-muted pt-1 border-t border-slate-100">
+              <span>Status: <strong className="text-eco-800 font-bold">Directly Mapped</strong></span>
+              <span>Dampak: <strong className="text-eco-900 font-bold">{action.carbonImpactKg} kg CO2e</strong></span>
             </div>
-
-            <Button
-              variant="primary"
-              className="w-full"
-              onClick={() => setSuccessModal(null)}
-            >
-              Selesai
-            </Button>
-          </div>
-        </div>
-      )}
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };
+

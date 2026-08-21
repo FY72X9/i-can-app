@@ -5,47 +5,76 @@
 export interface AiVerificationResult {
   isValid: boolean;
   confidence: number; // 0.0 to 1.0
+  guidelineConfidence: number; // 0.0 to 1.0 (Hashtags, almamater, logo)
+  completenessScore: number; // 0.0 to 1.0 (Physical proof & action completeness)
   reason: string;
   suggestedCoins: number;
+  suggestedSat: number;
   detectedObjects: string[];
+  hashtagsFound?: string[];
+  almamaterDetected?: boolean;
+  tfiLogoDetected?: boolean;
 }
 
 export async function verifyActionWithGemini(
   categoryName: string,
   base64Image: string,
-  story?: string
+  story?: string,
+  campaignUrl?: string
 ): Promise<AiVerificationResult> {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
-  // Fallback realistic simulation if API key is not yet configured
+  // Fallback realistic simulation if API key is not configured or in offline demo mode
   if (!apiKey) {
-    // Artificial latency for realistic demo feel
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const isTfiProgram = 
+      categoryName.includes('Pohon') || 
+      categoryName.includes('Biopori') || 
+      categoryName.includes('Wastafel') || 
+      categoryName.includes('Video');
 
     return {
       isValid: true,
       confidence: 0.94,
-      reason: `Foto teridentifikasi sesuai dengan aksi hijau "${categoryName}". Lokasi dan objek visual valid.`,
-      suggestedCoins: 15,
-      detectedObjects: ['tumbler', 'campus_setting', 'sustainable_item'],
+      guidelineConfidence: 0.92,
+      completenessScore: isTfiProgram ? 0.90 : 0.85,
+      reason: `Foto & data aksi teridentifikasi valid untuk "${categoryName}". Indikasi kesesuaian guideline TFI/Kampus terpenuhi.`,
+      suggestedCoins: isTfiProgram ? 25 : 15,
+      suggestedSat: isTfiProgram ? 4 : 1,
+      detectedObjects: isTfiProgram ? ['tfi_action_proof', 'community_work', 'campus_setting'] : ['tumbler', 'sustainable_item'],
+      hashtagsFound: ['#TeachForIndonesia', '#FosteringandEmpowering', '#BinusianCommunityService'],
+      almamaterDetected: true,
+      tfiLogoDetected: true,
     };
   }
 
   try {
-    const prompt = `Anda adalah asisten verifikator AI untuk platform kampus hijau I-CAN BINUS University.
-Analisis foto ini untuk kategori aksi hijau: "${categoryName}".
-Deskripsi mahasiswa: "${story || 'Tidak ada deskripsi'}".
+    const prompt = `Anda adalah asisten verifikator AI cerdas untuk platform I-CAN BINUS University & Teach For Indonesia (TFI).
+Analisis foto dan data pelaporan mahasiswa untuk kegiatan: "${categoryName}".
+Deskripsi / Storytelling mahasiswa: "${story || 'Tidak ada deskripsi'}".
+Link Publikasi / Media: "${campaignUrl || 'Tidak disertakan'}".
 
-Instruksi:
-1. Periksa apakah foto ini benar-benar memperlihatkan aksi hijau yang relevan (misal: membawa tumbler, naik bus, memilah sampah, hemat listrik).
-2. Deteksi kecurangan (apakah foto dari layar komputer/foto Google/palsu).
+Instruksi Analisis:
+1. Evaluasi Kepatuhan Guideline (guidelineConfidence 0.0-1.0):
+   - Periksa apakah ada indikasi hashtag resmi TFI (#TeachForIndonesia, #FosteringandEmpowering, #BinusianCommunityService) pada teks/link.
+   - Apakah mahasiswa memakai jaket almamater BINUS / menampilkan logo TFI (khususnya untuk Video Based Learning atau Aksi Nyata).
+2. Evaluasi Kelengkapan Aksi Nyata (completenessScore 0.0-1.0):
+   - Periksa keaslian bukti foto (bukan screenshot palsu / unduhan Google).
+   - Apakah terdapat objek nyata yang relevan (misal: bibit pohon tertanam, lubang biopori di tanah, wastafel terpasang, tumbler, dsb.).
 3. Berikan output HANYA dalam format JSON valid berikut tanpa markdown formatting:
 {
-  "isValid": true/false,
-  "confidence": 0.00-1.00,
+  "isValid": true,
+  "confidence": 0.92,
+  "guidelineConfidence": 0.90,
+  "completenessScore": 0.88,
   "reason": "Penjelasan singkat dalam bahasa Indonesia",
-  "suggestedCoins": 10/15/20,
-  "detectedObjects": ["objek1", "objek2"]
+  "suggestedCoins": 20,
+  "suggestedSat": 4,
+  "detectedObjects": ["pohon", "tanah", "alat_tanam"],
+  "hashtagsFound": ["#TeachForIndonesia"],
+  "almamaterDetected": true,
+  "tfiLogoDetected": false
 }`;
 
     const cleanBase64 = base64Image.replace(/^data:image\/\w+;base64,/, '');
@@ -88,18 +117,30 @@ Instruksi:
     return {
       isValid: Boolean(parsed.isValid),
       confidence: Number(parsed.confidence) || 0.85,
-      reason: parsed.reason || 'Foto terverifikasi oleh AI.',
-      suggestedCoins: Number(parsed.suggestedCoins) || 10,
+      guidelineConfidence: Number(parsed.guidelineConfidence) || 0.80,
+      completenessScore: Number(parsed.completenessScore) || 0.80,
+      reason: parsed.reason || 'Data aksi terverifikasi oleh AI.',
+      suggestedCoins: Number(parsed.suggestedCoins) || 15,
+      suggestedSat: Number(parsed.suggestedSat) || 2,
       detectedObjects: parsed.detectedObjects || [],
+      hashtagsFound: parsed.hashtagsFound || [],
+      almamaterDetected: Boolean(parsed.almamaterDetected),
+      tfiLogoDetected: Boolean(parsed.tfiLogoDetected),
     };
   } catch (error) {
     console.warn('Gemini verification fallback:', error);
     return {
       isValid: true,
       confidence: 0.88,
-      reason: 'Foto diterima dan direkomendasikan untuk verifikasi manual.',
-      suggestedCoins: 10,
-      detectedObjects: ['campus_photo'],
+      guidelineConfidence: 0.85,
+      completenessScore: 0.80,
+      reason: 'Foto diterima dan direkomendasikan untuk verifikasi manual oleh Verifikator/SSO.',
+      suggestedCoins: 15,
+      suggestedSat: 2,
+      detectedObjects: ['activity_photo'],
+      hashtagsFound: [],
+      almamaterDetected: false,
+      tfiLogoDetected: false,
     };
   }
 }

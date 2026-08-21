@@ -8,7 +8,7 @@
   }
   
   body {
-    @apply bg-surface-bg text-text-primary overflow-x-hidden;
+    @apply bg-surface-bg text-text-primary overflow-x-hidden antialiased;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 }
@@ -16,17 +16,39 @@
 /* Custom UI Utilities */
 @layer components {
   .eco-glass {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
   
-  .eco-gradient-card {
-    background: linear-gradient(135deg, #1E5631 0%, #2E8B57 100%);
+  .eco-glass-card {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+  }
+
+  .eco-glass-dark {
+    background: rgba(12, 39, 22, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  
+  .eco-gradient-hero {
+    background: linear-gradient(135deg, #164326 0%, #1E5631 45%, #2E8B57 100%);
+  }
+
+  .eco-gradient-subtle {
+    background: linear-gradient(135deg, #F0F9F3 0%, #E8F5EE 100%);
   }
   
   .gold-gradient-badge {
     background: linear-gradient(135deg, #FFB800 0%, #E5A93C 100%);
+  }
+
+  .gold-gradient-card {
+    background: linear-gradient(135deg, #FFF9E6 0%, #FFF3CC 100%);
   }
 }
 
@@ -37,4 +59,20 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(30, 86, 49, 0.15);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(30, 86, 49, 0.3);
 }

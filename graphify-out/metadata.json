@@ -1,0 +1,61 @@
+{
+  "projectName": "i-can-app",
+  "communityLabels": {
+    "0": "Community 0",
+    "1": "Community 1",
+    "2": "Community 2",
+    "3": "Community 3",
+    "4": "Community 4",
+    "5": "Community 5",
+    "6": "Community 6",
+    "7": "Community 7",
+    "8": "unknown",
+    "9": "Community 9",
+    "10": "Community 10",
+    "11": "Community 11",
+    "12": "Community 12",
+    "13": "unknown",
+    "14": "unknown",
+    "15": "unknown",
+    "16": "unknown",
+    "17": "unknown",
+    "18": "unknown",
+    "19": "unknown",
+    "20": "unknown",
+    "21": "unknown",
+    "22": "unknown",
+    "23": "Community 23"
+  },
+  "communitySummaries": {
+    "0": "",
+    "1": "",
+    "2": "",
+    "3": "",
+    "4": "",
+    "5": "",
+    "6": "",
+    "7": "",
+    "8": "Unable to determine domain due to missing code entities.",
+    "9": "",
+    "10": "",
+    "11": "",
+    "12": "",
+    "13": "Unable to determine domain due to missing code entities.",
+    "14": "Unable to determine domain due to missing code entities.",
+    "15": "Unable to determine domain due to missing code entities.",
+    "16": "Unable to determine domain due to missing code entities.",
+    "17": "Unable to determine domain due to missing code entities.",
+    "18": "Unable to determine domain due to missing code entities.",
+    "19": "Unable to determine domain due to missing code entities.",
+    "20": "Unable to determine domain due to missing code entities.",
+    "21": "Unable to determine domain due to missing code entities.",
+    "22": "Unable to determine domain due to missing code entities.",
+    "23": ""
+  },
+  "communityLinks": {
+    "1": {
+      "0": 1
+    },
+    "0": {}
+  }
+}

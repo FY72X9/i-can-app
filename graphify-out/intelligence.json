@@ -1,0 +1,36 @@
+{
+  "hotspots": [
+    {
+      "label": "UploadPage",
+      "risk": 0.622,
+      "type": "FUNCTION"
+    },
+    {
+      "label": "LoginPage()",
+      "risk": 0.371,
+      "type": "FUNCTION"
+    },
+    {
+      "label": "postcss.config.js",
+      "risk": 0.204,
+      "type": "FUNCTION"
+    },
+    {
+      "label": "tailwind.config.js",
+      "risk": 0.204,
+      "type": "FUNCTION"
+    },
+    {
+      "label": "vite.config.ts",
+      "risk": 0.204,
+      "type": "FUNCTION"
+    }
+  ],
+  "blast_radius": {
+    "getActions()": 5,
+    "updateActionVerification()": 4,
+    "LoginPage()": 2,
+    "load()": 2,
+    "handleDecision()": 2
+  }
+}
