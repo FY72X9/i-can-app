@@ -797,7 +797,7 @@
       "loc": 1,
       "level": 0,
       "granularity": "low",
-      "heat": 0.169,
+      "heat": 0.177,
       "owner": "unowned",
       "id": "d_codes_i_can_app_src_pages_loginpage_tsx",
       "community": 1,
@@ -836,7 +836,7 @@
       "norm_label": "navigate"
     },
     {
-      "label": "{ isAuthenticated, loginAs, loginWithPassword, register, authError, clearError, isLoading }",
+      "label": "{ user, isAuthenticated, loginAs, loginWithPassword, register, authError, clearError, isLoading }",
       "file_type": "code",
       "type": "FUNCTION",
       "source_file": "D:\\Codes\\i-can-app\\src\\pages\\LoginPage.tsx",
@@ -848,9 +848,9 @@
       "heat": 0.015,
       "owner": "unowned",
       "sensitivity": "HIGH",
-      "id": "loginpage_isauthenticated_loginas_loginwithpassword_register_autherror_clearerror_isloading",
+      "id": "loginpage_user_isauthenticated_loginas_loginwithpassword_register_autherror_clearerror_isloading",
       "community": 1,
-      "norm_label": "{ isauthenticated, loginas, loginwithpassword, register, autherror, clearerror, isloading }"
+      "norm_label": "{ user, isauthenticated, loginas, loginwithpassword, register, autherror, clearerror, isloading }"
     },
     {
       "label": "{ signIn: logtoSignIn }",
@@ -1048,6 +1048,22 @@
       "id": "loginpage_showregpassword_setshowregpassword",
       "community": 1,
       "norm_label": "[showregpassword, setshowregpassword]"
+    },
+    {
+      "label": "[formValidationMsg, setFormValidationMsg]",
+      "file_type": "code",
+      "type": "FUNCTION",
+      "source_file": "D:\\Codes\\i-can-app\\src\\pages\\LoginPage.tsx",
+      "source_location": "L60",
+      "complexity": 1,
+      "loc": 1,
+      "level": 3,
+      "granularity": "low",
+      "heat": 0.015,
+      "owner": "unowned",
+      "id": "loginpage_formvalidationmsg_setformvalidationmsg",
+      "community": 1,
+      "norm_label": "[formvalidationmsg, setformvalidationmsg]"
     },
     {
       "label": "handleTabSwitch()",
@@ -3019,9 +3035,9 @@
       "source_location": "L42",
       "weight": 1.0,
       "_src": "d_codes_i_can_app_src_pages_loginpage_tsx",
-      "_tgt": "loginpage_isauthenticated_loginas_loginwithpassword_register_autherror_clearerror_isloading",
+      "_tgt": "loginpage_user_isauthenticated_loginas_loginwithpassword_register_autherror_clearerror_isloading",
       "source": "d_codes_i_can_app_src_pages_loginpage_tsx",
-      "target": "loginpage_isauthenticated_loginas_loginwithpassword_register_autherror_clearerror_isloading",
+      "target": "loginpage_user_isauthenticated_loginas_loginwithpassword_register_autherror_clearerror_isloading",
       "confidence_score": 1.0
     },
     {
@@ -3166,6 +3182,18 @@
       "_tgt": "loginpage_showregpassword_setshowregpassword",
       "source": "d_codes_i_can_app_src_pages_loginpage_tsx",
       "target": "loginpage_showregpassword_setshowregpassword",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "D:\\Codes\\i-can-app\\src\\pages\\LoginPage.tsx",
+      "source_location": "L60",
+      "weight": 1.0,
+      "_src": "d_codes_i_can_app_src_pages_loginpage_tsx",
+      "_tgt": "loginpage_formvalidationmsg_setformvalidationmsg",
+      "source": "d_codes_i_can_app_src_pages_loginpage_tsx",
+      "target": "loginpage_formvalidationmsg_setformvalidationmsg",
       "confidence_score": 1.0
     },
     {

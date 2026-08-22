@@ -1,11 +1,11 @@
-# Graph Report - D:\Codes\i-can-app  (2026-08-21)
+# Graph Report - D:\Codes\i-can-app  (2026-08-22)
 
 ## Corpus Check
-- 29 files · ~37,859 words
+- 29 files · ~41,820 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 157 nodes · 146 edges · 26 communities detected
+- 158 nodes · 147 edges · 26 communities detected
 - Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
@@ -70,8 +70,8 @@ Nodes (19): [aiResult, setAiResult], [campaignUrl, setCampaignUrl], CATEGORIES, 
 
 ### Community 1 - "Community 1"
 
-Cohesion: 0.11
-Nodes (19): [activeTab, setActiveTab], FACULTIES, handleDemoStudent(), handleDemoVerifier(), handleLoginSubmit(), handleRegisterSubmit(), { isAuthenticated, loginAs, loginWithPassword, register, authError, clearError, isLoading }, [loginIdentifier, setLoginIdentifier] (+11 more)
+Cohesion: 0.1
+Nodes (20): [activeTab, setActiveTab], FACULTIES, [formValidationMsg, setFormValidationMsg], handleDemoStudent(), handleDemoVerifier(), handleLoginSubmit(), handleRegisterSubmit(), [loginIdentifier, setLoginIdentifier] (+12 more)
 
 ### Community 2 - "Community 2"
 
@@ -194,7 +194,7 @@ Cohesion: 1.0
 Nodes (1): i-can-app Repository
 
 ## Knowledge Gaps
-- **88 isolated node(s):** `className`, `{ user }`, `isVerifier`, `navItems`, `Icon` (+83 more)
+- **89 isolated node(s):** `className`, `{ user }`, `isVerifier`, `navItems`, `Icon` (+84 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **Thin community `Community 15`** (2 nodes): `Badge()`, `Badge.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
