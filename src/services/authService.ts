@@ -77,6 +77,48 @@ const DEFAULT_SEEDED_ACCOUNTS: Omit<StoredAuthAccount, 'passwordHash'>[] = [
     streakDays: 14,
     createdAt: '2026-07-15T00:00:00Z',
   },
+  {
+    id: 'usr-student-003',
+    nim: '2602234567',
+    email: 'nadia.safira@binus.ac.id',
+    fullName: 'Nadia Safira',
+    facultyName: 'School of Design',
+    role: 'STUDENT',
+    avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+    totalGreenCoins: 890,
+    totalSatPoints: 68,
+    totalCarbonSaved: 24.80,
+    streakDays: 9,
+    createdAt: '2026-07-28T00:00:00Z',
+  },
+  {
+    id: 'usr-student-004',
+    nim: '2602345678',
+    email: 'farhan.ramadhan@binus.ac.id',
+    fullName: 'Farhan Ramadhan',
+    facultyName: 'Faculty of Engineering',
+    role: 'STUDENT',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    totalGreenCoins: 110,
+    totalSatPoints: 8,
+    totalCarbonSaved: 3.20,
+    streakDays: 2,
+    createdAt: '2026-08-10T00:00:00Z',
+  },
+  {
+    id: 'usr-admin-005',
+    nim: '1980010101',
+    email: 'hendra.sso@binus.ac.id',
+    fullName: 'Hendra Kusuma, M.Kom (Super Admin)',
+    facultyName: 'Student Service Office (SSO)',
+    role: 'ADMIN',
+    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    totalGreenCoins: 2400,
+    totalSatPoints: 120,
+    totalCarbonSaved: 62.00,
+    streakDays: 28,
+    createdAt: '2026-06-01T00:00:00Z',
+  },
 ];
 
 /**
@@ -86,19 +128,25 @@ export async function getStoredAccounts(): Promise<StoredAuthAccount[]> {
   const raw = localStorage.getItem(STORAGE_ACCOUNTS_KEY);
   if (raw) {
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length >= 5) {
+        return parsed;
+      }
     } catch {
       // fallback
     }
   }
 
-  // Pre-seed default accounts with hashed passwords (Default passwords: 'binus123' & 'verifier123')
-  const defaultStudentHash = await hashPassword('binus123');
-  const defaultVerifierHash = await hashPassword('verifier123');
+  // Pre-seed default accounts with hashed passwords (Default passwords: 'binus123' & 'admin123')
+  const defaultUserHash = await hashPassword('binus123');
+  const defaultAdminHash = await hashPassword('admin123');
 
   const seeded: StoredAuthAccount[] = [
-    { ...DEFAULT_SEEDED_ACCOUNTS[0], passwordHash: defaultStudentHash },
-    { ...DEFAULT_SEEDED_ACCOUNTS[1], passwordHash: defaultVerifierHash },
+    { ...DEFAULT_SEEDED_ACCOUNTS[0], passwordHash: defaultUserHash },
+    { ...DEFAULT_SEEDED_ACCOUNTS[1], passwordHash: defaultUserHash },
+    { ...DEFAULT_SEEDED_ACCOUNTS[2], passwordHash: defaultUserHash },
+    { ...DEFAULT_SEEDED_ACCOUNTS[3], passwordHash: defaultUserHash },
+    { ...DEFAULT_SEEDED_ACCOUNTS[4], passwordHash: defaultAdminHash },
   ];
 
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(seeded));

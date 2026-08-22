@@ -119,3 +119,16 @@ export interface FacultyLeaderboard {
   totalActions: number;
   rank: number;
 }
+
+export type NotificationType = 'sat' | 'streak' | 'quest' | 'system' | 'rejection' | 'tfi';
+
+export interface NotificationItem {
+  id: string;
+  title: string;
+  desc: string;
+  time: string;
+  timestamp: number;
+  type: NotificationType;
+  read: boolean;
+  actionUrl?: string;
+}

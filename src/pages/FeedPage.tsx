@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
+import { getActions } from '@/services/actionService';
+import { GreenAction } from '@/types';
 import { 
   Heart, 
   MessageCircle, 
@@ -16,11 +19,14 @@ import {
   CupSoda,
   Award,
   Flame,
-  Zap
+  Zap,
+  BookOpen,
+  ChevronRight
 } from 'lucide-react';
 
 export const FeedPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'ALL' | 'TFI' | 'VBL' | 'SELF'>('ALL');
+  const [postsList, setPostsList] = useState<any[]>([]);
   const [likes, setLikes] = useState<Record<string, number>>({
     '1': 48,
     '2': 34,
@@ -33,6 +39,56 @@ export const FeedPage: React.FC = () => {
     '2': [{ emoji: '🎬', count: 15 }, { emoji: '⚡', count: 19 }, { emoji: '🎓', count: 8 }],
     '3': [{ emoji: '💚', count: 14 }, { emoji: '🥤', count: 9 }],
   });
+
+  useEffect(() => {
+    async function load() {
+      const actions = await getActions();
+      const approved = actions.filter((a) => a.status === 'APPROVED');
+      
+      const mapped = approved.map((a, idx) => ({
+        id: a.id || `post-${idx}`,
+        author: a.userName || 'Mahasiswa BINUS',
+        faculty: a.userFaculty || 'Fakultas BINUS',
+        avatar: a.userAvatar || (idx % 2 === 0 ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' : 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80'),
+        actionTitle: a.categoryName || 'Aksi Hijau Kampus',
+        category: a.categoryName,
+        type: a.submissionType === 'PENYULUHAN_AKSI_NYATA' ? 'TFI' : a.submissionType === 'VIDEO_BASED_LEARNING' ? 'VBL' : 'SELF',
+        photo: a.photoUrl,
+        campaignUrl: a.campaignUrl,
+        story: a.story,
+        carbonSaved: `${a.carbonImpactKg} kg CO2e`,
+        coinsEarned: `+${a.greenCoinsEarned} GC`,
+        satEarned: a.satPointsEarned > 0 ? `+${a.satPointsEarned} SAT (${a.comservHoursEarned || 0} Jam)` : 'Aksi Mandiri Harian',
+        location: 'Kampus BINUS & Sekitar',
+        time: 'Terverifikasi SSO',
+        sdgBadge: a.submissionType === 'PENYULUHAN_AKSI_NYATA' ? 'SDG 15 & 13' : a.submissionType === 'VIDEO_BASED_LEARNING' ? 'SDG 4 Quality Edu' : 'SDG 12 Consumption',
+      }));
+
+      setPostsList(mapped.length > 0 ? mapped : defaultSamplePosts);
+    }
+    load();
+  }, []);
+
+  const defaultSamplePosts = [
+    {
+      id: '1',
+      author: 'Ahmad Fauzi & Tim',
+      faculty: 'School of Computer Science (SOCS)',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      actionTitle: 'Penanaman 5 Bibit Pohon Tabebuya di Taman Kota',
+      category: 'Penyuluhan & Aksi Nyata TFI',
+      type: 'TFI',
+      photo: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&auto=format&fit=crop&q=80',
+      campaignUrl: 'https://www.instagram.com/reel/C_samplePohon123',
+      story: 'Bersama tim kami melakukan penyuluhan pentingnya penghijauan kota di IG Reels dan menanam 5 bibit pohon keras bersama pengelola taman setempat. #TeachForIndonesia #FosteringandEmpowering #BinusianCommunityService 🌿🌳',
+      carbonSaved: '5.0 kg CO2e',
+      coinsEarned: '+25 GC',
+      satEarned: '+4 SAT (2.0 Jam Comserv)',
+      location: 'Taman Kota Jakarta Barat',
+      time: '2 jam yang lalu',
+      sdgBadge: 'SDG 15 & 13',
+    },
+  ];
 
   const toggleLike = (id: string) => {
     setHasLiked((prev) => {
@@ -59,63 +115,7 @@ export const FeedPage: React.FC = () => {
     });
   };
 
-  const samplePosts = [
-    {
-      id: '1',
-      author: 'Ahmad Fauzi & Tim',
-      faculty: 'School of Computer Science (SOCS)',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      actionTitle: 'Penanaman 5 Bibit Pohon Tabebuya di Taman Kota',
-      category: 'Penyuluhan & Aksi Nyata TFI',
-      type: 'TFI',
-      photo: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&auto=format&fit=crop&q=80',
-      campaignUrl: 'https://www.instagram.com/reel/C_samplePohon123',
-      story: 'Bersama tim kami melakukan penyuluhan pentingnya penghijauan kota di IG Reels dan menanam 5 bibit pohon keras bersama pengelola taman setempat. #TeachForIndonesia #FosteringandEmpowering #BinusianCommunityService 🌿🌳',
-      carbonSaved: '5.0 kg CO2e',
-      coinsEarned: '+25 GC',
-      satEarned: '+4 SAT (2.0 Jam Comserv)',
-      location: 'Taman Kota Jakarta Barat',
-      time: '2 jam yang lalu',
-      sdgBadge: 'SDG 15 & 13',
-    },
-    {
-      id: '2',
-      author: 'Clarissa Putri',
-      faculty: 'School of Design (SOD)',
-      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
-      actionTitle: 'Video Edukasi Zero Waste Campus untuk Pelajar',
-      category: 'Video Based Learning (VBL)',
-      type: 'VBL',
-      photo: 'https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?w=600&auto=format&fit=crop&q=80',
-      campaignUrl: 'https://youtube.com/watch?v=sampleVBL_ZeroWaste',
-      story: 'Membuat video edukasi 8 menit berjaket almamater BINUS mengenai kiat zero waste gaya hidup mahasiswa. Sitasi format APA style terlampir lengkap di deskripsi! ✨',
-      carbonSaved: '0.1 kg CO2e',
-      coinsEarned: '+25 GC',
-      satEarned: '+3 SAT (1.5 Jam Comserv)',
-      location: 'BINUS Syahdan Studio',
-      time: '5 jam yang lalu',
-      sdgBadge: 'SDG 4 Quality Edu',
-    },
-    {
-      id: '3',
-      author: 'Budi Santoso',
-      faculty: 'School of Information Systems (SIS)',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-      actionTitle: 'Bawa Tumbler & Wadah ke Kantin Anggrek',
-      category: 'Self Green Campaign',
-      type: 'SELF',
-      photo: 'https://images.unsplash.com/photo-1570554886111-e80fcca6a029?w=600&auto=format&fit=crop&q=80',
-      story: 'Hari ke-7 bawa tumbler sendiri ke water station lantai 2 BINUS Anggrek! Mengurangi sampah plastik sekali pakai dan mendukung kampus ramah lingkungan.',
-      carbonSaved: '0.05 kg CO2e',
-      coinsEarned: '+10 GC',
-      satEarned: 'Aksi Mandiri Harian',
-      location: 'BINUS Anggrek Campus',
-      time: '1 hari yang lalu',
-      sdgBadge: 'SDG 12 Consumption',
-    },
-  ];
-
-  const filteredPosts = samplePosts.filter((p) => {
+  const filteredPosts = postsList.filter((p) => {
     if (activeTab === 'ALL') return true;
     if (activeTab === 'TFI') return p.type === 'TFI';
     if (activeTab === 'VBL') return p.type === 'VBL';
@@ -124,7 +124,7 @@ export const FeedPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-4 pb-4">
+    <div className="space-y-5 pb-6">
       {/* Header Info */}
       <div className="flex items-center justify-between px-1">
         <div>
@@ -135,12 +135,26 @@ export const FeedPage: React.FC = () => {
           <p className="text-[10px] text-text-secondary">Dampak Nyata Aksi Mahasiswa & Gerakan TFI</p>
         </div>
         <Badge variant="eco" size="sm">
-          {samplePosts.length} Cerita Inspiratif
+          {filteredPosts.length} Cerita Inspiratif
         </Badge>
       </div>
 
+      {/* Quick Guide Link Banner */}
+      <Link
+        to="/guide"
+        className="p-3 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border border-eco-200 rounded-2xl flex items-center justify-between shadow-2xs hover:shadow-xs transition-all group"
+      >
+        <div className="flex items-center gap-2.5">
+          <BookOpen className="w-4 h-4 text-eco-700" />
+          <span className="text-xs font-black text-text-primary group-hover:text-eco-800 transition-colors">
+            Ketentuan Storytelling & Format Sitasi APA Style →
+          </span>
+        </div>
+        <ChevronRight className="w-4 h-4 text-eco-700 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+      </Link>
+
       {/* Feed Filter Pills */}
-      <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5">
         {[
           { id: 'ALL', label: 'Semua Feed' },
           { id: 'TFI', label: 'Aksi Nyata TFI' },
@@ -150,7 +164,7 @@ export const FeedPage: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`text-xs font-black px-3 py-1.5 rounded-2xl transition-all whitespace-nowrap ${
+            className={`text-xs font-black px-3.5 py-1.5 rounded-2xl transition-all whitespace-nowrap ${
               activeTab === tab.id
                 ? 'bg-eco-700 text-white shadow-sm'
                 : 'bg-white text-text-secondary border border-surface-border hover:bg-surface-subtle'

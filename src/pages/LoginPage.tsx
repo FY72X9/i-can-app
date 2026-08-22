@@ -24,7 +24,8 @@ import {
   CheckCircle2,
   Gift,
   KeyRound,
-  Shield
+  Shield,
+  Award
 } from 'lucide-react';
 
 const FACULTIES = [
@@ -453,50 +454,108 @@ export const LoginPage: React.FC = () => {
           )}
         </Card>
 
-        {/* 1-Click Fast Demo Profile Switcher for Reviewers */}
-        <div className="space-y-2">
+        {/* 1-Click Fast Demo Profile Switcher for Reviewers (5 Seed Accounts) */}
+        <div className="space-y-2.5">
           <div className="flex items-center gap-2">
             <div className="h-px bg-surface-border flex-1" />
             <span className="text-[10px] font-black text-text-muted uppercase tracking-wider">
-              Akses Cepat Demo Reviewer
+              Akses Cepat Demo (5 Akun Terdaftar)
             </span>
             <div className="h-px bg-surface-border flex-1" />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={handleDemoStudent}
-              className="p-3 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-sm flex items-center gap-2.5 group active:scale-95"
+              onClick={() => {
+                loginAs('student');
+                navigate('/home');
+              }}
+              className="p-2.5 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-2xs flex items-center gap-2 group active:scale-95"
             >
-              <div className="w-9 h-9 rounded-xl bg-eco-neon/20 text-eco-900 border border-eco-neon/40 flex items-center justify-center shrink-0 group-hover:bg-eco-700 group-hover:text-white transition-colors">
-                <GraduationCap className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-xl bg-eco-neon/20 text-eco-900 border border-eco-neon/40 flex items-center justify-center shrink-0 group-hover:bg-eco-700 group-hover:text-white transition-colors">
+                <GraduationCap className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <h4 className="text-xs font-black text-text-primary truncate">Mahasiswa</h4>
-                <p className="text-[10px] text-text-secondary truncate font-mono">budi.santoso</p>
+                <h4 className="text-[11px] font-black text-text-primary truncate">Budi (Student)</h4>
+                <p className="text-[9px] text-text-secondary truncate font-mono">SOCS • 45 SAT</p>
               </div>
             </button>
 
             <button
-              onClick={handleDemoVerifier}
-              className="p-3 rounded-2xl bg-white border border-surface-border hover:border-amber-500 hover:bg-amber-50/50 transition-all text-left shadow-sm flex items-center gap-2.5 group active:scale-95"
+              onClick={() => {
+                loginAs('nadia');
+                navigate('/home');
+              }}
+              className="p-2.5 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-2xs flex items-center gap-2 group active:scale-95"
             >
-              <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 flex items-center justify-center shrink-0 group-hover:bg-amber-600 group-hover:text-white transition-colors">
-                <ShieldCheck className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-300 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                <Award className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <h4 className="text-xs font-black text-text-primary truncate">Verifikator</h4>
-                <p className="text-[10px] text-text-secondary truncate font-mono">siska.amanda</p>
+                <h4 className="text-[11px] font-black text-text-primary truncate">Nadia (Top Student)</h4>
+                <p className="text-[9px] text-text-secondary truncate font-mono">SOD • 68 SAT</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                loginAs('farhan');
+                navigate('/home');
+              }}
+              className="p-2.5 rounded-2xl bg-white border border-surface-border hover:border-blue-500 hover:bg-blue-50/50 transition-all text-left shadow-2xs flex items-center gap-2 group active:scale-95"
+            >
+              <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-900 border border-blue-300 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                <User className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-[11px] font-black text-text-primary truncate">Farhan (Newbie)</h4>
+                <p className="text-[9px] text-text-secondary truncate font-mono">Engineering • 8 SAT</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                loginAs('verifier');
+                navigate('/home');
+              }}
+              className="p-2.5 rounded-2xl bg-white border border-surface-border hover:border-amber-500 hover:bg-amber-50/50 transition-all text-left shadow-2xs flex items-center gap-2 group active:scale-95"
+            >
+              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 flex items-center justify-center shrink-0 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-[11px] font-black text-text-primary truncate">Siska (Verifier)</h4>
+                <p className="text-[9px] text-text-secondary truncate font-mono">TFI Verifier Portal</p>
               </div>
             </button>
           </div>
+
+          {/* Super Admin Single Wide Button */}
+          <button
+            onClick={() => {
+              loginAs('admin');
+              navigate('/admin');
+            }}
+            className="w-full p-2.5 rounded-2xl bg-gradient-to-r from-purple-50 via-slate-50 to-purple-50 border border-purple-200 hover:border-purple-400 text-left shadow-2xs flex items-center justify-between group active:scale-98 transition-all"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-purple-700 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Shield className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-purple-950">Pak Hendra (Super Admin SSO)</h4>
+                <p className="text-[9px] text-purple-700 font-medium">Buka Dashboard AdminLTE & Manajemen Kuota SAT</p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-purple-700 group-hover:translate-x-1 transition-transform" />
+          </button>
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="text-center text-[10px] text-text-muted relative z-10">
+      {/* Footer & Guide Link */}
+      <div className="text-center text-[10px] text-text-muted relative z-10 space-y-1">
         <p className="font-bold text-text-secondary">I-CAN MVP • Integrated Carbon-Neutral Platform</p>
-        <p className="mt-0.5 font-medium">BINUS University • Student Service Office & TFI Standard</p>
+        <p className="font-medium">BINUS University • Student Service Office & TFI Standard</p>
       </div>
     </div>
   );

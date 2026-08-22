@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { getActions, updateActionVerification } from '@/services/actionService';
+import { useNotificationStore } from '@/stores/notificationStore';
 import { GreenAction, VerificationDecision } from '@/types';
 import { 
   ShieldCheck, 
@@ -19,7 +21,8 @@ import {
   Filter,
   CheckCheck,
   Clock,
-  ChevronRight
+  ChevronRight,
+  BookOpen
 } from 'lucide-react';
 
 export const VerificationPage: React.FC = () => {
@@ -33,7 +36,7 @@ export const VerificationPage: React.FC = () => {
   const defaultSampleQueue: GreenAction[] = [
     {
       id: 'act-sample-101',
-      userId: 'usr-101',
+      userId: 'usr-student-001',
       userName: 'Ahmad Fauzi',
       userFaculty: 'Computer Science (SOCS)',
       categoryId: 'tree',
@@ -58,7 +61,7 @@ export const VerificationPage: React.FC = () => {
     },
     {
       id: 'act-sample-102',
-      userId: 'usr-102',
+      userId: 'usr-student-003',
       userName: 'Clarissa Putri',
       userFaculty: 'School of Design (SOD)',
       categoryId: 'vbl',
@@ -82,7 +85,7 @@ export const VerificationPage: React.FC = () => {
     },
     {
       id: 'act-sample-103',
-      userId: 'usr-103',
+      userId: 'usr-student-001',
       userName: 'Kevin Sanjaya',
       userFaculty: 'Information Systems (SIS)',
       categoryId: 'tumbler',
@@ -122,24 +125,46 @@ export const VerificationPage: React.FC = () => {
       return;
     }
 
+    const target = queue.find((a) => a.id === actionId);
     await updateActionVerification(actionId, decision);
     setQueue((prev) => prev.filter((a) => a.id !== actionId));
 
     if (decision === 'APPROVED_FULL') {
-      alert('Aksi Disetujui Penuh! Mahasiswa memperoleh Green Coins dan Poin SAT & Jam Comserv.');
+      useNotificationStore.getState().addNotification({
+        title: 'Aksi Nyata Disetujui Penuh! 🌳',
+        desc: `Selamat! Pengajuan aksi "${target?.categoryName || 'Aksi TFI'}" telah diverifikasi. +${target?.satPointsEarned || 4} SAT & +${target?.greenCoinsEarned || 25} GC masuk ke transkrip kamu!`,
+        type: 'sat',
+        actionUrl: '/wallet',
+      });
+      alert('Aksi Disetujui Penuh! Notifikasi Poin SAT & Jam Comserv telah dikirim ke mahasiswa.');
     } else if (decision === 'APPROVED_COINS_ONLY') {
-      alert('Postingan Disetujui untuk Green Coins (BEKEN Track).');
+      useNotificationStore.getState().addNotification({
+        title: 'Aksi Disetujui untuk Green Coins! ⚡',
+        desc: `Postingan "${target?.categoryName || 'Aksi Hijau'}" disetujui untuk reputasi BEKEN Award (+${target?.greenCoinsEarned || 10} GC).`,
+        type: 'quest',
+        actionUrl: '/home',
+      });
+      alert('Postingan Disetujui untuk Green Coins (BEKEN Track). Notifikasi telah dikirim.');
     }
   };
 
   const confirmReject = async () => {
     if (!rejectModalId) return;
+    const target = queue.find((a) => a.id === rejectModalId);
     const reason = rejectionReason.trim() || 'Bukti belum memenuhi kelengkapan regulasi TFI.';
     await updateActionVerification(rejectModalId, 'REJECTED', undefined, reason);
+    
+    useNotificationStore.getState().addNotification({
+      title: 'Laporan Aksi Perlu Perbaikan ⚠️',
+      desc: `Catatan Verifikator SSO untuk "${target?.categoryName || 'Aksi TFI'}": ${reason}`,
+      type: 'rejection',
+      actionUrl: '/upload',
+    });
+
     setQueue((prev) => prev.filter((a) => a.id !== rejectModalId));
     setRejectModalId(null);
     setRejectionReason('');
-    alert('Aksi Ditolak dan notifikasi feedback telah dikirim ke mahasiswa.');
+    alert('Aksi Ditolak dan feedback perbaikan telah dikirim ke notifikasi mahasiswa.');
   };
 
   const filteredQueue = queue.filter((item) => {

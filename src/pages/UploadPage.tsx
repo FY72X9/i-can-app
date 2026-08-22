@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
@@ -27,7 +27,8 @@ import {
   Scan,
   Zap,
   Download,
-  Flame
+  Flame,
+  ChevronRight
 } from 'lucide-react';
 
 interface CategoryOption {
@@ -329,9 +330,23 @@ Hemat: ${selectedCategory.carbonKg} kg CO2e
   }
 
   return (
-    <div className="space-y-4 pb-4">
+    <div className="space-y-5 pb-6">
+      {/* Quick Guide Reminder Banner */}
+      <Link
+        to="/guide"
+        className="p-3 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border border-eco-200 rounded-2xl flex items-center justify-between shadow-2xs hover:shadow-xs transition-all group"
+      >
+        <div className="flex items-center gap-2.5">
+          <Sparkles className="w-4 h-4 text-eco-700" />
+          <span className="text-xs font-black text-text-primary group-hover:text-eco-800 transition-colors">
+            Lihat Standar Foto & Video VBL TFI di Panduan →
+          </span>
+        </div>
+        <ChevronRight className="w-4 h-4 text-eco-700 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+      </Link>
+
       {/* 1. Category Selection Pills */}
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         <div className="flex items-center justify-between px-1">
           <label className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-eco-600" />
@@ -342,7 +357,7 @@ Hemat: ${selectedCategory.carbonKg} kg CO2e
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2.5">
           {CATEGORIES.map((cat) => {
             const isSelected = selectedCategory.id === cat.id;
             const Icon = cat.icon;
@@ -351,7 +366,7 @@ Hemat: ${selectedCategory.carbonKg} kg CO2e
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat)}
-                className={`p-3 rounded-2xl border text-left transition-all active:scale-95 flex flex-col justify-between ${
+                className={`p-3.5 rounded-2xl border text-left transition-all active:scale-95 flex flex-col justify-between ${
                   isSelected
                     ? 'bg-eco-700 text-white border-eco-700 shadow-neon-glow'
                     : 'bg-white text-text-primary border-surface-border hover:border-eco-300'

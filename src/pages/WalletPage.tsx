@@ -118,48 +118,44 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
   };
 
   return (
-    <div className="space-y-4 pb-4">
+    <div className="space-y-6 pb-6">
       {/* 1. Header Dual-Track Standing Card */}
       <Card variant="eco" className="relative overflow-hidden text-center py-6 px-4 shadow-eco-float border-white/20">
-        <div className="relative z-10 space-y-3.5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-eco-100 text-[11px] font-black backdrop-blur-md border border-white/25 shadow-xs">
+        <div className="relative z-10 space-y-4">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/15 text-eco-100 text-[11px] font-black backdrop-blur-md border border-white/25 shadow-xs">
             <Trophy className="w-3.5 h-3.5 text-gold-neon" />
             Portofolio Rekognisi & Transkrip Mahasiswa
           </div>
 
           {/* Dual Balance Display Bento */}
-          <div className="grid grid-cols-2 gap-2.5 max-w-sm mx-auto pt-1">
+          <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto pt-1">
             {/* Track A: Green Coins (BEKEN Track) */}
-            <div className="bg-black/25 rounded-2xl p-3.5 text-center border border-white/15 backdrop-blur-md">
-              <span className="text-[10px] text-eco-200 font-black uppercase tracking-wider block mb-0.5">
+            <div className="bg-black/25 rounded-2xl p-4 text-center border border-white/15 backdrop-blur-md">
+              <span className="text-[10px] text-eco-200 font-black uppercase tracking-wider block mb-1">
                 BEKEN Credits
               </span>
               <div className="text-2xl sm:text-3xl font-black text-white">
                 {totalCoins} <span className="text-xs font-semibold text-gold-neon">GC</span>
               </div>
-              <span className="text-[10px] text-gold-neon font-black mt-0.5 inline-block">⚡ Top 15% Nominee</span>
+              <span className="text-[10px] text-gold-neon font-black mt-1 inline-block">⚡ Top 15% Nominee</span>
             </div>
 
             {/* Track B: SAT & Comserv (Academic Track) */}
-            <div className="bg-black/25 rounded-2xl p-3.5 text-center border border-white/15 backdrop-blur-md">
-              <span className="text-[10px] text-eco-200 font-black uppercase tracking-wider block mb-0.5">
+            <div className="bg-black/25 rounded-2xl p-4 text-center border border-white/15 backdrop-blur-md">
+              <span className="text-[10px] text-eco-200 font-black uppercase tracking-wider block mb-1">
                 Transkrip SAT
               </span>
               <div className="text-2xl sm:text-3xl font-black text-white">
                 {totalSat} <span className="text-xs font-semibold text-eco-neon">SAT</span>
               </div>
-              <span className="text-[10px] text-eco-neon font-black mt-0.5 inline-block">{totalComserv} Jam Comserv</span>
+              <span className="text-[10px] text-eco-neon font-black mt-1 inline-block">{totalComserv} Jam Comserv</span>
             </div>
           </div>
-
-          <p className="text-[11px] text-eco-100/90 max-w-xs mx-auto leading-relaxed">
-            Pemberian poin SAT dipetakan langsung dari aksi nyata sesuai regulasi Student Service Office (SSO) & TFI.
-          </p>
         </div>
       </Card>
 
       {/* 2. Direct Activity Mapping Info & Export Banner */}
-      <Card className="p-4 bg-white space-y-3 border-surface-border shadow-eco-soft">
+      <Card className="p-5 bg-white space-y-3.5 border-surface-border shadow-eco-soft">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FileCheck2 className="w-4 h-4 text-eco-600" />
@@ -171,7 +167,7 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
         </div>
 
         <p className="text-xs text-text-secondary leading-relaxed">
-          Seluruh kegiatan di bawah ini telah diverifikasi langsung oleh Admin SSO / Eco-Volunteer dan siap disinkronisasikan ke transkrip semester myBINUS.
+          Seluruh kegiatan di bawah ini telah diverifikasi langsung oleh Admin SSO & TFI dan siap disinkronisasikan ke transkrip semester myBINUS.
         </p>
 
         <Button

@@ -12,14 +12,15 @@ import {
   Flame, 
   Coins, 
   GraduationCap, 
-  Award,
-  Clock,
-  CheckCircle2,
-  ChevronRight,
-  Zap,
-  Target,
+  Award, 
+  Clock, 
+  CheckCircle2, 
+  ChevronRight, 
+  Zap, 
+  Target, 
   Heart,
-  TrendingUp
+  BookOpen,
+  ArrowRight
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
@@ -50,7 +51,6 @@ export const HomePage: React.FC = () => {
       co2: '5.0 kg',
       icon: TreePine,
       color: 'from-emerald-500 to-eco-700',
-      bgLight: 'bg-emerald-50 text-emerald-800 border-emerald-200',
       tag: 'SDG 15 Life on Land',
       urgency: 'Hot Program 🔥',
     },
@@ -64,7 +64,6 @@ export const HomePage: React.FC = () => {
       co2: '0.5 kg',
       icon: Droplets,
       color: 'from-cyan-500 to-blue-700',
-      bgLight: 'bg-cyan-50 text-cyan-800 border-cyan-200',
       tag: 'SDG 6 Clean Water',
       urgency: 'Musim Hujan 💧',
     },
@@ -78,7 +77,6 @@ export const HomePage: React.FC = () => {
       co2: '0.1 kg',
       icon: Video,
       color: 'from-purple-500 to-indigo-700',
-      bgLight: 'bg-purple-50 text-purple-800 border-purple-200',
       tag: 'SDG 4 Quality Edu',
       urgency: 'Format APA 🎓',
     },
@@ -92,7 +90,6 @@ export const HomePage: React.FC = () => {
       co2: '0.05 kg',
       icon: CupSoda,
       color: 'from-amber-500 to-orange-600',
-      bgLight: 'bg-amber-50 text-amber-900 border-amber-200',
       tag: 'SDG 12 Consumption',
       urgency: 'Daily Quest ⚡',
     },
@@ -118,11 +115,10 @@ export const HomePage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-4">
-      {/* 1. Gen Z Eco-Flex Hero Card */}
-      <Card variant="eco" className="relative overflow-hidden p-5 shadow-eco-float border-white/20">
-        {/* Animated Cyber-Eco Gradient Orb */}
-        <div className="absolute -top-12 -right-12 w-44 h-44 bg-eco-neon/30 rounded-full blur-3xl pointer-events-none animate-pulse-slow" />
+    <div className="space-y-6 pb-6">
+      {/* 1. Gen Z Eco-Flex Hero Card with Clean Bento */}
+      <Card variant="eco" className="relative overflow-hidden p-6 shadow-eco-float border-white/20">
+        <div className="absolute -top-12 -right-12 w-44 h-44 bg-eco-neon/30 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-gold-neon/25 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 space-y-4">
@@ -130,91 +126,109 @@ export const HomePage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-eco-100 text-[11px] font-black shadow-xs">
               <Sparkles className="w-3.5 h-3.5 text-gold-neon" />
-              <span>BEKEN 2026 Standing</span>
+              <span>BEKEN Standing</span>
             </div>
 
-            <div className="flex items-center gap-1 bg-amber-400/20 backdrop-blur-md border border-amber-300/40 text-gold-neon px-2.5 py-1 rounded-full text-xs font-black">
+            <div className="flex items-center gap-1 bg-amber-400/20 backdrop-blur-md border border-amber-300/40 text-gold-neon px-3 py-1 rounded-full text-xs font-black">
               <Flame className="w-3.5 h-3.5 fill-gold-neon animate-bounce-subtle" />
-              <span>{user?.streakDays || 5}d Streak</span>
+              <span>{user?.streakDays || 5} Hari Streak</span>
             </div>
           </div>
 
           {/* Dual Balance Numbers Bento */}
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-3">
             {/* Green Coins (BEKEN Track) */}
-            <div className="bg-black/25 backdrop-blur-md p-3.5 rounded-2xl border border-white/15 text-left transition-all hover:bg-black/30">
+            <div className="bg-black/25 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-left transition-all hover:bg-black/30">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] uppercase font-black tracking-wider text-eco-200">
                   Green Coins
                 </span>
                 <Coins className="w-4 h-4 text-gold-neon fill-gold-neon" />
               </div>
-              <div className="text-2xl sm:text-3xl font-black text-white mt-1">
+              <div className="text-2xl sm:text-3xl font-black text-white mt-1.5">
                 {user?.totalGreenCoins || 120} <span className="text-xs font-semibold text-gold-300">GC</span>
               </div>
-              <span className="text-[10px] text-gold-neon font-black mt-0.5 inline-block">
+              <span className="text-[10px] text-gold-neon font-black mt-1 inline-block">
                 ⚡ Top 15% Nominee
               </span>
             </div>
 
             {/* SAT Academic Points Track */}
-            <div className="bg-black/25 backdrop-blur-md p-3.5 rounded-2xl border border-white/15 text-left transition-all hover:bg-black/30">
+            <div className="bg-black/25 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-left transition-all hover:bg-black/30">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] uppercase font-black tracking-wider text-eco-200">
                   Poin SAT Riil
                 </span>
                 <GraduationCap className="w-4 h-4 text-eco-neon" />
               </div>
-              <div className="text-2xl sm:text-3xl font-black text-white mt-1">
+              <div className="text-2xl sm:text-3xl font-black text-white mt-1.5">
                 {user?.totalSatPoints || 9} <span className="text-xs font-semibold text-eco-200">/ 120 SAT</span>
               </div>
-              <span className="text-[10px] text-eco-neon font-black mt-0.5 inline-block">
+              <span className="text-[10px] text-eco-neon font-black mt-1 inline-block">
                 🎓 Target Kelulusan
               </span>
             </div>
           </div>
 
           {/* SAT Progress Bar to Graduation */}
-          <div className="bg-black/30 backdrop-blur-md rounded-2xl p-3 border border-white/10 space-y-1.5">
+          <div className="bg-black/30 backdrop-blur-md rounded-2xl p-3.5 border border-white/10 space-y-2">
             <div className="flex justify-between text-xs text-eco-100 font-black">
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1.5">
                 <Target className="w-3.5 h-3.5 text-eco-neon" />
-                Target 120 SAT Poin Kelulusan
+                Target 120 Poin SAT Kelulusan
               </span>
               <span className="font-mono text-eco-neon">
                 {Math.round(((user?.totalSatPoints || 9) / 120) * 100)}%
               </span>
             </div>
-            <div className="w-full bg-white/15 h-2 rounded-full overflow-hidden p-0.5">
+            <div className="w-full bg-white/15 h-2.5 rounded-full overflow-hidden p-0.5">
               <div
                 className="bg-gradient-to-r from-eco-neon via-emerald-400 to-cyan-300 h-full rounded-full transition-all duration-500 shadow-neon-glow"
                 style={{ width: `${Math.min(100, ((user?.totalSatPoints || 9) / 120) * 100)}%` }}
               />
             </div>
-            <p className="text-[10px] text-eco-100/90 leading-tight">
-              Pemberian poin SAT dipetakan langsung dari aksi nyata sesuai regulasi Student Service Office (SSO) & TFI.
-            </p>
           </div>
         </div>
       </Card>
 
-      {/* 2. ⚡ Daily Flash Quests Section */}
-      <div className="space-y-2">
+      {/* 2. Quick Guide & FAQ Banner (Direct Access to Dedicated Page) */}
+      <Link
+        to="/guide"
+        className="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border border-eco-200 rounded-2xl flex items-center justify-between shadow-xs hover:shadow-eco-sm transition-all group block"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-eco-700 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+            <BookOpen className="w-4 h-4" />
+          </div>
+          <div>
+            <h4 className="text-xs font-black text-text-primary group-hover:text-eco-800 transition-colors">
+              Pusat Panduan & FAQ Resmi TFI
+            </h4>
+            <p className="text-[10px] text-text-secondary">
+              Pelajari regulasi SSO, standar foto & video VBL, dan sistem Dual-Track.
+            </p>
+          </div>
+        </div>
+        <ChevronRight className="w-4 h-4 text-eco-700 shrink-0 group-hover:translate-x-1 transition-transform" />
+      </Link>
+
+      {/* 3. ⚡ Daily Flash Quests Section */}
+      <div className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-1.5">
             <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
             Daily Flash Quests (Misi Kampus)
           </h2>
           <span className="text-[10px] font-black text-eco-800 bg-eco-neon/20 px-2 py-0.5 rounded-full border border-eco-neon/40">
-            Bonus Berkelanjutan
+            Bonus Aktif
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {flashQuests.map((quest) => (
             <Card 
               key={quest.id} 
-              className={`p-3 space-y-1.5 border transition-all ${
+              className={`p-4 space-y-2 border transition-all ${
                 quest.completed 
                   ? 'bg-eco-50/60 border-eco-200' 
                   : 'bg-white border-surface-border hover:border-amber-400 hover:shadow-xs'
@@ -232,7 +246,7 @@ export const HomePage: React.FC = () => {
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-text-secondary leading-snug">{quest.desc}</p>
+              <p className="text-[11px] text-text-secondary leading-relaxed">{quest.desc}</p>
               <div className="flex items-center justify-between pt-1 text-[10px] font-black">
                 <span className="text-amber-800">{quest.reward}</span>
                 {!quest.completed && (
@@ -246,8 +260,8 @@ export const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. TFI Action Hub Cards */}
-      <div className="space-y-2.5">
+      {/* 4. TFI Action Hub Cards */}
+      <div className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <div>
             <h2 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-1.5">
@@ -261,22 +275,22 @@ export const HomePage: React.FC = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {programs.map((prog) => {
             const Icon = prog.icon;
             return (
               <Link key={prog.id} to="/upload">
-                <Card className="p-3.5 bg-white border-surface-border shadow-eco-sm hover:shadow-eco-card hover:border-eco-400 transition-all duration-200 group active:scale-[0.98] space-y-2.5">
+                <Card className="p-4 bg-white border-surface-border shadow-eco-sm hover:shadow-eco-card hover:border-eco-400 transition-all duration-200 group active:scale-[0.98] space-y-3">
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-3">
                       <div className={`w-11 h-11 rounded-2xl bg-gradient-to-tr ${prog.color} text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform`}>
                         <Icon className="w-6 h-6" />
                       </div>
                       <div>
-                        <span className="text-[9px] font-black uppercase tracking-wider text-eco-900 bg-eco-50 px-1.5 py-0.2 rounded border border-eco-200">
+                        <span className="text-[9px] font-black uppercase tracking-wider text-eco-900 bg-eco-50 px-2 py-0.5 rounded border border-eco-200">
                           {prog.urgency}
                         </span>
-                        <h3 className="text-xs font-black text-text-primary leading-tight mt-0.5 group-hover:text-eco-800 transition-colors">
+                        <h3 className="text-xs font-black text-text-primary leading-tight mt-1 group-hover:text-eco-800 transition-colors">
                           {prog.title}
                         </h3>
                       </div>
@@ -284,7 +298,7 @@ export const HomePage: React.FC = () => {
                   </div>
 
                   {/* Rewards Breakdown Bar */}
-                  <div className="bg-surface-subtle p-2 rounded-xl flex items-center justify-between text-[10px] font-black">
+                  <div className="bg-surface-subtle p-2.5 rounded-xl flex items-center justify-between text-[10px] font-black">
                     <span className="text-blue-700">+{prog.satPoints} SAT ({prog.comservHours} Jam)</span>
                     <span className="text-amber-800">+{prog.coins} GC</span>
                   </div>
@@ -293,7 +307,7 @@ export const HomePage: React.FC = () => {
                     <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold border border-slate-200 text-[9px]">
                       {prog.tag}
                     </span>
-                    <span className="font-extrabold text-eco-800 flex items-center gap-0.5">
+                    <span className="font-black text-eco-800 flex items-center gap-0.5">
                       Lapor Sekarang →
                     </span>
                   </div>
@@ -304,8 +318,8 @@ export const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Campus SDG Pulse & Leaderboard */}
-      <div className="space-y-2.5">
+      {/* 5. Campus SDG Leaderboard & Cheer */}
+      <div className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-1.5">
             <Award className="w-4 h-4 text-gold-500 fill-gold-500" />
@@ -314,16 +328,16 @@ export const HomePage: React.FC = () => {
           <span className="text-[10px] font-bold text-text-muted">Live Update</span>
         </div>
 
-        <Card className="p-4 bg-white space-y-3 border-surface-border shadow-eco-soft">
+        <Card className="p-4 bg-white space-y-2.5 border-surface-border shadow-eco-soft">
           <div className="space-y-2">
             {[
-              { id: 'socs', rank: '🥇 1', name: 'School of Computer Science', points: '1,240 GC', sat: '420 SAT', change: '+12% hari ini' },
-              { id: 'sis', rank: '🥈 2', name: 'School of Information Systems', points: '980 GC', sat: '310 SAT', change: '+8% hari ini' },
-              { id: 'sod', rank: '🥉 3', name: 'School of Design (SOD)', points: '860 GC', sat: '280 SAT', change: '+15% hari ini' },
+              { id: 'socs', rank: '🥇 1', name: 'School of Computer Science', points: '1,450 GC', sat: '420 SAT' },
+              { id: 'sod', rank: '🥈 2', name: 'School of Design (SOD)', points: '1,120 GC', sat: '360 SAT' },
+              { id: 'sis', rank: '🥉 3', name: 'School of Information Systems', points: '980 GC', sat: '310 SAT' },
             ].map((fac) => (
               <div
                 key={fac.id}
-                className="p-2.5 rounded-2xl bg-surface-subtle hover:bg-eco-50/60 transition-colors flex items-center justify-between border border-surface-border/50"
+                className="p-3 rounded-2xl bg-surface-subtle hover:bg-eco-50/60 transition-colors flex items-center justify-between border border-surface-border/50"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span className="text-xs font-black">{fac.rank}</span>
@@ -335,7 +349,7 @@ export const HomePage: React.FC = () => {
 
                 <button
                   onClick={() => handleCheer(fac.id)}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black transition-all active:scale-95 ${
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-black transition-all active:scale-95 ${
                     hasCheered[fac.id]
                       ? 'bg-rose-500 text-white shadow-xs'
                       : 'bg-white hover:bg-rose-50 text-rose-600 border border-rose-200'

@@ -36,6 +36,54 @@ export const DEMO_PROFILES: Record<string, UserProfile> = {
     lastActionAt: new Date().toISOString(),
     createdAt: '2026-07-15T00:00:00Z',
   },
+  nadia: {
+    id: 'usr-student-003',
+    nim: '2602234567',
+    email: 'nadia.safira@binus.ac.id',
+    fullName: 'Nadia Safira',
+    role: 'STUDENT',
+    facultyId: 'fac-sod',
+    facultyName: 'School of Design',
+    avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+    totalGreenCoins: 890,
+    totalSatPoints: 68,
+    totalCarbonSaved: 24.80,
+    streakDays: 9,
+    lastActionAt: new Date().toISOString(),
+    createdAt: '2026-07-28T00:00:00Z',
+  },
+  farhan: {
+    id: 'usr-student-004',
+    nim: '2602345678',
+    email: 'farhan.ramadhan@binus.ac.id',
+    fullName: 'Farhan Ramadhan',
+    role: 'STUDENT',
+    facultyId: 'fac-eng',
+    facultyName: 'Faculty of Engineering',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    totalGreenCoins: 110,
+    totalSatPoints: 8,
+    totalCarbonSaved: 3.20,
+    streakDays: 2,
+    lastActionAt: new Date().toISOString(),
+    createdAt: '2026-08-10T00:00:00Z',
+  },
+  admin: {
+    id: 'usr-admin-005',
+    nim: '1980010101',
+    email: 'hendra.sso@binus.ac.id',
+    fullName: 'Hendra Kusuma, M.Kom (Super Admin)',
+    role: 'ADMIN',
+    facultyId: 'fac-sso',
+    facultyName: 'Student Service Office (SSO)',
+    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    totalGreenCoins: 2400,
+    totalSatPoints: 120,
+    totalCarbonSaved: 62.00,
+    streakDays: 28,
+    lastActionAt: new Date().toISOString(),
+    createdAt: '2026-06-01T00:00:00Z',
+  },
 };
 
 interface AuthState {
@@ -43,7 +91,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   authError: string | null;
-  loginAs: (role: 'student' | 'verifier') => void;
+  loginAs: (roleOrKey: 'student' | 'verifier' | 'nadia' | 'farhan' | 'admin' | string) => void;
   loginWithPassword: (identifier: string, password: string) => Promise<boolean>;
   register: (params: RegisterParams) => Promise<boolean>;
   logout: () => void;

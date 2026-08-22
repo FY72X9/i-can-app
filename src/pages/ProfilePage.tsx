@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
@@ -143,7 +143,36 @@ export const ProfilePage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 3. Eco-Volunteer Application Card */}
+      {/* 3. Quick Links & Eco-Volunteer Card */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <Link
+          to="/guide"
+          className="p-3.5 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-xs space-y-1 block"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase text-eco-800 bg-eco-50 px-2 py-0.5 rounded-md border border-eco-200">
+              Regulasi SSO
+            </span>
+          </div>
+          <h4 className="text-xs font-black text-text-primary">Panduan & FAQ TFI</h4>
+          <p className="text-[10px] text-text-secondary">Standar poin SAT & Comserv</p>
+        </Link>
+
+        <Link
+          to="/admin"
+          className="p-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white transition-all text-left shadow-xs space-y-1 block"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase text-blue-300 bg-blue-500/30 px-2 py-0.5 rounded-md">
+              AdminLTE 3.4
+            </span>
+          </div>
+          <h4 className="text-xs font-black">Super Admin Panel</h4>
+          <p className="text-[10px] text-slate-400">Web View Manajemen SSO</p>
+        </Link>
+      </div>
+
+      {/* 4. Eco-Volunteer Application Card */}
       <Card variant="subtle" className="p-4 border-eco-200/80 bg-gradient-to-r from-eco-50 via-emerald-50/70 to-teal-50/50 shadow-xs space-y-2">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-2xl bg-eco-700 text-white flex items-center justify-center shrink-0 shadow-sm">
@@ -152,7 +181,7 @@ export const ProfilePage: React.FC = () => {
           <div className="flex-1">
             <h4 className="text-xs font-black text-text-primary">Gabung Jadi Eco-Volunteer Kampus</h4>
             <p className="text-[11px] text-text-secondary mt-0.5 leading-relaxed">
-              Dapatkan sertifikat resmi Teach For Indonesia (TFI) dan klaim jam pengabdian masyarakat (Community Service Hours).
+              Dapatkan sertifikat resmi Teach For Indonesia (TFI) dan klaim jam pengabdian masyarakat.
             </p>
             <Button
               size="sm"
@@ -166,24 +195,8 @@ export const ProfilePage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 4. Switch Account & Logout Action Buttons */}
-      <div className="grid grid-cols-2 gap-2 pt-1">
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full text-xs text-text-secondary font-bold py-2.5 flex items-center justify-center gap-1.5"
-          onClick={() => {
-            if (user?.role === 'STUDENT') {
-              loginAs('verifier');
-            } else {
-              loginAs('student');
-            }
-          }}
-        >
-          <UserCheck className="w-3.5 h-3.5" />
-          Switch ({user?.role === 'STUDENT' ? 'Verifier' : 'Student'})
-        </Button>
-
+      {/* 5. Switch Account & Logout Action Buttons */}
+      <div className="pt-1">
         <Button
           variant="danger"
           size="sm"
@@ -191,9 +204,10 @@ export const ProfilePage: React.FC = () => {
           onClick={handleLogout}
         >
           <LogOut className="w-3.5 h-3.5" />
-          Keluar (Logout)
+          Keluar dari Akun (Logout)
         </Button>
       </div>
     </div>
   );
 };
+
