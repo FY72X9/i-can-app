@@ -4,11 +4,11 @@
 
 ## Key Concepts
 
-- [supabase.ts](file:///D:/Codes/i-can-app/src/services/supabase.ts#L1) (4 connections)
-- [isConfigured](file:///D:/Codes/i-can-app/src/services/supabase.ts#L7) (1 connections)
-- [supabase](file:///D:/Codes/i-can-app/src/services/supabase.ts#L12) (1 connections)
-- [supabaseAnonKey](file:///D:/Codes/i-can-app/src/services/supabase.ts#L4) (1 connections)
-- [supabaseUrl](file:///D:/Codes/i-can-app/src/services/supabase.ts#L3) (1 connections)
+- [BottomNav.tsx](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L1) (4 connections)
+- [Icon](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L22) (1 connections)
+- [isVerifier](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L8) (1 connections)
+- [navItems](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L10) (1 connections)
+- [{ user }](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L7) (1 connections)
 
 ## Relationships
 
@@ -16,7 +16,7 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\services\supabase.ts](file:///D:/Codes/i-can-app/src/services/supabase.ts)
+- [D:\Codes\i-can-app\src\components\common\BottomNav.tsx](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx)
 
 ## Audit Trail
 

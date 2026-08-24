@@ -1,10 +1,10 @@
-# Community 25
+# Community 28
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- [main.tsx](file:///D:/Codes/i-can-app/src/main.tsx#L1) (0 connections)
+- [i-can-app Repository](file:///D:/Codes/i-can-app/README.md) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\main.tsx](file:///D:/Codes/i-can-app/src/main.tsx)
+- [README.md](file:///D:/Codes/i-can-app/README.md)
 
 ## Audit Trail
 

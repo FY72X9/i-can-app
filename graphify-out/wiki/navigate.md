@@ -1,6 +1,6 @@
 # navigate
 
-> God node · 5 connections · [D:\Codes\i-can-app\src\pages\LoginPage.tsx](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L41)
+> God node · 5 connections · [D:\Codes\i-can-app\src\pages\LoginPage.tsx](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L42)
 
 ## Call Trace Diagram
 

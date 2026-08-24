@@ -1,15 +1,15 @@
 # useAuthStore
 
-> God node · 4 connections · [D:\Codes\i-can-app\src\stores\authStore.ts](file:///D:/Codes/i-can-app/src/stores/authStore.ts#L55)
+> God node · 4 connections · [D:\Codes\i-can-app\src\stores\authStore.ts](file:///D:/Codes/i-can-app/src/stores/authStore.ts#L103)
 
 ## Call Trace Diagram
 
 ```mermaid
 sequenceDiagram
     participant P0 as useAuthStore
-    participant P1 as ProtectedRoute()
-    participant P2 as CallbackPage()
-    participant P3 as AppLayout
+    participant P1 as AppLayout()
+    participant P2 as ProtectedRoute()
+    participant P3 as CallbackPage()
     P0->>+ P1: calls
     P1-->>- P0: return
     P1->>+ P0: calls
@@ -27,9 +27,9 @@ sequenceDiagram
 ## Connections by Relation
 
 ### calls
+- [[AppLayout()]] `INFERRED`
 - [[ProtectedRoute()]] `INFERRED`
 - [[CallbackPage()]] `INFERRED`
-- [[AppLayout]] `INFERRED`
 
 ### contains
 - [[authStore.ts]] `EXTRACTED`

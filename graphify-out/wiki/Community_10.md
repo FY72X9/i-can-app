@@ -1,14 +1,16 @@
 # Community 10
 
-> 5 nodes · cohesion 0.40
+> 7 nodes · cohesion 0.52
 
 ## Key Concepts
 
-- [logto.ts](file:///D:/Codes/i-can-app/src/services/logto.ts#L1) (4 connections)
-- [isLogtoConfigured](file:///D:/Codes/i-can-app/src/services/logto.ts#L11) (1 connections)
-- [logtoAppId](file:///D:/Codes/i-can-app/src/services/logto.ts#L9) (1 connections)
-- [logtoConfig](file:///D:/Codes/i-can-app/src/services/logto.ts#L18) (1 connections)
-- [logtoEndpoint](file:///D:/Codes/i-can-app/src/services/logto.ts#L8) (1 connections)
+- [authService.ts](file:///D:/Codes/i-can-app/src/services/authService.ts#L1) (6 connections)
+- [getStoredAccounts()](file:///D:/Codes/i-can-app/src/services/authService.ts#L127) (5 connections)
+- [hashPassword()](file:///D:/Codes/i-can-app/src/services/authService.ts#L40) (4 connections)
+- [loginWithCredentials()](file:///D:/Codes/i-can-app/src/services/authService.ts#L253) (3 connections)
+- [registerUser()](file:///D:/Codes/i-can-app/src/services/authService.ts#L159) (3 connections)
+- [DEFAULT_SEEDED_ACCOUNTS](file:///D:/Codes/i-can-app/src/services/authService.ts#L51) (1 connections)
+- [STORAGE_ACCOUNTS_KEY](file:///D:/Codes/i-can-app/src/services/authService.ts#L34) (1 connections)
 
 ## Relationships
 
@@ -16,12 +18,12 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\services\logto.ts](file:///D:/Codes/i-can-app/src/services/logto.ts)
+- [D:\Codes\i-can-app\src\services\authService.ts](file:///D:/Codes/i-can-app/src/services/authService.ts)
 
 ## Audit Trail
 
-- EXTRACTED: 8 (100%)
-- INFERRED: 0 (0%)
+- EXTRACTED: 22 (96%)
+- INFERRED: 1 (4%)
 - AMBIGUOUS: 0 (0%)
 
 ---

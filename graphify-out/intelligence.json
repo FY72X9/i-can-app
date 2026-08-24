@@ -1,36 +1,36 @@
 {
   "hotspots": [
     {
-      "label": "AppLayout",
-      "risk": 0.559,
+      "label": "AppLayout()",
+      "risk": 0.615,
+      "type": "FUNCTION"
+    },
+    {
+      "label": "SEEDED_INITIAL_ACTIONS",
+      "risk": 0.264,
+      "type": "FUNCTION"
+    },
+    {
+      "label": "tailwind.config.js",
+      "risk": 0.204,
+      "type": "FUNCTION"
+    },
+    {
+      "label": "UploadPage.tsx",
+      "risk": 0.204,
       "type": "FUNCTION"
     },
     {
       "label": "useAuthStore",
-      "risk": 0.353,
+      "risk": 0.2,
       "type": "STATE_STORE"
-    },
-    {
-      "label": "CallbackPage()",
-      "risk": 0.331,
-      "type": "FUNCTION"
-    },
-    {
-      "label": "verifyActionWithGemini()",
-      "risk": 0.318,
-      "type": "FUNCTION"
-    },
-    {
-      "label": "ProfilePage",
-      "risk": 0.284,
-      "type": "FUNCTION"
     }
   ],
   "blast_radius": {
+    "getActions()": 7,
     "navigate": 5,
-    "getActions()": 5,
-    "updateActionVerification()": 4,
-    "hashPassword()": 4,
-    "getStoredAccounts()": 4
+    "updateActionVerification()": 5,
+    "getStoredAccounts()": 5,
+    "loadData()": 4
   }
 }

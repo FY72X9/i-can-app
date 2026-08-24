@@ -1,28 +1,31 @@
 # Community 2
 
-> 19 nodes · cohesion 0.13
+> 22 nodes · cohesion 0.10
 
 ## Key Concepts
 
-- [VerificationPage.tsx](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L1) (11 connections)
-- [getActions()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L12) (5 connections)
-- [updateActionVerification()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L138) (4 connections)
-- [actionService.ts](file:///D:/Codes/i-can-app/src/services/actionService.ts#L1) (4 connections)
-- [submitGreenAction()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L69) (3 connections)
-- [handleSubmit()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L169) (2 connections)
-- [confirmReject()](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L135) (2 connections)
-- [handleDecision()](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L119) (2 connections)
-- [load()](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L109) (2 connections)
-- [load()](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L89) (2 connections)
-- [LOCAL_ACTIONS_KEY](file:///D:/Codes/i-can-app/src/services/actionService.ts#L9) (1 connections)
-- [defaultSampleQueue](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L33) (1 connections)
-- [filteredQueue](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L145) (1 connections)
-- [[loading, setLoading]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L27) (1 connections)
-- [presetReasons](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L153) (1 connections)
-- [[queue, setQueue]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L26) (1 connections)
-- [[rejectionReason, setRejectionReason]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L30) (1 connections)
-- [[rejectModalId, setRejectModalId]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L29) (1 connections)
-- [[selectedFilter, setSelectedFilter]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L28) (1 connections)
+- [AdminLtePage.tsx](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L1) (21 connections)
+- [loadData()](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L51) (4 connections)
+- [handleAdminVerify()](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L83) (3 connections)
+- [[actionsList, setActionsList]](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L35) (1 connections)
+- [[activeMenu, setActiveMenu]](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L34) (1 connections)
+- [[grantCoinsAmount, setGrantCoinsAmount]](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L43) (1 connections)
+- [[grantReason, setGrantReason]](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L44) (1 connections)
+- [[grantSatAmount, setGrantSatAmount]](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L42) (1 connections)
+- [[grantSuccessMsg, setGrantSuccessMsg]](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L45) (1 connections)
+- [handleExportJson()](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L136) (1 connections)
+- [handleManualGrantSubmit()](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L89) (1 connections)
+- [handleRoleChange()](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L63) (1 connections)
+- [[isWideView, setIsWideView]](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L37) (1 connections)
+- [navigate](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L31) (1 connections)
+- [[searchTerm, setSearchTerm]](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L38) (1 connections)
+- [[selectedUserForGrant, setSelectedUserForGrant]](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L41) (1 connections)
+- [totalCo2Saved](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L160) (1 connections)
+- [totalSatAwarded](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L159) (1 connections)
+- [totalUsers](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L157) (1 connections)
+- [{ user, loginAs, updateUserStats }](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L32) (1 connections)
+- [[usersList, setUsersList]](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L36) (1 connections)
+- [verifiedActions](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L158) (1 connections)
 
 ## Relationships
 
@@ -30,15 +33,12 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\pages\UploadPage.tsx](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx)
-- [D:\Codes\i-can-app\src\pages\VerificationPage.tsx](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx)
-- [D:\Codes\i-can-app\src\pages\WalletPage.tsx](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx)
-- [D:\Codes\i-can-app\src\services\actionService.ts](file:///D:/Codes/i-can-app/src/services/actionService.ts)
+- [D:\Codes\i-can-app\src\pages\AdminLtePage.tsx](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 36 (78%)
-- INFERRED: 10 (22%)
+- EXTRACTED: 44 (94%)
+- INFERRED: 3 (6%)
 - AMBIGUOUS: 0 (0%)
 
 ---

@@ -4,7 +4,7 @@
 
 ## Key Concepts
 
-- [vite-env.d.ts](file:///D:/Codes/i-can-app/src/vite-env.d.ts#L1) (0 connections)
+- [tailwind.config.js](file:///D:/Codes/i-can-app/tailwind.config.js#L1) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\vite-env.d.ts](file:///D:/Codes/i-can-app/src/vite-env.d.ts)
+- [D:\Codes\i-can-app\tailwind.config.js](file:///D:/Codes/i-can-app/tailwind.config.js)
 
 ## Audit Trail
 

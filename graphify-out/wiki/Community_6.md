@@ -1,17 +1,19 @@
 # Community 6
 
-> 8 nodes · cohesion 0.25
+> 10 nodes · cohesion 0.20
 
 ## Key Concepts
 
-- [HomePage.tsx](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L1) (7 connections)
-- [[cheers, setCheers]](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L27) (1 connections)
-- [flashQuests](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L101) (1 connections)
-- [handleCheer()](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L34) (1 connections)
-- [[hasCheered, setHasCheered]](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L32) (1 connections)
-- [Icon](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L266) (1 connections)
-- [programs](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L42) (1 connections)
-- [{ user }](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L26) (1 connections)
+- [FeedPage.tsx](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L1) (10 connections)
+- [[activeTab, setActiveTab]](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L28) (1 connections)
+- [addReaction()](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L101) (1 connections)
+- [defaultSamplePosts](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L72) (1 connections)
+- [filteredPosts](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L118) (1 connections)
+- [[hasLiked, setHasLiked]](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L36) (1 connections)
+- [[likes, setLikes]](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L30) (1 connections)
+- [[postsList, setPostsList]](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L29) (1 connections)
+- [[reactions, setReactions]](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L37) (1 connections)
+- [toggleLike()](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L93) (1 connections)
 
 ## Relationships
 
@@ -19,11 +21,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\pages\HomePage.tsx](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx)
+- [D:\Codes\i-can-app\src\pages\FeedPage.tsx](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 14 (100%)
+- EXTRACTED: 19 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

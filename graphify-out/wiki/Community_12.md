@@ -1,13 +1,14 @@
 # Community 12
 
-> 4 nodes · cohesion 0.50
+> 5 nodes · cohesion 0.40
 
 ## Key Concepts
 
-- [Button.tsx](file:///D:/Codes/i-can-app/src/components/common/Button.tsx#L1) (3 connections)
-- [baseStyles](file:///D:/Codes/i-can-app/src/components/common/Button.tsx#L24) (1 connections)
-- [sizeStyles](file:///D:/Codes/i-can-app/src/components/common/Button.tsx#L26) (1 connections)
-- [variantStyles](file:///D:/Codes/i-can-app/src/components/common/Button.tsx#L32) (1 connections)
+- [logto.ts](file:///D:/Codes/i-can-app/src/services/logto.ts#L1) (4 connections)
+- [isLogtoConfigured](file:///D:/Codes/i-can-app/src/services/logto.ts#L11) (1 connections)
+- [logtoAppId](file:///D:/Codes/i-can-app/src/services/logto.ts#L9) (1 connections)
+- [logtoConfig](file:///D:/Codes/i-can-app/src/services/logto.ts#L18) (1 connections)
+- [logtoEndpoint](file:///D:/Codes/i-can-app/src/services/logto.ts#L8) (1 connections)
 
 ## Relationships
 
@@ -15,11 +16,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\components\common\Button.tsx](file:///D:/Codes/i-can-app/src/components/common/Button.tsx)
+- [D:\Codes\i-can-app\src\services\logto.ts](file:///D:/Codes/i-can-app/src/services/logto.ts)
 
 ## Audit Trail
 
-- EXTRACTED: 6 (100%)
+- EXTRACTED: 8 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

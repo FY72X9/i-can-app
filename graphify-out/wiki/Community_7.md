@@ -1,16 +1,19 @@
 # Community 7
 
-> 7 nodes · cohesion 0.29
+> 10 nodes · cohesion 0.20
 
 ## Key Concepts
 
-- [TopNavbar.tsx](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L1) (6 connections)
-- [dropdownRef](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L13) (1 connections)
-- [handleClickOutside()](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L17) (1 connections)
-- [sampleNotifications](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L34) (1 connections)
-- [[showNotifications, setShowNotifications]](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L12) (1 connections)
-- [toggleRole()](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L26) (1 connections)
-- [{ user, loginAs }](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L11) (1 connections)
+- [GuidePage.tsx](file:///D:/Codes/i-can-app/src/pages/GuidePage.tsx#L1) (9 connections)
+- [[activeTab, setActiveTab]](file:///D:/Codes/i-can-app/src/pages/GuidePage.tsx#L73) (1 connections)
+- [[copiedHashtags, setCopiedHashtags]](file:///D:/Codes/i-can-app/src/pages/GuidePage.tsx#L76) (1 connections)
+- [FAQ_LIST](file:///D:/Codes/i-can-app/src/pages/GuidePage.tsx#L34) (1 connections)
+- [filteredFaqs](file:///D:/Codes/i-can-app/src/pages/GuidePage.tsx#L86) (1 connections)
+- [handleCopyHashtags()](file:///D:/Codes/i-can-app/src/pages/GuidePage.tsx#L80) (1 connections)
+- [isOpen](file:///D:/Codes/i-can-app/src/pages/GuidePage.tsx#L297) (1 connections)
+- [officialHashtags](file:///D:/Codes/i-can-app/src/pages/GuidePage.tsx#L78) (1 connections)
+- [[openFaqIndex, setOpenFaqIndex]](file:///D:/Codes/i-can-app/src/pages/GuidePage.tsx#L75) (1 connections)
+- [[searchQuery, setSearchQuery]](file:///D:/Codes/i-can-app/src/pages/GuidePage.tsx#L74) (1 connections)
 
 ## Relationships
 
@@ -18,11 +21,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\components\common\TopNavbar.tsx](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx)
+- [D:\Codes\i-can-app\src\pages\GuidePage.tsx](file:///D:/Codes/i-can-app/src/pages/GuidePage.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 12 (100%)
+- EXTRACTED: 18 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 
