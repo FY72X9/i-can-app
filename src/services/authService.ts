@@ -311,3 +311,33 @@ export async function loginWithCredentials(
   const { passwordHash: _, ...userProfile } = matchedAccount;
   return { user: userProfile };
 }
+
+/**
+ * Get all available dynamic user accounts
+ */
+export async function getAllUsersList(): Promise<UserProfile[]> {
+  const accounts = await getStoredAccounts();
+  return accounts.map(({ passwordHash: _, ...profile }) => profile);
+}
+
+/**
+ * Update stored user profile or points
+ */
+export async function updateStoredUserAccount(
+  userId: string,
+  updates: Partial<UserProfile>
+): Promise<UserProfile | null> {
+  const accounts = await getStoredAccounts();
+  const index = accounts.findIndex((a) => a.id === userId);
+  if (index === -1) return null;
+
+  const updated = {
+    ...accounts[index],
+    ...updates,
+  };
+  accounts[index] = updated;
+  localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+  const { passwordHash: _, ...profile } = updated;
+  return profile;
+}
+

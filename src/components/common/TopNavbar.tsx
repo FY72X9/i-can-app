@@ -30,11 +30,12 @@ interface TopNavbarProps {
 
 export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
   const navigate = useNavigate();
-  const { user, loginAs } = useAuthStore();
+  const { user, usersList, loadUsersList, loginAs } = useAuthStore();
   const { mode, isDemoMode, isPrototypeMode, toggleMode } = useAppModeStore();
   const { 
     notifications, 
     unreadCount, 
+    loadUserNotifications,
     markAsRead, 
     markAllAsRead, 
     deleteNotification, 
@@ -48,6 +49,16 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
   const accountDropdownRef = useRef<HTMLDivElement>(null);
 
   const canSwitchRoles = isDemoMode() || user?.role === 'ADMIN';
+
+  // Load real dynamic users list on mount
+  useEffect(() => {
+    loadUsersList();
+  }, []);
+
+  // Load real notifications matching the active user
+  useEffect(() => {
+    loadUserNotifications(user);
+  }, [user?.id, user?.role]);
 
   // Close modals on click outside
   useEffect(() => {
@@ -63,8 +74,8 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelectProfile = (key: string) => {
-    loginAs(key);
+  const handleSelectProfile = (userId: string) => {
+    loginAs(userId);
     setShowAccountSelector(false);
   };
 
@@ -182,26 +193,30 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
               {showAccountSelector && (
                 <div className="absolute right-0 top-10 w-64 bg-white rounded-2xl shadow-eco-card border border-surface-border p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1">
                   <div className="text-[10px] font-black text-text-muted uppercase tracking-wider px-2 py-1 flex items-center justify-between">
-                    <span>Simulasi Akun ({user?.role === 'ADMIN' ? 'Admin Mode' : 'Dev Mode'})</span>
+                    <span>Simulasi Akun ({usersList.length} Akun • {user?.role === 'ADMIN' ? 'Admin Mode' : 'Dev Mode'})</span>
                     <span className="bg-eco-neon/20 text-eco-900 px-1.5 py-0.2 rounded text-[9px]">1-Klik</span>
                   </div>
 
                   <div className="space-y-1 max-h-56 overflow-y-auto">
-                    {Object.entries(DEMO_PROFILES).map(([key, profile]) => (
+                    {usersList.map((profile) => (
                       <button
-                        key={key}
-                        onClick={() => handleSelectProfile(key)}
+                        key={profile.id}
+                        onClick={() => handleSelectProfile(profile.id)}
                         className={`w-full p-2 rounded-xl text-left flex items-center gap-2 transition-all ${
                           user?.id === profile.id
                             ? 'bg-eco-700 text-white font-bold shadow-xs'
                             : 'hover:bg-slate-100 text-slate-700'
                         }`}
                       >
-                        <img src={profile.avatarUrl} alt={profile.fullName} className="w-7 h-7 rounded-lg object-cover" />
+                        <img 
+                          src={profile.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'} 
+                          alt={profile.fullName} 
+                          className="w-7 h-7 rounded-lg object-cover ring-1 ring-black/5" 
+                        />
                         <div className="min-w-0 flex-1">
                           <div className="text-[11px] font-black truncate">{profile.fullName}</div>
                           <div className={`text-[9px] truncate ${user?.id === profile.id ? 'text-eco-100' : 'text-slate-500'}`}>
-                            {profile.role} • {profile.facultyName?.split(' ')[0] || 'BINUS'}
+                            {profile.role} • {profile.totalSatPoints || 0} SAT
                           </div>
                         </div>
                       </button>
@@ -361,16 +376,18 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
                   )}
                 </div>
 
-                {/* Simulation Trigger Button */}
-                <div className="pt-2 border-t border-surface-border/60 flex items-center justify-between gap-2">
-                  <button
-                    onClick={simulateIncomingNotification}
-                    className="w-full py-1.5 px-2 bg-gradient-to-r from-eco-50 to-emerald-50 hover:from-eco-100 hover:to-emerald-100 border border-eco-200 text-eco-900 rounded-xl text-[10px] font-black flex items-center justify-center gap-1 transition-all active:scale-98 shadow-xs"
-                  >
-                    <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
-                    Simulasikan Notifikasi Baru
-                  </button>
-                </div>
+                {/* Simulation Trigger Button (Only in Dev / Showcase Mode) */}
+                {isDemoMode() && (
+                  <div className="pt-2 border-t border-surface-border/60 flex items-center justify-between gap-2">
+                    <button
+                      onClick={simulateIncomingNotification}
+                      className="w-full py-1.5 px-2 bg-gradient-to-r from-eco-50 to-emerald-50 hover:from-eco-100 hover:to-emerald-100 border border-eco-200 text-eco-900 rounded-xl text-[10px] font-black flex items-center justify-center gap-1 transition-all active:scale-98 shadow-xs"
+                    >
+                      <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
+                      <span>Simulasikan Notifikasi Baru (Dev Mode)</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

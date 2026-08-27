@@ -5,6 +5,7 @@ import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
+import { useNotificationStore } from '@/stores/notificationStore';
 import { submitGreenAction } from '@/services/actionService';
 import { verifyActionWithGemini } from '@/services/gemini';
 import { 
@@ -242,6 +243,17 @@ export const UploadPage: React.FC = () => {
         aiGuidelineScore: aiResult?.guidelineScore || 0.94,
         aiConfidence: aiResult?.confidence || 0.95,
         aiAnalysisReason: aiResult?.feedback || 'Bukti valid terdeteksi.',
+      });
+
+      // Dispatch real notification record for student
+      useNotificationStore.getState().addNotification({
+        title: isSurvey ? 'Proposal Survei Berhasil Diajukan 📋' : 'Laporan Aksi Berhasil Dikirim 🌳',
+        desc: isSurvey
+          ? `Pengajuan survei "${selectedCategory.name}" di ${surveyLocation} telah masuk ke antrean verifikator SSO/TFI.`
+          : `Laporan "${selectedCategory.name}" berhasil diunggah. Menunggu review verifikator SSO/TFI untuk persetujuan Poin SAT & Green Coins.`,
+        type: isSurvey ? 'tfi' : 'quest',
+        actionUrl: '/wallet',
+        userId: user?.id,
       });
 
       confetti({

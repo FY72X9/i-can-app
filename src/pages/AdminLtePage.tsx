@@ -407,8 +407,8 @@ export const AdminLtePage: React.FC = () => {
                         </td>
                         <td className="p-2.5">
                           <button
-                            onClick={() => {
-                              loginAs(u.id === 'usr-student-001' ? 'student' : u.id === 'usr-verifier-002' ? 'verifier' : u.id === 'usr-student-003' ? 'nadia' : u.id === 'usr-student-004' ? 'farhan' : 'admin');
+                            onClick={async () => {
+                              await loginAs(u.id);
                               alert(`Beralih simulasi login sebagai ${u.fullName}`);
                             }}
                             className="px-2 py-1 rounded bg-slate-200 hover:bg-[#007bff] hover:text-white text-[10px] font-bold transition-colors"

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { LogtoProvider } from '@logto/react';
 import { logtoConfig } from '@/services/logto';
@@ -42,8 +42,12 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
   title,
   subtitle 
 }) => {
-  const { user, loginAs } = useAuthStore();
+  const { user, usersList, loadUsersList, loginAs } = useAuthStore();
   const { mode, isDemoMode, isPrototypeMode, toggleMode } = useAppModeStore();
+
+  useEffect(() => {
+    loadUsersList();
+  }, []);
 
   const canSwitchAccounts = isDemoMode() || user?.role === 'ADMIN';
 
@@ -112,73 +116,47 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
             <div className="bg-white/90 backdrop-blur-xl rounded-card-lg p-3.5 border border-surface-border shadow-eco-soft space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black text-text-muted uppercase tracking-wider">
-                  Simulasi Akun ({user?.role === 'ADMIN' ? 'Admin Mode' : 'Dev Mode'})
+                  Simulasi Akun ({usersList.length} Akun • {user?.role === 'ADMIN' ? 'Admin Mode' : 'Dev Mode'})
                 </span>
                 <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-eco-neon/20 text-eco-900 border border-eco-neon/40">
                   1-Klik
                 </span>
               </div>
 
-              <div className="space-y-1">
-                <button
-                  onClick={() => loginAs('student')}
-                  className={`w-full p-2 rounded-xl border text-left transition-all active:scale-95 flex items-center gap-2 ${
-                    user?.id === 'usr-student-001'
-                      ? 'bg-eco-700 text-white border-eco-700 shadow-xs'
-                      : 'bg-surface-subtle text-text-secondary hover:bg-white border-surface-border/60'
-                  }`}
-                >
-                  <GraduationCap className="w-4 h-4 shrink-0 text-eco-neon" />
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-black leading-tight truncate">Budi Santoso (SOCS)</div>
-                    <div className={`text-[9px] truncate ${user?.id === 'usr-student-001' ? 'text-eco-100' : 'text-slate-400'}`}>Student • 45 SAT</div>
-                  </div>
-                </button>
+              <div className="space-y-1 max-h-72 overflow-y-auto pr-0.5">
+                {usersList.map((u) => {
+                  const isActive = user?.id === u.id;
+                  const isVerifier = u.role === 'VERIFIER';
+                  const isAdmin = u.role === 'ADMIN';
 
-                <button
-                  onClick={() => loginAs('nadia')}
-                  className={`w-full p-2 rounded-xl border text-left transition-all active:scale-95 flex items-center gap-2 ${
-                    user?.id === 'usr-student-003'
-                      ? 'bg-eco-700 text-white border-eco-700 shadow-xs'
-                      : 'bg-surface-subtle text-text-secondary hover:bg-white border-surface-border/60'
-                  }`}
-                >
-                  <Award className="w-4 h-4 shrink-0 text-gold-neon" />
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-black leading-tight truncate">Nadia Safira (SOD)</div>
-                    <div className={`text-[9px] truncate ${user?.id === 'usr-student-003' ? 'text-eco-100' : 'text-slate-400'}`}>Student • 68 SAT (Top)</div>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => loginAs('verifier')}
-                  className={`w-full p-2 rounded-xl border text-left transition-all active:scale-95 flex items-center gap-2 ${
-                    user?.id === 'usr-verifier-002'
-                      ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
-                      : 'bg-surface-subtle text-text-secondary hover:bg-white border-surface-border/60'
-                  }`}
-                >
-                  <ShieldCheck className="w-4 h-4 shrink-0 text-amber-300" />
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-black leading-tight truncate">Siska Amanda (SIS)</div>
-                    <div className={`text-[9px] truncate ${user?.id === 'usr-verifier-002' ? 'text-amber-100' : 'text-slate-400'}`}>Verifier SSO & TFI</div>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => loginAs('admin')}
-                  className={`w-full p-2 rounded-xl border text-left transition-all active:scale-95 flex items-center gap-2 ${
-                    user?.id === 'usr-admin-005'
-                      ? 'bg-purple-700 text-white border-purple-700 shadow-xs'
-                      : 'bg-surface-subtle text-text-secondary hover:bg-white border-surface-border/60'
-                  }`}
-                >
-                  <Shield className="w-4 h-4 shrink-0 text-purple-300" />
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-black leading-tight truncate">Pak Hendra (SSO)</div>
-                    <div className={`text-[9px] truncate ${user?.id === 'usr-admin-005' ? 'text-purple-100' : 'text-slate-400'}`}>Super Admin Panel</div>
-                  </div>
-                </button>
+                  return (
+                    <button
+                      key={u.id}
+                      onClick={() => loginAs(u.id)}
+                      className={`w-full p-2 rounded-xl border text-left transition-all active:scale-95 flex items-center gap-2 ${
+                        isActive
+                          ? isAdmin
+                            ? 'bg-purple-700 text-white border-purple-700 shadow-xs'
+                            : isVerifier
+                            ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                            : 'bg-eco-700 text-white border-eco-700 shadow-xs'
+                          : 'bg-surface-subtle text-text-secondary hover:bg-white border-surface-border/60'
+                      }`}
+                    >
+                      <img
+                        src={u.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+                        alt={u.fullName}
+                        className="w-5 h-5 rounded-md object-cover shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[11px] font-black leading-tight truncate">{u.fullName}</div>
+                        <div className={`text-[9px] truncate ${isActive ? 'text-white/80 font-medium' : 'text-slate-400'}`}>
+                          {u.role} • {u.totalSatPoints || 0} SAT
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ) : (

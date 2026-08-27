@@ -94,6 +94,13 @@ export const FeedPage: React.FC = () => {
     },
   ];
 
+  const getPostReactions = (postId: string, type: string) => {
+    if (reactions[postId]) return reactions[postId];
+    if (type === 'TFI') return [{ emoji: '🌱', count: 24 }, { emoji: '🌳', count: 18 }, { emoji: '👏', count: 12 }];
+    if (type === 'VBL') return [{ emoji: '🎬', count: 19 }, { emoji: '🎓', count: 15 }, { emoji: '⚡', count: 8 }];
+    return [{ emoji: '💚', count: 14 }, { emoji: '🔥', count: 9 }, { emoji: '🥤', count: 6 }];
+  };
+
   const toggleLike = (id: string) => {
     setHasLiked((prev) => {
       const isLiked = !prev[id];
@@ -102,9 +109,9 @@ export const FeedPage: React.FC = () => {
     });
   };
 
-  const addReaction = (postId: string, emoji: string) => {
+  const addReaction = (postId: string, emoji: string, type: string = 'SELF') => {
     setReactions((prev) => {
-      const current = prev[postId] || [];
+      const current = prev[postId] || getPostReactions(postId, type);
       const exists = current.find((r) => r.emoji === emoji);
       if (exists) {
         return {
@@ -184,107 +191,128 @@ export const FeedPage: React.FC = () => {
       </div>
 
       {/* Post List */}
-      <div className="space-y-3.5">
-        {filteredPosts.map((post) => (
-          <Card key={post.id} className="p-4 space-y-3 bg-white border-surface-border shadow-eco-card relative">
-            {/* Header Author */}
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2.5">
+      {filteredPosts.length === 0 ? (
+        <Card className="p-8 text-center bg-white border-surface-border space-y-3 shadow-eco-card">
+          <div className="w-14 h-14 rounded-3xl bg-eco-50 text-eco-700 flex items-center justify-center mx-auto shadow-xs text-2xl">
+            🌱
+          </div>
+          <h3 className="text-sm font-black text-text-primary">
+            {activeTab === 'MY_ACTIVITIES' ? 'Belum Ada Aksi Pribadi Terverifikasi' : 'Belum Ada Aksi di Kategori Ini'}
+          </h3>
+          <p className="text-xs text-text-secondary max-w-xs mx-auto leading-relaxed">
+            {activeTab === 'MY_ACTIVITIES'
+              ? 'Aksi yang kamu unggah sedang dalam proses review verifikator SSO/TFI atau belum dilaporkan. Yuk laporkan aksi hijau pertamamu!'
+              : 'Jadilah mahasiswa pertama yang membagikan aksi inspiratif di kategori ini.'}
+          </p>
+          <Link
+            to="/upload"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-eco-700 hover:bg-eco-800 text-white text-xs font-black shadow-neon-glow transition-all"
+          >
+            Lapor Aksi Sekarang →
+          </Link>
+        </Card>
+      ) : (
+        <div className="space-y-3.5">
+          {filteredPosts.map((post) => (
+            <Card key={post.id} className="p-4 space-y-3 bg-white border-surface-border shadow-eco-card relative">
+              {/* Header Author */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2.5">
+                  <img
+                    src={post.avatar}
+                    alt={post.author}
+                    className="w-10 h-10 rounded-2xl object-cover ring-2 ring-eco-neon/60 shadow-xs"
+                  />
+                  <div>
+                    <h4 className="text-xs font-black text-text-primary flex items-center gap-1">
+                      {post.author}
+                      {post.type !== 'SELF' && (
+                        <span title="Terverifikasi TFI" className="inline-flex items-center">
+                          <ShieldCheck className="w-3.5 h-3.5 text-eco-600" />
+                        </span>
+                      )}
+                    </h4>
+                    <p className="text-[10px] text-text-secondary font-medium">{post.faculty}</p>
+                  </div>
+                </div>
+                <Badge variant={post.type === 'TFI' ? 'success' : post.type === 'VBL' ? 'purple' : 'neutral'} size="sm">
+                  {post.sdgBadge}
+                </Badge>
+              </div>
+
+              {/* Action Image with Double-Tap Vibe */}
+              <div className="relative rounded-3xl overflow-hidden aspect-[16/10] bg-slate-900 border border-surface-border group">
                 <img
-                  src={post.avatar}
-                  alt={post.author}
-                  className="w-10 h-10 rounded-2xl object-cover ring-2 ring-eco-neon/60 shadow-xs"
+                  src={post.photo}
+                  alt={post.actionTitle}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
-                <div>
-                  <h4 className="text-xs font-black text-text-primary flex items-center gap-1">
-                    {post.author}
-                    {post.type !== 'SELF' && (
-                      <span title="Terverifikasi TFI" className="inline-flex items-center">
-                        <ShieldCheck className="w-3.5 h-3.5 text-eco-600" />
-                      </span>
-                    )}
-                  </h4>
-                  <p className="text-[10px] text-text-secondary font-medium">{post.faculty}</p>
+                <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between">
+                  <span className="bg-black/75 backdrop-blur-md text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-eco-neon" />
+                    {post.location}
+                  </span>
+                  <span className="bg-eco-700/90 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-neon-glow">
+                    {post.coinsEarned}
+                  </span>
                 </div>
               </div>
-              <Badge variant={post.type === 'TFI' ? 'success' : post.type === 'VBL' ? 'purple' : 'neutral'} size="sm">
-                {post.sdgBadge}
-              </Badge>
-            </div>
 
-            {/* Action Image with Double-Tap Vibe */}
-            <div className="relative rounded-3xl overflow-hidden aspect-[16/10] bg-slate-900 border border-surface-border group">
-              <img
-                src={post.photo}
-                alt={post.actionTitle}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between">
-                <span className="bg-black/75 backdrop-blur-md text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-eco-neon" />
-                  {post.location}
-                </span>
-                <span className="bg-eco-700/90 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-neon-glow">
-                  {post.coinsEarned}
-                </span>
+              {/* Description & Story */}
+              <div className="space-y-1">
+                <h3 className="text-xs font-black text-text-primary leading-snug">{post.actionTitle}</h3>
+                <p className="text-xs text-text-secondary leading-relaxed">{post.story}</p>
               </div>
-            </div>
 
-            {/* Description & Story */}
-            <div className="space-y-1">
-              <h3 className="text-xs font-black text-text-primary leading-snug">{post.actionTitle}</h3>
-              <p className="text-xs text-text-secondary leading-relaxed">{post.story}</p>
-            </div>
-
-            {/* Social Media Publication Link if available */}
-            {post.campaignUrl && (
-              <div className="bg-blue-50/90 p-2.5 rounded-2xl border border-blue-200/80 flex items-center justify-between">
-                <span className="text-[11px] font-mono text-blue-900 truncate max-w-[200px]">
-                  {post.campaignUrl}
-                </span>
-                <a
-                  href={post.campaignUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[10px] font-black text-blue-700 hover:text-blue-800 flex items-center gap-1 shrink-0 ml-2"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  Lihat Konten
-                </a>
-              </div>
-            )}
-
-            {/* SAT & Impact Badge */}
-            <div className="flex items-center justify-between text-[10px] font-black bg-surface-subtle p-2 rounded-xl border border-surface-border/60">
-              <span className="text-blue-700">{post.satEarned}</span>
-              <span className="text-eco-800">{post.carbonSaved}</span>
-            </div>
-
-            {/* Emoji Reaction Bar (Gen Z Interaction) */}
-            <div className="flex items-center gap-1.5 pt-1 overflow-x-auto no-scrollbar">
-              {(reactions[post.id] || []).map((r, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => addReaction(post.id, r.emoji)}
-                  className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-xs font-black flex items-center gap-1 transition-all active:scale-90"
-                >
-                  <span>{r.emoji}</span>
-                  <span className="text-[10px] text-text-secondary font-mono">{r.count}</span>
-                </button>
-              ))}
-
-              <div className="flex items-center gap-1 pl-1 border-l border-slate-200">
-                {['🔥', '🌱', '⚡'].map((emoji) => (
-                  <button
-                    key={emoji}
-                    onClick={() => addReaction(post.id, emoji)}
-                    className="w-7 h-7 rounded-full bg-white hover:bg-eco-50 border border-surface-border text-xs flex items-center justify-center transition-all active:scale-95 shadow-2xs"
+              {/* Social Media Publication Link if available */}
+              {post.campaignUrl && (
+                <div className="bg-blue-50/90 p-2.5 rounded-2xl border border-blue-200/80 flex items-center justify-between">
+                  <span className="text-[11px] font-mono text-blue-900 truncate max-w-[200px]">
+                    {post.campaignUrl}
+                  </span>
+                  <a
+                    href={post.campaignUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[10px] font-black text-blue-700 hover:text-blue-800 flex items-center gap-1 shrink-0 ml-2"
                   >
-                    {emoji}
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Lihat Konten
+                  </a>
+                </div>
+              )}
+
+              {/* SAT & Impact Badge */}
+              <div className="flex items-center justify-between text-[10px] font-black bg-surface-subtle p-2 rounded-xl border border-surface-border/60">
+                <span className="text-blue-700">{post.satEarned}</span>
+                <span className="text-eco-800">{post.carbonSaved}</span>
+              </div>
+
+              {/* Emoji Reaction Bar (Gen Z Interaction) */}
+              <div className="flex items-center gap-1.5 pt-1 overflow-x-auto no-scrollbar">
+                {(reactions[post.id] || getPostReactions(post.id, post.type)).map((r, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => addReaction(post.id, r.emoji, post.type)}
+                    className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-xs font-black flex items-center gap-1 transition-all active:scale-90"
+                  >
+                    <span>{r.emoji}</span>
+                    <span className="text-[10px] text-text-secondary font-mono">{r.count}</span>
                   </button>
                 ))}
+
+                <div className="flex items-center gap-1 pl-1 border-l border-slate-200">
+                  {['🔥', '🌱', '⚡'].map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => addReaction(post.id, emoji, post.type)}
+                      className="w-7 h-7 rounded-full bg-white hover:bg-eco-50 border border-surface-border text-xs flex items-center justify-center transition-all active:scale-95 shadow-2xs"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
             {/* Footer Likes & Timestamp */}
             <div className="flex items-center justify-between pt-2 border-t border-surface-border/60 text-xs text-text-secondary">
@@ -316,6 +344,7 @@ export const FeedPage: React.FC = () => {
           </Card>
         ))}
       </div>
+      )}
     </div>
   );
 };

@@ -1,8 +1,14 @@
 import { create } from 'zustand';
-import { UserProfile } from '@/types';
-import { loginWithCredentials, registerUser, RegisterParams } from '@/services/authService';
+import { UserProfile, UserRole } from '@/types';
+import { 
+  loginWithCredentials, 
+  registerUser, 
+  RegisterParams, 
+  getAllUsersList, 
+  updateStoredUserAccount 
+} from '@/services/authService';
 
-// Mock profiles for instant demo / judging without requiring manual DB setup
+// Default initial seeded profiles
 export const DEMO_PROFILES: Record<string, UserProfile> = {
   student: {
     id: 'usr-student-001',
@@ -88,19 +94,22 @@ export const DEMO_PROFILES: Record<string, UserProfile> = {
 
 interface AuthState {
   user: UserProfile | null;
+  usersList: UserProfile[];
   isAuthenticated: boolean;
   isLoading: boolean;
   authError: string | null;
-  loginAs: (roleOrKey: 'student' | 'verifier' | 'nadia' | 'farhan' | 'admin' | string) => void;
+  loadUsersList: () => Promise<UserProfile[]>;
+  loginAs: (targetIdOrRole: string) => Promise<void>;
   loginWithPassword: (identifier: string, password: string) => Promise<boolean>;
   register: (params: RegisterParams) => Promise<boolean>;
   logout: () => void;
   clearError: () => void;
   updateUserStats: (stats: { greenCoins?: number; satPoints?: number; carbonSaved?: number; streakDays?: number }) => void;
+  updateUserRole: (userId: string, newRole: UserRole) => Promise<void>;
   setUser: (user: UserProfile | null) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => {
+export const useAuthStore = create<AuthState>((set, get) => {
   // Load saved state from localStorage (null if unauthenticated)
   const savedUser = localStorage.getItem('i_can_user');
   let initialUser: UserProfile | null = null;
@@ -112,14 +121,59 @@ export const useAuthStore = create<AuthState>((set) => {
     }
   }
 
+  const initialList = Object.values(DEMO_PROFILES);
+
   return {
     user: initialUser,
+    usersList: initialList,
     isAuthenticated: Boolean(initialUser),
     isLoading: false,
     authError: null,
 
-    loginAs: (role) => {
-      const selectedProfile = DEMO_PROFILES[role] || DEMO_PROFILES.student;
+    loadUsersList: async () => {
+      try {
+        const list = await getAllUsersList();
+        if (list && list.length > 0) {
+          set({ usersList: list });
+          return list;
+        }
+      } catch (err) {
+        console.warn('Failed loading dynamic users list:', err);
+      }
+      return get().usersList;
+    },
+
+    loginAs: async (target) => {
+      let list = get().usersList;
+      if (!list || list.length === 0) {
+        list = await get().loadUsersList();
+      }
+
+      const cleanTarget = target.toLowerCase();
+      let matched = list.find(
+        (u) =>
+          u.id.toLowerCase() === cleanTarget ||
+          u.nim.toLowerCase() === cleanTarget ||
+          u.email.toLowerCase() === cleanTarget ||
+          u.fullName.toLowerCase().includes(cleanTarget)
+      );
+
+      // Nickname & Role shortcuts fallback
+      if (!matched) {
+        if (cleanTarget === 'student') {
+          matched = list.find((u) => u.id === 'usr-student-001') || list.find((u) => u.role === 'STUDENT');
+        } else if (cleanTarget === 'verifier') {
+          matched = list.find((u) => u.role === 'VERIFIER');
+        } else if (cleanTarget === 'admin') {
+          matched = list.find((u) => u.role === 'ADMIN');
+        } else if (cleanTarget === 'nadia') {
+          matched = list.find((u) => u.id === 'usr-student-003');
+        } else if (cleanTarget === 'farhan') {
+          matched = list.find((u) => u.id === 'usr-student-004');
+        }
+      }
+
+      const selectedProfile = matched || DEMO_PROFILES[target] || DEMO_PROFILES.student;
       localStorage.setItem('i_can_user', JSON.stringify(selectedProfile));
       set({ user: selectedProfile, isAuthenticated: true, authError: null });
     },
@@ -134,6 +188,7 @@ export const useAuthStore = create<AuthState>((set) => {
         }
         localStorage.setItem('i_can_user', JSON.stringify(result.user));
         set({ user: result.user, isAuthenticated: true, isLoading: false, authError: null });
+        await get().loadUsersList();
         return true;
       } catch (err: any) {
         set({ isLoading: false, authError: err.message || 'Terjadi kesalahan sistem' });
@@ -151,6 +206,7 @@ export const useAuthStore = create<AuthState>((set) => {
         }
         localStorage.setItem('i_can_user', JSON.stringify(result.user));
         set({ user: result.user, isAuthenticated: true, isLoading: false, authError: null });
+        await get().loadUsersList();
         return true;
       } catch (err: any) {
         set({ isLoading: false, authError: err.message || 'Terjadi kesalahan saat pendaftaran' });
@@ -178,8 +234,25 @@ export const useAuthStore = create<AuthState>((set) => {
           streakDays: stats.streakDays !== undefined ? stats.streakDays : state.user.streakDays,
         };
         localStorage.setItem('i_can_user', JSON.stringify(updated));
-        return { user: updated };
+
+        // Update in usersList and persistent storage
+        updateStoredUserAccount(updated.id, updated).catch(console.warn);
+        const updatedList = state.usersList.map((u) => (u.id === updated.id ? updated : u));
+
+        return { user: updated, usersList: updatedList };
       });
+    },
+
+    updateUserRole: async (userId: string, newRole: UserRole) => {
+      await updateStoredUserAccount(userId, { role: newRole });
+      const updatedList = get().usersList.map((u) => (u.id === userId ? { ...u, role: newRole } : u));
+      set({ usersList: updatedList });
+
+      if (get().user?.id === userId) {
+        const updatedUser = { ...get().user!, role: newRole };
+        localStorage.setItem('i_can_user', JSON.stringify(updatedUser));
+        set({ user: updatedUser });
+      }
     },
 
     setUser: (user) => {

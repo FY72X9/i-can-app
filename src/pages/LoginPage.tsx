@@ -44,12 +44,27 @@ const FACULTIES = [
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, loginAs, loginWithPassword, register, authError, clearError, isLoading } = useAuthStore();
+  const { 
+    user, 
+    usersList, 
+    loadUsersList, 
+    isAuthenticated, 
+    loginAs, 
+    loginWithPassword, 
+    register, 
+    authError, 
+    clearError, 
+    isLoading 
+  } = useAuthStore();
   const { mode, isDemoMode, isPrototypeMode, toggleMode } = useAppModeStore();
   const { signIn: logtoSignIn } = useLogto();
 
   const [activeTab, setActiveTab] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
   const [showDemoAccounts, setShowDemoAccounts] = useState(isDemoMode());
+
+  useEffect(() => {
+    loadUsersList();
+  }, []);
   
   // Login form state
   const [loginIdentifier, setLoginIdentifier] = useState('');
@@ -460,7 +475,7 @@ export const LoginPage: React.FC = () => {
           )}
         </Card>
 
-        {/* 1-Click Fast Demo Profile Switcher for Reviewers (5 Seed Accounts) */}
+        {/* 1-Click Simulation Account Switcher */}
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
             <button
@@ -471,7 +486,7 @@ export const LoginPage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Sliders className="w-3.5 h-3.5 text-eco-700" />
                 <span className="text-[10px] font-black text-text-primary uppercase tracking-wider">
-                  Simulasi 5 Akun Demo ({isPrototypeMode() ? 'Mode Prototype' : 'Mode Dev'})
+                  Simulasi Akun ({usersList.length} Akun • {isPrototypeMode() ? 'Mode Prototype' : 'Mode Dev'})
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-[10px] text-text-secondary font-bold">
@@ -483,91 +498,76 @@ export const LoginPage: React.FC = () => {
 
           {showDemoAccounts && (
             <div className="space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => {
-                    loginAs('student');
-                    navigate('/home');
-                  }}
-                  className="p-2.5 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-2xs flex items-center gap-2 group active:scale-95"
-                >
-                  <div className="w-8 h-8 rounded-xl bg-eco-neon/20 text-eco-900 border border-eco-neon/40 flex items-center justify-center shrink-0 group-hover:bg-eco-700 group-hover:text-white transition-colors">
-                    <GraduationCap className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="text-[11px] font-black text-text-primary truncate">Budi (Student)</h4>
-                    <p className="text-[9px] text-text-secondary truncate font-mono">SOCS • 45 SAT</p>
-                  </div>
-                </button>
+              {/* Dynamic Students & Verifiers Grid */}
+              <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
+                {usersList
+                  .filter((u) => u.role !== 'ADMIN')
+                  .map((u) => {
+                    const isVerifier = u.role === 'VERIFIER';
+                    const isTopStudent = u.id === 'usr-student-003' || (u.totalSatPoints && u.totalSatPoints >= 60);
 
-                <button
-                  onClick={() => {
-                    loginAs('nadia');
-                    navigate('/home');
-                  }}
-                  className="p-2.5 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-2xs flex items-center gap-2 group active:scale-95"
-                >
-                  <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-300 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                    <Award className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="text-[11px] font-black text-text-primary truncate">Nadia (Top Student)</h4>
-                    <p className="text-[9px] text-text-secondary truncate font-mono">SOD • 68 SAT</p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => {
-                    loginAs('farhan');
-                    navigate('/home');
-                  }}
-                  className="p-2.5 rounded-2xl bg-white border border-blue-200 hover:border-blue-500 hover:bg-blue-50/50 transition-all text-left shadow-2xs flex items-center gap-2 group active:scale-95"
-                >
-                  <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-900 border border-blue-300 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                    <User className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="text-[11px] font-black text-text-primary truncate">Farhan (Newbie)</h4>
-                    <p className="text-[9px] text-text-secondary truncate font-mono">Engineering • 8 SAT</p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => {
-                    loginAs('verifier');
-                    navigate('/home');
-                  }}
-                  className="p-2.5 rounded-2xl bg-white border border-amber-200 hover:border-amber-500 hover:bg-amber-50/50 transition-all text-left shadow-2xs flex items-center gap-2 group active:scale-95"
-                >
-                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 flex items-center justify-center shrink-0 group-hover:bg-amber-600 group-hover:text-white transition-colors">
-                    <ShieldCheck className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="text-[11px] font-black text-text-primary truncate">Siska (Verifier)</h4>
-                    <p className="text-[9px] text-text-secondary truncate font-mono">TFI Verifier Portal</p>
-                  </div>
-                </button>
+                    return (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={async () => {
+                          await loginAs(u.id);
+                          navigate(isVerifier ? '/verify' : '/home');
+                        }}
+                        className="p-2.5 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-2xs flex items-center gap-2 group active:scale-95"
+                      >
+                        <img
+                          src={u.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+                          alt={u.fullName}
+                          className="w-8 h-8 rounded-xl object-cover ring-1 ring-surface-border shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-[11px] font-black text-text-primary truncate flex items-center gap-1">
+                            {u.fullName.split(' ')[0]}
+                            <span className={`text-[8px] font-bold px-1 rounded ${
+                              isVerifier ? 'bg-amber-100 text-amber-900' :
+                              isTopStudent ? 'bg-emerald-100 text-emerald-900' :
+                              'bg-slate-100 text-slate-700'
+                            }`}>
+                              {isVerifier ? 'Verifier' : isTopStudent ? 'Top' : 'Student'}
+                            </span>
+                          </h4>
+                          <p className="text-[9px] text-text-secondary truncate font-mono">
+                            {isVerifier ? 'SSO / TFI' : `${u.totalSatPoints || 0} SAT • ${u.totalGreenCoins || 0} GC`}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
               </div>
 
-              {/* Super Admin Single Wide Button */}
-              <button
-                onClick={() => {
-                  loginAs('admin');
-                  navigate('/admin');
-                }}
-                className="w-full p-2.5 rounded-2xl bg-gradient-to-r from-purple-50 via-slate-50 to-purple-50 border border-purple-200 hover:border-purple-400 text-left shadow-2xs flex items-center justify-between group active:scale-98 transition-all"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-purple-700 text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <Shield className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-black text-purple-950">Pak Hendra (Super Admin SSO)</h4>
-                    <p className="text-[9px] text-purple-700 font-medium">Buka Dashboard AdminLTE & Manajemen Kuota SAT</p>
-                  </div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-purple-700 group-hover:translate-x-1 transition-transform" />
-              </button>
+              {/* Dynamic Super Admin Buttons */}
+              {usersList
+                .filter((u) => u.role === 'ADMIN')
+                .map((adminUser) => (
+                  <button
+                    key={adminUser.id}
+                    type="button"
+                    onClick={async () => {
+                      await loginAs(adminUser.id);
+                      navigate('/admin');
+                    }}
+                    className="w-full p-2.5 rounded-2xl bg-gradient-to-r from-purple-50 via-slate-50 to-purple-50 border border-purple-200 hover:border-purple-400 text-left shadow-2xs flex items-center justify-between group active:scale-98 transition-all"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <img
+                        src={adminUser.avatarUrl || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'}
+                        alt={adminUser.fullName}
+                        className="w-8 h-8 rounded-xl object-cover ring-1 ring-purple-300 shrink-0"
+                      />
+                      <div>
+                        <h4 className="text-xs font-black text-purple-950">{adminUser.fullName}</h4>
+                        <p className="text-[9px] text-purple-700 font-medium">Buka Dashboard AdminLTE & Manajemen Kuota SAT</p>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-purple-700 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                ))}
             </div>
           )}
         </div>
