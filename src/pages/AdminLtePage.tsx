@@ -294,105 +294,105 @@ export const AdminLtePage: React.FC = () => {
         </aside>
 
         {/* Content Area */}
-        <main className="flex-1 p-4 sm:p-5 space-y-4 overflow-x-auto">
+        <main className="flex-1 p-5 sm:p-6 space-y-6 overflow-x-auto">
           {/* Breadcrumb Header */}
-          <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div>
-              <h1 className="text-base sm:text-lg font-black text-slate-800">
+              <h1 className="text-base sm:text-xl font-black text-slate-800">
                 {activeMenu === 'dashboard' && 'Dashboard Overview (SSO & TFI)'}
                 {activeMenu === 'users' && 'Manajemen Pengguna & Pengaturan Role'}
                 {activeMenu === 'actions' && 'Log & Validasi Aksi Nyata Mahasiswa'}
                 {activeMenu === 'grant' && 'Pemberian Poin SAT & Jam Comserv Manual'}
                 {activeMenu === 'sdg' && 'Metrik & Dampak Berkelanjutan SDG Kampus'}
               </h1>
-              <p className="text-[11px] text-slate-500 font-medium">
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
                 Panel Administrasi Terpusat • BINUS University
               </p>
             </div>
-            <span className="text-[10px] font-mono font-bold bg-slate-200 text-slate-700 px-2.5 py-1 rounded-md">
+            <span className="text-xs font-mono font-bold bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl">
               Session: Super Admin
             </span>
           </div>
 
           {/* 3. Small KPI Boxes (Classic AdminLTE Style) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
             {/* Box 1: Total Users (bg-info #17a2b8) */}
-            <div className="bg-[#17a2b8] text-white p-3.5 rounded-xl shadow-xs relative overflow-hidden flex flex-col justify-between">
+            <div className="bg-[#17a2b8] text-white p-4 sm:p-5 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between">
               <div>
-                <div className="text-xl sm:text-2xl font-black">{totalUsers}</div>
-                <p className="text-[11px] font-bold text-cyan-100">Mahasiswa & Staff</p>
+                <div className="text-2xl sm:text-3xl font-black">{totalUsers}</div>
+                <p className="text-xs font-bold text-cyan-100 mt-0.5">Mahasiswa & Staff</p>
               </div>
-              <Users className="w-10 h-10 text-white/20 absolute right-2 bottom-2" />
+              <Users className="w-12 h-12 text-white/20 absolute right-2 bottom-2" />
             </div>
 
             {/* Box 2: Verified Actions (bg-success #28a745) */}
-            <div className="bg-[#28a745] text-white p-3.5 rounded-xl shadow-xs relative overflow-hidden flex flex-col justify-between">
+            <div className="bg-[#28a745] text-white p-4 sm:p-5 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between">
               <div>
-                <div className="text-xl sm:text-2xl font-black">{verifiedActions} Aksi</div>
-                <p className="text-[11px] font-bold text-emerald-100">Disetujui Resmi TFI</p>
+                <div className="text-2xl sm:text-3xl font-black">{verifiedActions} Aksi</div>
+                <p className="text-xs font-bold text-emerald-100 mt-0.5">Disetujui Resmi TFI</p>
               </div>
-              <CheckSquare className="w-10 h-10 text-white/20 absolute right-2 bottom-2" />
+              <CheckSquare className="w-12 h-12 text-white/20 absolute right-2 bottom-2" />
             </div>
 
             {/* Box 3: SAT Distributed (bg-warning #ffc107) */}
-            <div className="bg-[#ffc107] text-[#1f2d3d] p-3.5 rounded-xl shadow-xs relative overflow-hidden flex flex-col justify-between">
+            <div className="bg-[#ffc107] text-[#1f2d3d] p-4 sm:p-5 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between">
               <div>
-                <div className="text-xl sm:text-2xl font-black">{totalSatAwarded} SAT</div>
-                <p className="text-[11px] font-bold text-amber-900">Poin SAT Transkrip</p>
+                <div className="text-2xl sm:text-3xl font-black">{totalSatAwarded} SAT</div>
+                <p className="text-xs font-bold text-amber-900 mt-0.5">Poin SAT Transkrip</p>
               </div>
-              <GraduationCap className="w-10 h-10 text-black/15 absolute right-2 bottom-2" />
+              <GraduationCap className="w-12 h-12 text-black/15 absolute right-2 bottom-2" />
             </div>
 
             {/* Box 4: Carbon Reduced (bg-danger #dc3545) */}
-            <div className="bg-[#dc3545] text-white p-3.5 rounded-xl shadow-xs relative overflow-hidden flex flex-col justify-between">
+            <div className="bg-[#dc3545] text-white p-4 sm:p-5 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between">
               <div>
-                <div className="text-xl sm:text-2xl font-black">{totalCo2Saved} kg</div>
-                <p className="text-[11px] font-bold text-rose-100">Emisi CO2e Ditekan</p>
+                <div className="text-2xl sm:text-3xl font-black">{totalCo2Saved} kg</div>
+                <p className="text-xs font-bold text-rose-100 mt-0.5">Emisi CO2e Ditekan</p>
               </div>
-              <Award className="w-10 h-10 text-white/20 absolute right-2 bottom-2" />
+              <Award className="w-12 h-12 text-white/20 absolute right-2 bottom-2" />
             </div>
           </div>
 
           {/* 4. Tab Content: Dashboard & Table 1: Manajemen Akun */}
           {(activeMenu === 'dashboard' || activeMenu === 'users') && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 space-y-3">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1.5">
+                <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-2">
                   <Users className="w-4 h-4 text-[#007bff]" />
                   Daftar Akun & Manajemen Hak Akses (Role)
                 </h3>
-                <span className="text-[10px] text-slate-500 font-bold">{usersList.length} Akun Terdaftar</span>
+                <span className="text-xs text-slate-500 font-bold">{usersList.length} Akun Terdaftar</span>
               </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-slate-100 text-slate-700 border-b border-slate-200">
-                      <th className="p-2.5 font-black">NIM / ID</th>
-                      <th className="p-2.5 font-black">Nama Lengkap</th>
-                      <th className="p-2.5 font-black">Fakultas</th>
-                      <th className="p-2.5 font-black">Green Coins</th>
-                      <th className="p-2.5 font-black">Poin SAT</th>
-                      <th className="p-2.5 font-black">Role / Hak Akses</th>
-                      <th className="p-2.5 font-black">Aksi Cepat</th>
+                      <th className="p-3 font-black">NIM / ID</th>
+                      <th className="p-3 font-black">Nama Lengkap</th>
+                      <th className="p-3 font-black">Fakultas</th>
+                      <th className="p-3 font-black">Green Coins</th>
+                      <th className="p-3 font-black">Poin SAT</th>
+                      <th className="p-3 font-black">Role / Hak Akses</th>
+                      <th className="p-3 font-black">Aksi Cepat</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {usersList.map((u) => (
                       <tr key={u.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="p-2.5 font-mono text-[11px] text-slate-600">{u.nim}</td>
-                        <td className="p-2.5 font-bold text-slate-900 flex items-center gap-2">
-                          <img src={u.avatarUrl} alt={u.fullName} className="w-6 h-6 rounded-full object-cover" />
+                        <td className="p-3 font-mono text-xs text-slate-600">{u.nim}</td>
+                        <td className="p-3 font-bold text-slate-900 flex items-center gap-2.5">
+                          <img src={u.avatarUrl} alt={u.fullName} className="w-7 h-7 rounded-full object-cover" />
                           <span>{u.fullName}</span>
                         </td>
-                        <td className="p-2.5 text-slate-600 text-[11px]">{u.facultyName}</td>
-                        <td className="p-2.5 font-bold text-amber-700 font-mono">{u.totalGreenCoins || 0} GC</td>
-                        <td className="p-2.5 font-bold text-blue-700 font-mono">{u.totalSatPoints || 0} SAT</td>
-                        <td className="p-2.5">
+                        <td className="p-3 text-slate-600 text-xs">{u.facultyName}</td>
+                        <td className="p-3 font-bold text-amber-700 font-mono text-xs">{u.totalGreenCoins || 0} GC</td>
+                        <td className="p-3 font-bold text-blue-700 font-mono text-xs">{u.totalSatPoints || 0} SAT</td>
+                        <td className="p-3">
                           <select
                             value={u.role}
                             onChange={(e) => handleRoleChange(u.id, e.target.value as UserRole)}
-                            className={`text-[11px] font-bold py-1 px-2 rounded-lg border cursor-pointer ${
+                            className={`text-xs font-bold py-1.5 px-2.5 rounded-xl border cursor-pointer ${
                               u.role === 'ADMIN'
                                 ? 'bg-purple-100 text-purple-900 border-purple-300'
                                 : u.role === 'VERIFIER'
@@ -405,13 +405,13 @@ export const AdminLtePage: React.FC = () => {
                             <option value="ADMIN">ADMIN</option>
                           </select>
                         </td>
-                        <td className="p-2.5">
+                        <td className="p-3">
                           <button
                             onClick={async () => {
                               await loginAs(u.id);
                               alert(`Beralih simulasi login sebagai ${u.fullName}`);
                             }}
-                            className="px-2 py-1 rounded bg-slate-200 hover:bg-[#007bff] hover:text-white text-[10px] font-bold transition-colors"
+                            className="px-2.5 py-1.5 rounded-xl bg-slate-200 hover:bg-[#007bff] hover:text-white text-xs font-bold transition-colors"
                           >
                             Login As
                           </button>
@@ -426,41 +426,41 @@ export const AdminLtePage: React.FC = () => {
 
           {/* 5. Tab Content: Table 2: Log Verifikasi Aksi */}
           {(activeMenu === 'dashboard' || activeMenu === 'actions') && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 space-y-3">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1.5">
+                <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-2">
                   <CheckSquare className="w-4 h-4 text-[#28a745]" />
                   Log Pengajuan Aksi & Keputusan SSO
                 </h3>
-                <span className="text-[10px] text-slate-500 font-bold">{actionsList.length} Total Pengajuan</span>
+                <span className="text-xs text-slate-500 font-bold">{actionsList.length} Total Pengajuan</span>
               </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-slate-100 text-slate-700 border-b border-slate-200">
-                      <th className="p-2.5 font-black">Mahasiswa</th>
-                      <th className="p-2.5 font-black">Kategori Aksi</th>
-                      <th className="p-2.5 font-black">Tipe Program</th>
-                      <th className="p-2.5 font-black">Potensi SAT</th>
-                      <th className="p-2.5 font-black">AI Score</th>
-                      <th className="p-2.5 font-black">Status</th>
-                      <th className="p-2.5 font-black">Aksi Verifikasi</th>
+                      <th className="p-3 font-black">Mahasiswa</th>
+                      <th className="p-3 font-black">Kategori Aksi</th>
+                      <th className="p-3 font-black">Tipe Program</th>
+                      <th className="p-3 font-black">Potensi SAT</th>
+                      <th className="p-3 font-black">AI Score</th>
+                      <th className="p-3 font-black">Status</th>
+                      <th className="p-3 font-black">Aksi Verifikasi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {actionsList.map((act) => (
                       <tr key={act.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="p-2.5 font-bold text-slate-900">{act.userName}</td>
-                        <td className="p-2.5 text-slate-700">{act.categoryName}</td>
-                        <td className="p-2.5 text-[11px] text-slate-500">{act.submissionType}</td>
-                        <td className="p-2.5 font-bold text-blue-700 font-mono">+{act.satPointsEarned} SAT</td>
-                        <td className="p-2.5 font-bold text-emerald-700 font-mono">
+                        <td className="p-3 font-bold text-slate-900">{act.userName}</td>
+                        <td className="p-3 text-slate-700 font-medium">{act.categoryName}</td>
+                        <td className="p-3 text-xs text-slate-500 font-mono">{act.submissionType}</td>
+                        <td className="p-3 font-bold text-blue-700 font-mono text-xs">+{act.satPointsEarned} SAT</td>
+                        <td className="p-3 font-bold text-emerald-700 font-mono text-xs">
                           {Math.round((act.aiConfidence || 0.9) * 100)}%
                         </td>
-                        <td className="p-2.5">
+                        <td className="p-3">
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                            className={`px-2.5 py-1 rounded-full text-xs font-black ${
                               act.status === 'APPROVED'
                                 ? 'bg-emerald-100 text-emerald-900'
                                 : act.status === 'REJECTED'
@@ -471,18 +471,18 @@ export const AdminLtePage: React.FC = () => {
                             {act.status}
                           </span>
                         </td>
-                        <td className="p-2.5">
-                          <div className="flex items-center gap-1">
+                        <td className="p-3">
+                          <div className="flex items-center gap-1.5">
                             <button
                               onClick={() => handleAdminVerify(act.id, 'APPROVED_FULL')}
-                              className="px-2 py-1 bg-[#28a745] hover:bg-[#218838] text-white rounded text-[10px] font-bold"
+                              className="px-2.5 py-1 bg-[#28a745] hover:bg-[#218838] text-white rounded-lg text-xs font-bold transition-colors"
                               title="Approve Full SAT + Coins"
                             >
                               Approve
                             </button>
                             <button
                               onClick={() => handleAdminVerify(act.id, 'REJECTED')}
-                              className="px-2 py-1 bg-[#dc3545] hover:bg-[#c82333] text-white rounded text-[10px] font-bold"
+                              className="px-2.5 py-1 bg-[#dc3545] hover:bg-[#c82333] text-white rounded-lg text-xs font-bold transition-colors"
                               title="Tolak Aksi"
                             >
                               Reject
@@ -499,10 +499,10 @@ export const AdminLtePage: React.FC = () => {
 
           {/* 6. Tab Content: Manual SAT Grant Tool */}
           {activeMenu === 'grant' && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 max-w-lg space-y-4">
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 max-w-lg space-y-4">
               <div className="flex items-center gap-2 text-slate-800">
                 <GraduationCap className="w-5 h-5 text-[#007bff]" />
-                <h3 className="text-sm font-black">Direct Manual SAT & Coins Granting</h3>
+                <h3 className="text-sm sm:text-base font-black">Direct Manual SAT & Coins Granting</h3>
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed">
@@ -510,19 +510,19 @@ export const AdminLtePage: React.FC = () => {
               </p>
 
               {grantSuccessMsg && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl text-xs font-bold flex items-center gap-2">
+                <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-2xl text-xs font-bold flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>{grantSuccessMsg}</span>
                 </div>
               )}
 
-              <form onSubmit={handleManualGrantSubmit} className="space-y-3">
+              <form onSubmit={handleManualGrantSubmit} className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Pilih Mahasiswa Penerima</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1.5">Pilih Mahasiswa Penerima</label>
                   <select
                     value={selectedUserForGrant}
                     onChange={(e) => setSelectedUserForGrant(e.target.value)}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
+                    className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
                   >
                     {usersList.map((u) => (
                       <option key={u.id} value={u.id}>
@@ -534,47 +534,47 @@ export const AdminLtePage: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">Jumlah Poin SAT</label>
+                    <label className="text-xs font-bold text-slate-700 block mb-1.5">Jumlah Poin SAT</label>
                     <input
                       type="number"
                       min={1}
                       max={20}
                       value={grantSatAmount}
                       onChange={(e) => setGrantSatAmount(Number(e.target.value))}
-                      className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none font-mono"
+                      className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none font-mono"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">Jumlah Green Coins</label>
+                    <label className="text-xs font-bold text-slate-700 block mb-1.5">Jumlah Green Coins</label>
                     <input
                       type="number"
                       min={0}
                       max={200}
                       value={grantCoinsAmount}
                       onChange={(e) => setGrantCoinsAmount(Number(e.target.value))}
-                      className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none font-mono"
+                      className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none font-mono"
                       required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Keterangan / Alasan Resmi SSO</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1.5">Keterangan / Alasan Resmi SSO</label>
                   <input
                     type="text"
                     value={grantReason}
                     onChange={(e) => setGrantReason(e.target.value)}
                     placeholder="Contoh: Juara 1 Lomba Inovasi Biopori Kampus"
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
+                    className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
                     required
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-2.5 bg-[#007bff] hover:bg-[#0069d9] text-white rounded-xl text-xs font-black shadow-xs transition-colors"
+                  className="w-full py-3.5 bg-[#007bff] hover:bg-[#0069d9] text-white rounded-2xl text-xs sm:text-sm font-black shadow-xs transition-colors"
                 >
                   Eksekusi Pemberian Poin SAT →
                 </button>
@@ -585,32 +585,45 @@ export const AdminLtePage: React.FC = () => {
           {/* 7. Tab Content: SDG Analytics */}
           {activeMenu === 'sdg' && (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                  <span className="text-xs font-black text-emerald-800 block">SDG 15: Life on Land</span>
-                  <div className="text-2xl font-black text-slate-900">1,420 Pohon</div>
-                  <div className="w-full bg-slate-100 rounded-full h-2">
-                    <div className="bg-emerald-500 h-2 rounded-full w-[71%]" />
+              <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5">
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-slate-900">Monitoring Target UN SDG BINUS University</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Agregasi capaian program keberlanjutan kampus semester aktif 2026</p>
+                </div>
+                <Link
+                  to="/sdg-guideline"
+                  className="px-4 py-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 text-xs font-black border border-emerald-300 transition-colors flex items-center gap-1.5 shrink-0"
+                >
+                  <span>Buka Panduan & Matriks SDG Lengkap →</span>
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2.5">
+                  <span className="text-xs sm:text-sm font-black text-emerald-800 block">SDG 15: Life on Land</span>
+                  <div className="text-2xl sm:text-3xl font-black text-slate-900">1,420 Pohon</div>
+                  <div className="w-full bg-slate-100 rounded-full h-2.5">
+                    <div className="bg-emerald-500 h-2.5 rounded-full w-[71%]" />
                   </div>
-                  <p className="text-[10px] text-slate-500 font-bold">71% dari target 2,000 pohon tahun 2026</p>
+                  <p className="text-xs text-slate-500 font-bold">71% dari target 2,000 pohon tahun 2026</p>
                 </div>
 
-                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                  <span className="text-xs font-black text-cyan-800 block">SDG 6: Clean Water</span>
-                  <div className="text-2xl font-black text-slate-900">890 Biopori</div>
-                  <div className="w-full bg-slate-100 rounded-full h-2">
-                    <div className="bg-cyan-500 h-2 rounded-full w-[89%]" />
+                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2.5">
+                  <span className="text-xs sm:text-sm font-black text-cyan-800 block">SDG 6: Clean Water</span>
+                  <div className="text-2xl sm:text-3xl font-black text-slate-900">890 Biopori</div>
+                  <div className="w-full bg-slate-100 rounded-full h-2.5">
+                    <div className="bg-cyan-500 h-2.5 rounded-full w-[89%]" />
                   </div>
-                  <p className="text-[10px] text-slate-500 font-bold">89% dari target 1,000 lubang biopori</p>
+                  <p className="text-xs text-slate-500 font-bold">89% dari target 1,000 lubang biopori</p>
                 </div>
 
-                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                  <span className="text-xs font-black text-purple-800 block">SDG 4: Quality Education</span>
-                  <div className="text-2xl font-black text-slate-900">340 Video VBL</div>
-                  <div className="w-full bg-slate-100 rounded-full h-2">
-                    <div className="bg-purple-500 h-2 rounded-full w-[68%]" />
+                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2.5">
+                  <span className="text-xs sm:text-sm font-black text-purple-800 block">SDG 4: Quality Education</span>
+                  <div className="text-2xl sm:text-3xl font-black text-slate-900">340 Video VBL</div>
+                  <div className="w-full bg-slate-100 rounded-full h-2.5">
+                    <div className="bg-purple-500 h-2.5 rounded-full w-[68%]" />
                   </div>
-                  <p className="text-[10px] text-slate-500 font-bold">68% terverifikasi berstandar APA Style</p>
+                  <p className="text-xs text-slate-500 font-bold">68% terverifikasi berstandar APA Style</p>
                 </div>
               </div>
             </div>

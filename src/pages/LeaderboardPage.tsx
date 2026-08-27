@@ -286,63 +286,63 @@ export const LeaderboardPage: React.FC = () => {
 
       {/* 2. Podium Section for Top 3 (Shown for BEKEN and SAT tabs) */}
       {activeTab !== 'FACULTY' && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-2 sm:gap-3 items-end pt-4 pb-2">
+        <div className="space-y-5">
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-4 items-end pt-5 pb-2">
             {/* Rank 2 - Silver */}
-            <div className="bg-white rounded-3xl p-3 border border-slate-200 shadow-eco-sm text-center space-y-1.5 relative order-1">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center font-black text-xs text-slate-700 shadow-xs">
+            <div className="bg-white rounded-3xl p-4 border border-slate-200 shadow-eco-sm text-center space-y-2 relative order-1">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center font-black text-xs text-slate-700 shadow-xs">
                 2
               </div>
               <img
                 src={runnerUp.avatar}
                 alt={runnerUp.name}
-                className="w-12 h-12 rounded-2xl object-cover mx-auto ring-2 ring-slate-300 shadow-xs mt-1"
+                className="w-14 h-14 rounded-2xl object-cover mx-auto ring-2 ring-slate-300 shadow-xs mt-1"
               />
               <div className="min-w-0">
-                <h4 className="text-xs font-black text-text-primary truncate">{runnerUp.name}</h4>
-                <p className="text-[9px] text-text-secondary truncate">{runnerUp.faculty.split(' ')[0]}</p>
-                <div className="mt-1 text-[11px] font-black text-slate-800">
+                <h4 className="text-xs sm:text-sm font-black text-text-primary truncate">{runnerUp.name}</h4>
+                <p className="text-xs text-text-secondary truncate mt-0.5">{runnerUp.faculty.split(' ')[0]}</p>
+                <div className="mt-1.5 text-xs sm:text-sm font-black text-slate-800">
                   {activeTab === 'SAT' ? `${runnerUp.satPoints} SAT` : `${runnerUp.greenCoins} GC`}
                 </div>
               </div>
             </div>
 
             {/* Rank 1 - Gold (Elevated) */}
-            <div className="bg-gradient-to-b from-amber-50 to-white rounded-3xl p-3.5 border-2 border-amber-300 shadow-eco-card text-center space-y-1.5 relative order-2 -translate-y-2">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-gradient-to-tr from-gold-400 to-amber-500 border-2 border-white flex items-center justify-center font-black text-xs text-slate-950 shadow-neon-glow">
+            <div className="bg-gradient-to-b from-amber-50 to-white rounded-3xl p-4 sm:p-5 border-2 border-amber-300 shadow-eco-card text-center space-y-2 relative order-2 -translate-y-2">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-gradient-to-tr from-gold-400 to-amber-500 border-2 border-white flex items-center justify-center font-black text-xs text-slate-950 shadow-neon-glow">
                 👑 1
               </div>
               <img
                 src={topStudent.avatar}
                 alt={topStudent.name}
-                className="w-14 h-14 rounded-2xl object-cover mx-auto ring-4 ring-gold-neon shadow-neon-glow mt-1"
+                className="w-16 h-16 rounded-2xl object-cover mx-auto ring-4 ring-gold-neon shadow-neon-glow mt-1"
               />
               <div className="min-w-0">
-                <span className="text-[8px] font-black uppercase tracking-wider bg-gold-neon/30 text-amber-950 px-2 py-0.2 rounded-full inline-block">
+                <span className="text-[9px] font-black uppercase tracking-wider bg-gold-neon/30 text-amber-950 px-2 py-0.5 rounded-full inline-block">
                   BEKEN Leader
                 </span>
-                <h4 className="text-xs font-black text-text-primary truncate mt-0.5">{topStudent.name}</h4>
-                <p className="text-[9px] text-text-secondary truncate">{topStudent.faculty.split(' ')[0]}</p>
-                <div className="mt-1 text-sm font-black text-amber-900">
+                <h4 className="text-xs sm:text-sm font-black text-text-primary truncate mt-1">{topStudent.name}</h4>
+                <p className="text-xs text-text-secondary truncate mt-0.5">{topStudent.faculty.split(' ')[0]}</p>
+                <div className="mt-1.5 text-sm sm:text-base font-black text-amber-900">
                   {activeTab === 'SAT' ? `${topStudent.satPoints} SAT` : `${topStudent.greenCoins} GC`}
                 </div>
               </div>
             </div>
 
             {/* Rank 3 - Bronze */}
-            <div className="bg-white rounded-3xl p-3 border border-amber-200/80 shadow-eco-sm text-center space-y-1.5 relative order-3">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-amber-100 border-2 border-white flex items-center justify-center font-black text-xs text-amber-900 shadow-xs">
+            <div className="bg-white rounded-3xl p-4 border border-amber-200/80 shadow-eco-sm text-center space-y-2 relative order-3">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-amber-100 border-2 border-white flex items-center justify-center font-black text-xs text-amber-900 shadow-xs">
                 3
               </div>
               <img
                 src={thirdPlace.avatar}
                 alt={thirdPlace.name}
-                className="w-12 h-12 rounded-2xl object-cover mx-auto ring-2 ring-amber-300 shadow-xs mt-1"
+                className="w-14 h-14 rounded-2xl object-cover mx-auto ring-2 ring-amber-300 shadow-xs mt-1"
               />
               <div className="min-w-0">
-                <h4 className="text-xs font-black text-text-primary truncate">{thirdPlace.name}</h4>
-                <p className="text-[9px] text-text-secondary truncate">{thirdPlace.faculty.split(' ')[0]}</p>
-                <div className="mt-1 text-[11px] font-black text-amber-800">
+                <h4 className="text-xs sm:text-sm font-black text-text-primary truncate">{thirdPlace.name}</h4>
+                <p className="text-xs text-text-secondary truncate mt-0.5">{thirdPlace.faculty.split(' ')[0]}</p>
+                <div className="mt-1.5 text-xs sm:text-sm font-black text-amber-800">
                   {activeTab === 'SAT' ? `${thirdPlace.satPoints} SAT` : `${thirdPlace.greenCoins} GC`}
                 </div>
               </div>
@@ -350,7 +350,7 @@ export const LeaderboardPage: React.FC = () => {
           </div>
 
           {/* 3. Top Student Spotlight Bento Card */}
-          <Card className="p-4.5 bg-gradient-to-br from-slate-900 via-eco-dark to-slate-900 text-white space-y-3.5 border-white/15 shadow-eco-float">
+          <Card className="p-5 sm:p-6 bg-gradient-to-br from-slate-900 via-eco-dark to-slate-900 text-white space-y-4 border-white/15 shadow-eco-float">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Star className="w-4 h-4 text-gold-neon fill-gold-neon" />
@@ -363,23 +363,23 @@ export const LeaderboardPage: React.FC = () => {
               </Badge>
             </div>
 
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-4">
               <img
                 src={topStudent.topActionHighlight.photo}
                 alt={topStudent.topActionHighlight.title}
                 className="w-20 h-20 rounded-2xl object-cover border border-white/20 shrink-0 shadow-md"
               />
-              <div className="space-y-1 min-w-0 flex-1">
-                <span className="text-[9px] text-eco-200 uppercase font-black tracking-wider block">
+              <div className="space-y-1.5 min-w-0 flex-1">
+                <span className="text-[10px] text-eco-200 uppercase font-black tracking-wider block">
                   Aksi Unggulan Terverifikasi:
                 </span>
-                <h3 className="text-xs font-black text-white leading-snug truncate">
+                <h3 className="text-xs sm:text-sm font-black text-white leading-snug truncate">
                   {topStudent.topActionHighlight.title}
                 </h3>
-                <p className="text-[10px] text-eco-100/90 line-clamp-2 italic">
+                <p className="text-xs text-eco-100/90 line-clamp-2 italic leading-relaxed">
                   "{topStudent.quote}"
                 </p>
-                <div className="pt-1 flex items-center gap-2 text-[10px] font-bold">
+                <div className="pt-1 flex items-center gap-3 text-xs font-bold">
                   <span className="text-eco-neon">🌿 {topStudent.carbonKg} kg CO2e Hemat</span>
                   <span className="text-gold-neon">🏆 {topStudent.greenCoins} GC</span>
                 </div>
@@ -390,24 +390,24 @@ export const LeaderboardPage: React.FC = () => {
       )}
 
       {/* 4. Full Ranked Table List (Students / Faculty) */}
-      <div className="space-y-3">
+      <div className="space-y-3.5">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+          <h3 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-eco-700" />
             {activeTab === 'FACULTY' ? 'Peringkat Seluruh Fakultas' : 'Daftar Peringkat Mahasiswa'}
           </h3>
-          <span className="text-[10px] font-bold text-text-muted">
+          <span className="text-xs font-bold text-text-muted">
             Semester Ganjil 2026/2027
           </span>
         </div>
 
         {activeTab === 'FACULTY' ? (
           /* Faculty List */
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {facultyLeaderboard.map((fac) => (
-              <Card key={fac.id} className="p-3.5 bg-white border-surface-border shadow-xs hover:border-eco-300 transition-all flex items-center justify-between">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs ${
+              <Card key={fac.id} className="p-4 sm:p-5 bg-white border-surface-border shadow-xs hover:border-eco-300 transition-all flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className={`w-9 h-9 rounded-2xl flex items-center justify-center font-black text-xs shrink-0 ${
                     fac.rank === 1 ? 'bg-amber-100 text-amber-900 border border-amber-300' :
                     fac.rank === 2 ? 'bg-slate-100 text-slate-800' :
                     fac.rank === 3 ? 'bg-orange-100 text-orange-900' :
@@ -416,8 +416,8 @@ export const LeaderboardPage: React.FC = () => {
                     #{fac.rank}
                   </div>
                   <div className="min-w-0">
-                    <h4 className="text-xs font-black text-text-primary truncate">{fac.name}</h4>
-                    <p className="text-[10px] text-text-secondary font-mono">
+                    <h4 className="text-xs sm:text-sm font-black text-text-primary truncate">{fac.name}</h4>
+                    <p className="text-xs text-text-secondary font-mono mt-0.5">
                       {fac.carbon} • {fac.satTotal} ({fac.activeStudents} Mahasiswa)
                     </p>
                   </div>
@@ -425,7 +425,7 @@ export const LeaderboardPage: React.FC = () => {
 
                 <button
                   onClick={() => handleCheer(fac.id)}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-black transition-all active:scale-95 shrink-0 ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black transition-all active:scale-95 shrink-0 ${
                     hasCheered[fac.id]
                       ? 'bg-rose-500 text-white shadow-xs'
                       : 'bg-white hover:bg-rose-50 text-rose-600 border border-rose-200'
@@ -440,18 +440,18 @@ export const LeaderboardPage: React.FC = () => {
           </div>
         ) : (
           /* Students Full List */
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {sortedStudents.map((s, idx) => (
               <Card
                 key={s.id}
-                className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between ${
+                className={`p-4 sm:p-5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
                   s.id === user?.id
                     ? 'bg-eco-50/80 border-eco-400 ring-2 ring-eco-neon/50 shadow-xs'
                     : 'bg-white border-surface-border shadow-2xs hover:border-slate-300'
                 }`}
               >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className={`text-xs font-black w-6 text-center shrink-0 ${
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className={`text-xs sm:text-sm font-black w-6 text-center shrink-0 ${
                     idx === 0 ? 'text-amber-500' : idx === 1 ? 'text-slate-500' : idx === 2 ? 'text-amber-700' : 'text-slate-400'
                   }`}>
                     #{idx + 1}
@@ -460,27 +460,27 @@ export const LeaderboardPage: React.FC = () => {
                   <img
                     src={s.avatar}
                     alt={s.name}
-                    className="w-10 h-10 rounded-2xl object-cover ring-2 ring-slate-200 shrink-0"
+                    className="w-11 h-11 rounded-2xl object-cover ring-2 ring-slate-200 shrink-0"
                   />
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <h4 className="text-xs font-black text-text-primary truncate">{s.name}</h4>
+                      <h4 className="text-xs sm:text-sm font-black text-text-primary truncate">{s.name}</h4>
                       {s.id === user?.id && (
-                        <span className="text-[8px] font-black uppercase px-1.5 py-0.2 rounded bg-eco-neon/30 text-eco-950">
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-eco-neon/30 text-eco-950">
                           Kamu
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-text-secondary truncate">{s.faculty}</p>
+                    <p className="text-xs text-text-secondary truncate mt-0.5">{s.faculty}</p>
                   </div>
                 </div>
 
                 <div className="text-right shrink-0">
-                  <span className="text-xs font-black text-text-primary block">
+                  <span className="text-xs sm:text-sm font-black text-text-primary block">
                     {activeTab === 'SAT' ? `+${s.satPoints} SAT` : `${s.greenCoins} GC`}
                   </span>
-                  <p className="text-[10px] text-text-secondary font-mono">{s.carbonKg} kg CO2e</p>
+                  <p className="text-xs text-text-secondary font-mono mt-0.5">{s.carbonKg} kg CO2e</p>
                 </div>
               </Card>
             ))}
@@ -490,14 +490,14 @@ export const LeaderboardPage: React.FC = () => {
 
       {/* 5. Sticky Bottom User Standing Bar (when not in faculty tab) */}
       {activeTab !== 'FACULTY' && (
-        <Card className="p-3.5 bg-gradient-to-r from-slate-900 to-eco-900 text-white rounded-2xl border border-white/20 shadow-eco-float flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-eco-neon/20 border border-eco-neon/40 text-eco-neon flex items-center justify-center font-black text-xs">
+        <Card className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 to-eco-900 text-white rounded-3xl border border-white/20 shadow-eco-float flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-10 h-10 rounded-2xl bg-eco-neon/20 border border-eco-neon/40 text-eco-neon flex items-center justify-center font-black text-xs sm:text-sm shrink-0">
               #{currentUserRank}
             </div>
-            <div>
-              <div className="text-xs font-black text-white">Posisi Kamu: Peringkat #{currentUserRank}</div>
-              <p className="text-[10px] text-eco-200">
+            <div className="min-w-0 flex-1">
+              <div className="text-xs sm:text-sm font-black text-white truncate">Posisi Kamu: Peringkat #{currentUserRank}</div>
+              <p className="text-xs text-eco-200 mt-0.5 truncate">
                 {currentUserRank === 1
                   ? 'Pertahankan posisi puncak BEKEN Award!'
                   : `Unggah aksi nyata untuk mengejar peringkat teratas!`}
@@ -507,7 +507,7 @@ export const LeaderboardPage: React.FC = () => {
 
           <Link
             to="/upload"
-            className="py-1.5 px-3 rounded-xl bg-eco-neon text-eco-950 font-black text-xs hover:bg-emerald-300 transition-all active:scale-95 shadow-sm"
+            className="py-2 px-3.5 rounded-xl bg-eco-neon text-eco-950 font-black text-xs hover:bg-emerald-300 transition-all active:scale-95 shadow-sm shrink-0"
           >
             Lapor Aksi →
           </Link>

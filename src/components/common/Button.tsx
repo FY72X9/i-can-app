@@ -21,12 +21,12 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = "inline-flex items-center justify-center font-bold rounded-xl transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100 select-none";
+  const baseStyles = "inline-flex items-center justify-center text-center font-bold transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none disabled:active:scale-100 select-none leading-snug";
 
   const sizeStyles = {
-    sm: 'text-xs px-3 py-1.5 gap-1.5 rounded-lg',
-    md: 'text-sm px-4 py-2.5 gap-2 rounded-xl',
-    lg: 'text-base px-6 py-3.5 gap-2.5 rounded-2xl',
+    sm: 'text-xs px-3.5 py-2 gap-1.5 rounded-xl',
+    md: 'text-xs sm:text-sm px-4 py-2.5 gap-2 rounded-2xl',
+    lg: 'text-sm sm:text-base px-6 py-3.5 gap-2.5 rounded-2xl',
   };
 
   const variantStyles = {

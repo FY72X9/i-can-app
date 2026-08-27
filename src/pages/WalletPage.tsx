@@ -120,62 +120,62 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
   };
 
   return (
-    <div className="space-y-6 pb-6">
+    <div className="space-y-6 sm:space-y-7 pb-8">
       {/* 1. Header Dual-Track Standing Card */}
-      <Card variant="eco" className="relative overflow-hidden text-center py-6 px-4 shadow-eco-float border-white/20">
-        <div className="relative z-10 space-y-4">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/15 text-eco-100 text-[11px] font-black backdrop-blur-md border border-white/25 shadow-xs">
-            <Trophy className="w-3.5 h-3.5 text-gold-neon" />
+      <Card variant="eco" className="relative overflow-hidden text-center py-7 px-5 sm:px-6 shadow-eco-float border-white/20">
+        <div className="relative z-10 space-y-5">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 text-eco-100 text-xs font-black backdrop-blur-md border border-white/25 shadow-xs">
+            <Trophy className="w-4 h-4 text-gold-neon" />
             Portofolio Rekognisi & Transkrip Mahasiswa
           </div>
 
           {/* Dual Balance Display Bento */}
-          <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto pt-1">
+          <div className="grid grid-cols-2 gap-3.5 max-w-md mx-auto pt-1">
             {/* Track A: Green Coins (BEKEN Track) */}
-            <div className="bg-black/25 rounded-2xl p-4 text-center border border-white/15 backdrop-blur-md">
-              <span className="text-[10px] text-eco-200 font-black uppercase tracking-wider block mb-1">
+            <div className="bg-black/25 rounded-2xl p-4 sm:p-5 text-center border border-white/15 backdrop-blur-md">
+              <span className="text-xs text-eco-200 font-black uppercase tracking-wider block mb-1">
                 BEKEN Credits
               </span>
               <div className="text-2xl sm:text-3xl font-black text-white">
                 {totalCoins} <span className="text-xs font-semibold text-gold-neon">GC</span>
               </div>
-              <span className="text-[10px] text-gold-neon font-black mt-1 inline-block">⚡ Top 15% Nominee</span>
+              <span className="text-xs text-gold-neon font-black mt-1.5 inline-block">⚡ Top 15% Nominee</span>
             </div>
 
             {/* Track B: SAT & Comserv (Academic Track) */}
-            <div className="bg-black/25 rounded-2xl p-4 text-center border border-white/15 backdrop-blur-md">
-              <span className="text-[10px] text-eco-200 font-black uppercase tracking-wider block mb-1">
+            <div className="bg-black/25 rounded-2xl p-4 sm:p-5 text-center border border-white/15 backdrop-blur-md">
+              <span className="text-xs text-eco-200 font-black uppercase tracking-wider block mb-1">
                 Transkrip SAT
               </span>
               <div className="text-2xl sm:text-3xl font-black text-white">
                 {totalSat} <span className="text-xs font-semibold text-eco-neon">SAT</span>
               </div>
-              <span className="text-[10px] text-eco-neon font-black mt-1 inline-block">{totalComserv} Jam Comserv</span>
+              <span className="text-xs text-eco-neon font-black mt-1.5 inline-block">{totalComserv} Jam Comserv</span>
             </div>
           </div>
         </div>
       </Card>
 
       {/* 2. Direct Activity Mapping Info & Export Banner */}
-      <Card className="p-5 bg-white space-y-3.5 border-surface-border shadow-eco-soft">
+      <Card className="p-5 sm:p-6 bg-white space-y-4 border-surface-border shadow-eco-soft">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FileCheck2 className="w-4 h-4 text-eco-600" />
-            <h3 className="text-xs font-black text-text-primary">Portofolio Aksi Terverifikasi</h3>
+          <div className="flex items-center gap-2.5">
+            <FileCheck2 className="w-5 h-5 text-eco-600" />
+            <h3 className="text-xs sm:text-sm font-black text-text-primary">Portofolio Aksi Terverifikasi</h3>
           </div>
           <Badge variant="success" size="sm">
             {verifiedActions.length} Aksi Selesai
           </Badge>
         </div>
 
-        <p className="text-xs text-text-secondary leading-relaxed">
+        <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
           Seluruh kegiatan di bawah ini telah diverifikasi langsung oleh Admin SSO & TFI dan siap disinkronisasikan ke transkrip semester myBINUS.
         </p>
 
         <Button
           variant="secondary"
           size="sm"
-          className="w-full text-xs font-black flex items-center justify-center gap-1.5 py-3 shadow-xs"
+          className="w-full text-xs sm:text-sm font-black flex items-center justify-center gap-2 py-3.5 shadow-xs rounded-2xl"
           onClick={handleExportTranscript}
         >
           {copiedTranscript ? (
@@ -193,60 +193,62 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
       </Card>
 
       {/* 3. List of Verified Real Actions */}
-      <div className="space-y-2.5">
+      <div className="space-y-3.5">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-xs font-black text-text-secondary uppercase tracking-wider flex items-center gap-1.5">
-            <History className="w-3.5 h-3.5 text-text-muted" />
+          <h3 className="text-xs sm:text-sm font-black text-text-secondary uppercase tracking-wider flex items-center gap-2">
+            <History className="w-4 h-4 text-text-muted" />
             Daftar Kegiatan Riil Terverifikasi
           </h3>
         </div>
 
-        {verifiedActions.map((action) => (
-          <Card key={action.id} className="p-3.5 bg-white border-surface-border shadow-eco-sm space-y-2 hover:border-eco-300 transition-colors">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-eco-50 text-eco-700 flex items-center justify-center font-bold shadow-xs">
-                  {action.categoryId === 'tree' ? (
-                    <TreePine className="w-5 h-5" />
-                  ) : action.categoryId === 'vbl' ? (
-                    <GraduationCap className="w-5 h-5" />
-                  ) : (
-                    <Sparkles className="w-5 h-5" />
-                  )}
+        <div className="space-y-3">
+          {verifiedActions.map((action) => (
+            <Card key={action.id} className="p-4 sm:p-5 bg-white border-surface-border shadow-eco-sm space-y-3 hover:border-eco-300 transition-colors">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-eco-50 text-eco-700 flex items-center justify-center font-bold shadow-xs shrink-0">
+                    {action.categoryId === 'tree' ? (
+                      <TreePine className="w-6 h-6" />
+                    ) : action.categoryId === 'vbl' ? (
+                      <GraduationCap className="w-6 h-6" />
+                    ) : (
+                      <Sparkles className="w-6 h-6" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-xs sm:text-sm font-black text-text-primary leading-snug truncate">{action.categoryName}</h4>
+                    <p className="text-xs text-text-muted mt-0.5 truncate">
+                      {new Date(action.submittedAt).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })} • Terverifikasi SSO
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-xs font-black text-text-primary">{action.categoryName}</h4>
-                  <p className="text-[10px] text-text-muted">
-                    {new Date(action.submittedAt).toLocaleDateString('id-ID', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })} • Terverifikasi SSO
-                  </p>
+
+                {/* Award Badges */}
+                <div className="text-right shrink-0">
+                  <span className="text-xs sm:text-sm font-black text-blue-700 block">
+                    {action.satPointsEarned > 0 ? `+${action.satPointsEarned} SAT` : '+0 SAT'}
+                  </span>
+                  <p className="text-xs font-black text-amber-800 mt-0.5">+{action.greenCoinsEarned} GC</p>
                 </div>
               </div>
 
-              {/* Award Badges */}
-              <div className="text-right">
-                <span className="text-xs font-black text-blue-700 block">
-                  {action.satPointsEarned > 0 ? `+${action.satPointsEarned} SAT` : '+0 SAT'}
-                </span>
-                <p className="text-[10px] font-black text-amber-800">+{action.greenCoinsEarned} GC</p>
+              {action.story && (
+                <p className="text-xs text-text-secondary bg-surface-subtle p-3 rounded-2xl italic leading-relaxed">
+                  "{action.story}"
+                </p>
+              )}
+
+              <div className="flex items-center justify-between text-xs text-text-muted pt-2 border-t border-slate-100">
+                <span>Status: <strong className="text-eco-800 font-bold">Directly Mapped</strong></span>
+                <span>Dampak: <strong className="text-eco-900 font-black font-mono">{action.carbonImpactKg} kg CO2e</strong></span>
               </div>
-            </div>
-
-            {action.story && (
-              <p className="text-[11px] text-text-secondary bg-surface-subtle p-2 rounded-xl italic">
-                "{action.story}"
-              </p>
-            )}
-
-            <div className="flex items-center justify-between text-[10px] text-text-muted pt-1 border-t border-slate-100">
-              <span>Status: <strong className="text-eco-800 font-bold">Directly Mapped</strong></span>
-              <span>Dampak: <strong className="text-eco-900 font-black">{action.carbonImpactKg} kg CO2e</strong></span>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );

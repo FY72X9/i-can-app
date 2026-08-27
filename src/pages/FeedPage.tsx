@@ -212,27 +212,27 @@ export const FeedPage: React.FC = () => {
           </Link>
         </Card>
       ) : (
-        <div className="space-y-3.5">
+        <div className="space-y-4 sm:space-y-5">
           {filteredPosts.map((post) => (
-            <Card key={post.id} className="p-4 space-y-3 bg-white border-surface-border shadow-eco-card relative">
+            <Card key={post.id} className="p-5 sm:p-6 space-y-4 bg-white border-surface-border shadow-eco-card relative">
               {/* Header Author */}
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2.5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
                   <img
                     src={post.avatar}
                     alt={post.author}
-                    className="w-10 h-10 rounded-2xl object-cover ring-2 ring-eco-neon/60 shadow-xs"
+                    className="w-11 h-11 rounded-2xl object-cover ring-2 ring-eco-neon/60 shadow-xs shrink-0"
                   />
                   <div>
-                    <h4 className="text-xs font-black text-text-primary flex items-center gap-1">
+                    <h4 className="text-xs sm:text-sm font-black text-text-primary flex items-center gap-1.5">
                       {post.author}
                       {post.type !== 'SELF' && (
                         <span title="Terverifikasi TFI" className="inline-flex items-center">
-                          <ShieldCheck className="w-3.5 h-3.5 text-eco-600" />
+                          <ShieldCheck className="w-4 h-4 text-eco-600" />
                         </span>
                       )}
                     </h4>
-                    <p className="text-[10px] text-text-secondary font-medium">{post.faculty}</p>
+                    <p className="text-xs text-text-secondary font-medium mt-0.5">{post.faculty}</p>
                   </div>
                 </div>
                 <Badge variant={post.type === 'TFI' ? 'success' : post.type === 'VBL' ? 'purple' : 'neutral'} size="sm">
@@ -247,34 +247,34 @@ export const FeedPage: React.FC = () => {
                   alt={post.actionTitle}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
-                <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between">
-                  <span className="bg-black/75 backdrop-blur-md text-white text-[10px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-eco-neon" />
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                  <span className="bg-black/75 backdrop-blur-md text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                    <MapPin className="w-3.5 h-3.5 text-eco-neon" />
                     {post.location}
                   </span>
-                  <span className="bg-eco-700/90 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-neon-glow">
+                  <span className="bg-eco-700/95 backdrop-blur-md text-white text-xs font-black px-3 py-1 rounded-full shadow-neon-glow">
                     {post.coinsEarned}
                   </span>
                 </div>
               </div>
 
               {/* Description & Story */}
-              <div className="space-y-1">
-                <h3 className="text-xs font-black text-text-primary leading-snug">{post.actionTitle}</h3>
-                <p className="text-xs text-text-secondary leading-relaxed">{post.story}</p>
+              <div className="space-y-1.5">
+                <h3 className="text-sm sm:text-base font-black text-text-primary leading-snug">{post.actionTitle}</h3>
+                <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">{post.story}</p>
               </div>
 
               {/* Social Media Publication Link if available */}
               {post.campaignUrl && (
-                <div className="bg-blue-50/90 p-2.5 rounded-2xl border border-blue-200/80 flex items-center justify-between">
-                  <span className="text-[11px] font-mono text-blue-900 truncate max-w-[200px]">
+                <div className="bg-blue-50/90 p-3 rounded-2xl border border-blue-200/80 flex items-center justify-between gap-2">
+                  <span className="text-xs font-mono text-blue-900 truncate max-w-[220px]">
                     {post.campaignUrl}
                   </span>
                   <a
                     href={post.campaignUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[10px] font-black text-blue-700 hover:text-blue-800 flex items-center gap-1 shrink-0 ml-2"
+                    className="text-xs font-black text-blue-700 hover:text-blue-800 flex items-center gap-1 shrink-0 ml-2"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     Lihat Konten
@@ -283,30 +283,30 @@ export const FeedPage: React.FC = () => {
               )}
 
               {/* SAT & Impact Badge */}
-              <div className="flex items-center justify-between text-[10px] font-black bg-surface-subtle p-2 rounded-xl border border-surface-border/60">
+              <div className="flex items-center justify-between text-xs font-black bg-surface-subtle p-3 rounded-2xl border border-surface-border/60">
                 <span className="text-blue-700">{post.satEarned}</span>
-                <span className="text-eco-800">{post.carbonSaved}</span>
+                <span className="text-eco-800 font-mono">{post.carbonSaved}</span>
               </div>
 
               {/* Emoji Reaction Bar (Gen Z Interaction) */}
-              <div className="flex items-center gap-1.5 pt-1 overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-2 pt-1 overflow-x-auto no-scrollbar">
                 {(reactions[post.id] || getPostReactions(post.id, post.type)).map((r, idx) => (
                   <button
                     key={idx}
                     onClick={() => addReaction(post.id, r.emoji, post.type)}
-                    className="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-xs font-black flex items-center gap-1 transition-all active:scale-90"
+                    className="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-xs font-black flex items-center gap-1.5 transition-all active:scale-90 shrink-0 whitespace-nowrap"
                   >
                     <span>{r.emoji}</span>
-                    <span className="text-[10px] text-text-secondary font-mono">{r.count}</span>
+                    <span className="text-xs text-text-secondary font-mono">{r.count}</span>
                   </button>
                 ))}
 
-                <div className="flex items-center gap-1 pl-1 border-l border-slate-200">
+                <div className="flex items-center gap-1.5 pl-1.5 border-l border-slate-200 shrink-0">
                   {['🔥', '🌱', '⚡'].map((emoji) => (
                     <button
                       key={emoji}
                       onClick={() => addReaction(post.id, emoji, post.type)}
-                      className="w-7 h-7 rounded-full bg-white hover:bg-eco-50 border border-surface-border text-xs flex items-center justify-center transition-all active:scale-95 shadow-2xs"
+                      className="w-8 h-8 rounded-full bg-white hover:bg-eco-50 border border-surface-border text-xs flex items-center justify-center transition-all active:scale-95 shadow-2xs shrink-0"
                     >
                       {emoji}
                     </button>
@@ -314,36 +314,36 @@ export const FeedPage: React.FC = () => {
                 </div>
               </div>
 
-            {/* Footer Likes & Timestamp */}
-            <div className="flex items-center justify-between pt-2 border-t border-surface-border/60 text-xs text-text-secondary">
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => toggleLike(post.id)}
-                  className={`flex items-center gap-1.5 font-black transition-all active:scale-95 ${
-                    hasLiked[post.id] ? 'text-rose-600' : 'hover:text-rose-600'
-                  }`}
-                >
-                  <Heart className={`w-4 h-4 ${hasLiked[post.id] ? 'fill-rose-600 text-rose-600' : ''}`} />
-                  <span>{likes[post.id]} Suka</span>
-                </button>
+              {/* Footer Likes & Timestamp */}
+              <div className="flex items-center justify-between pt-2.5 border-t border-surface-border/60 text-xs text-text-secondary">
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => toggleLike(post.id)}
+                    className={`flex items-center gap-1.5 font-black transition-all active:scale-95 ${
+                      hasLiked[post.id] ? 'text-rose-600' : 'hover:text-rose-600'
+                    }`}
+                  >
+                    <Heart className={`w-4 h-4 ${hasLiked[post.id] ? 'fill-rose-600 text-rose-600' : ''}`} />
+                    <span>{likes[post.id]} Suka</span>
+                  </button>
 
-                <button 
-                  onClick={() => alert('Fitur komentar komunitas akan segera hadir di pembaruan berikutnya!')}
-                  className="flex items-center gap-1.5 font-bold hover:text-eco-700 transition-colors"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>Komentar</span>
-                </button>
+                  <button 
+                    onClick={() => alert('Fitur komentar komunitas akan segera hadir di pembaruan berikutnya!')}
+                    className="flex items-center gap-1.5 font-bold hover:text-eco-700 transition-colors"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Komentar</span>
+                  </button>
+                </div>
+
+                <span className="flex items-center gap-1 text-[11px] text-text-muted">
+                  <Clock className="w-3.5 h-3.5" />
+                  {post.time}
+                </span>
               </div>
-
-              <span className="flex items-center gap-1 text-[10px] text-text-muted">
-                <Clock className="w-3 h-3" />
-                {post.time}
-              </span>
-            </div>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          ))}
+        </div>
       )}
     </div>
   );

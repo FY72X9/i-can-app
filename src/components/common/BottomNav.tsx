@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Rss, Plus, Wallet, User, CheckSquare, Sparkles, Trophy } from 'lucide-react';
+import { Home, Rss, Plus, User, CheckSquare, Trophy } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 export const BottomNav: React.FC = () => {
@@ -10,14 +10,14 @@ export const BottomNav: React.FC = () => {
   const navItems = [
     { name: 'Home', path: '/home', icon: Home },
     { name: isVerifier ? 'Verify' : 'Feed', path: isVerifier ? '/verify' : '/feed', icon: isVerifier ? CheckSquare : Rss },
-    { name: 'Upload', path: '/upload', icon: Plus, isAction: true },
+    { name: 'Post', path: '/upload', icon: Plus, isAction: true },
     { name: 'Rank', path: '/leaderboard', icon: Trophy },
     { name: 'Profile', path: '/profile', icon: User },
   ];
 
   return (
-    <nav className="fixed bottom-3 left-0 right-0 z-40 px-3 pointer-events-none">
-      <div className="max-w-md mx-auto pointer-events-auto bg-white/95 backdrop-blur-2xl border border-surface-border/90 rounded-3xl shadow-eco-float px-2 py-1.5 flex items-center justify-around">
+    <nav className="fixed bottom-3 left-0 right-0 z-40 px-3.5 pointer-events-none">
+      <div className="max-w-lg lg:max-w-[500px] mx-auto pointer-events-auto bg-white/95 backdrop-blur-2xl border border-surface-border/90 rounded-3xl shadow-eco-float px-3 py-1.5 flex items-center justify-around">
         {navItems.map((item) => {
           const Icon = item.icon;
           
@@ -26,23 +26,31 @@ export const BottomNav: React.FC = () => {
               <NavLink
                 key={item.name}
                 to={item.path}
-                className="flex flex-col items-center justify-center -mt-7 group focus:outline-none"
-                title="Unggah Aksi Nyata & Klaim SAT"
+                className="flex flex-col items-center justify-center -mt-4 group focus:outline-none relative px-2"
+                title="Unggah Aksi Nyata & Klaim SAT (One-Shot Post)"
               >
                 {({ isActive }) => (
-                  <div className="relative">
+                  <div className="flex flex-col items-center">
                     {/* Glowing outer neon halo */}
-                    <div className="absolute -inset-1.5 bg-gradient-to-tr from-eco-neon via-emerald-400 to-cyber-cyan rounded-full blur-md opacity-70 group-hover:opacity-100 transition-opacity animate-pulse-slow" />
-                    
-                    <div
-                      className={`relative w-13 h-13 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110 active:scale-95 shadow-lg ${
-                        isActive
-                          ? 'bg-gradient-to-tr from-eco-900 to-eco-700 text-white ring-4 ring-eco-neon/60 shadow-neon-glow'
-                          : 'bg-gradient-to-tr from-eco-700 via-eco-600 to-eco-500 text-white ring-3 ring-white shadow-neon-glow'
-                      }`}
-                    >
-                      <Icon className="w-6 h-6 stroke-[3]" />
+                    <div className="relative">
+                      <div className="absolute -inset-1 bg-gradient-to-tr from-eco-neon via-emerald-400 to-teal-400 rounded-2xl blur-sm opacity-60 group-hover:opacity-100 transition-opacity animate-pulse-slow" />
+                      
+                      <div
+                        className={`relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 active:scale-95 shadow-md ${
+                          isActive
+                            ? 'bg-gradient-to-tr from-eco-900 to-eco-700 text-white ring-2 ring-eco-neon/80 shadow-neon-glow'
+                            : 'bg-gradient-to-tr from-eco-700 via-eco-600 to-eco-500 text-white ring-2 ring-white/90 shadow-eco-sm'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5 sm:w-6 sm:h-6 stroke-[3]" />
+                      </div>
                     </div>
+
+                    <span className={`text-[10px] mt-1 tracking-tight font-black ${
+                      isActive ? 'text-eco-900' : 'text-eco-800 font-bold'
+                    }`}>
+                      Post
+                    </span>
                   </div>
                 )}
               </NavLink>
@@ -81,5 +89,3 @@ export const BottomNav: React.FC = () => {
     </nav>
   );
 };
-
-

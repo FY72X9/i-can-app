@@ -26,7 +26,8 @@ import {
   CheckCheck,
   ChevronRight,
   History,
-  AlertCircle
+  AlertCircle,
+  Globe2
 } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
@@ -71,83 +72,83 @@ export const ProfilePage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-4 pb-4">
+    <div className="space-y-6 sm:space-y-7 pb-8">
       {/* 1. Student Identity Card */}
-      <Card className="p-5 bg-white space-y-4 text-center border-surface-border shadow-eco-card relative overflow-hidden">
+      <Card className="p-6 sm:p-7 bg-white space-y-5 text-center border-surface-border shadow-eco-card relative overflow-hidden">
         {/* Background decorative halo */}
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-52 h-52 bg-eco-neon/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-60 h-60 bg-eco-neon/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative inline-block mx-auto z-10">
           <img
             src={user?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
             alt={user?.fullName}
-            className="w-20 h-20 rounded-3xl object-cover ring-4 ring-eco-neon/60 mx-auto shadow-neon-glow"
+            className="w-22 h-22 rounded-3xl object-cover ring-4 ring-eco-neon/60 mx-auto shadow-neon-glow"
           />
-          <span className="absolute -bottom-1 -right-1 bg-eco-700 text-white text-[10px] font-black px-2 py-0.5 rounded-full ring-2 ring-white shadow-xs">
+          <span className="absolute -bottom-1 -right-1 bg-eco-700 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full ring-2 ring-white shadow-xs">
             {user?.role || 'STUDENT'}
           </span>
         </div>
 
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-1 bg-eco-neon/20 text-eco-900 border border-eco-neon/40 text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-1">
-            <Zap className="w-2.5 h-2.5 fill-eco-900" />
+        <div className="relative z-10 space-y-1">
+          <div className="inline-flex items-center gap-1.5 bg-eco-neon/20 text-eco-900 border border-eco-neon/40 text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full mb-1">
+            <Zap className="w-3 h-3 fill-eco-900" />
             Lv. 3 Eco-Ksatria
           </div>
-          <h2 className="text-base font-black text-text-primary">{user?.fullName || 'Budi Santoso'}</h2>
-          <p className="text-xs text-text-secondary mt-0.5 font-mono">NIM: {user?.nim || '2602158890'}</p>
-          <p className="text-xs text-eco-800 font-black mt-0.5">{user?.facultyName || 'School of Computer Science'}</p>
+          <h2 className="text-lg sm:text-xl font-black text-text-primary">{user?.fullName || 'Budi Santoso'}</h2>
+          <p className="text-xs sm:text-sm text-text-secondary font-mono">NIM: {user?.nim || '2602158890'}</p>
+          <p className="text-xs sm:text-sm text-eco-800 font-black mt-0.5">{user?.facultyName || 'School of Computer Science'}</p>
         </div>
 
         {/* Stats Row Bento */}
-        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-surface-border/60 relative z-10">
-          <div className="bg-surface-subtle p-2.5 rounded-2xl border border-surface-border/50">
-            <span className="text-[9px] text-text-secondary uppercase font-bold block mb-0.5">CO2e Hemat</span>
-            <p className="text-sm font-black text-eco-800 font-mono">{user?.totalCarbonSaved || 12.5} kg</p>
+        <div className="grid grid-cols-3 gap-3 pt-3 border-t border-surface-border/60 relative z-10">
+          <div className="bg-surface-subtle p-3.5 rounded-2xl border border-surface-border/60">
+            <span className="text-[10px] text-text-secondary uppercase font-bold block mb-1">CO2e Hemat</span>
+            <p className="text-base sm:text-lg font-black text-eco-800 font-mono">{user?.totalCarbonSaved || 12.5} kg</p>
           </div>
 
-          <div className="bg-surface-subtle p-2.5 rounded-2xl border border-surface-border/50">
-            <span className="text-[9px] text-text-secondary uppercase font-bold block mb-0.5">Green Coins</span>
-            <p className="text-sm font-black text-amber-800 font-mono">{user?.totalGreenCoins || 120} GC</p>
+          <div className="bg-surface-subtle p-3.5 rounded-2xl border border-surface-border/60">
+            <span className="text-[10px] text-text-secondary uppercase font-bold block mb-1">Green Coins</span>
+            <p className="text-base sm:text-lg font-black text-amber-800 font-mono">{user?.totalGreenCoins || 120} GC</p>
           </div>
 
-          <div className="bg-surface-subtle p-2.5 rounded-2xl border border-surface-border/50">
-            <span className="text-[9px] text-text-secondary uppercase font-bold block mb-0.5">Total SAT</span>
-            <p className="text-sm font-black text-blue-700 font-mono">{user?.totalSatPoints || 9} SAT</p>
+          <div className="bg-surface-subtle p-3.5 rounded-2xl border border-surface-border/60">
+            <span className="text-[10px] text-text-secondary uppercase font-bold block mb-1">Total SAT</span>
+            <p className="text-base sm:text-lg font-black text-blue-700 font-mono">{user?.totalSatPoints || 9} SAT</p>
           </div>
         </div>
       </Card>
 
       {/* 2. Badge Collection Grid with Rarity */}
-      <Card className="p-4 bg-white space-y-3 border-surface-border shadow-eco-soft">
+      <Card className="p-5 sm:p-6 bg-white space-y-4 border-surface-border shadow-eco-soft">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xs font-black text-text-primary uppercase tracking-wider">Koleksi Rarity Badge</h3>
-            <p className="text-[10px] text-text-secondary">Pencapaian Aksi Berkelanjutan Kampus</p>
+            <h3 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider">Koleksi Rarity Badge</h3>
+            <p className="text-xs text-text-secondary mt-0.5">Pencapaian Aksi Berkelanjutan Kampus</p>
           </div>
           <Badge variant="success" size="sm">
             4 / 6 Terbuka
           </Badge>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-3">
           {badges.map((badge, i) => {
             const Icon = badge.icon;
             return (
               <div
                 key={i}
-                className={`p-3 rounded-2xl border text-center space-y-1.5 transition-all relative overflow-hidden ${
+                className={`p-3.5 sm:p-4 rounded-2xl border text-center space-y-2 transition-all relative overflow-hidden ${
                   badge.unlocked
                     ? 'bg-amber-50/50 border-amber-200 shadow-xs hover:border-amber-400 hover:shadow-gold-glow'
                     : 'bg-slate-50 border-slate-200/60 opacity-60'
                 }`}
               >
                 {!badge.unlocked && (
-                  <div className="absolute top-2 right-2 text-slate-400">
-                    <Lock className="w-3 h-3" />
+                  <div className="absolute top-2.5 right-2.5 text-slate-400">
+                    <Lock className="w-3.5 h-3.5" />
                   </div>
                 )}
 
-                <span className={`text-[8px] font-black uppercase px-1.5 py-0.2 rounded-md ${
+                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
                   badge.rarity === 'Legendary' ? 'bg-purple-100 text-purple-900 border border-purple-300' :
                   badge.rarity === 'Epic' ? 'bg-amber-100 text-amber-900 border border-amber-300' :
                   badge.rarity === 'Rare' ? 'bg-cyan-100 text-cyan-900 border border-cyan-300' :
@@ -157,7 +158,7 @@ export const ProfilePage: React.FC = () => {
                 </span>
 
                 <div
-                  className={`w-10 h-10 rounded-2xl flex items-center justify-center mx-auto shadow-xs ${
+                  className={`w-11 h-11 rounded-2xl flex items-center justify-center mx-auto shadow-xs ${
                     badge.unlocked 
                       ? 'bg-gradient-to-tr from-amber-200 to-amber-100 text-amber-800 ring-2 ring-amber-300/60 shadow-xs' 
                       : 'bg-slate-200 text-slate-500'
@@ -166,8 +167,8 @@ export const ProfilePage: React.FC = () => {
                   <Icon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-black text-text-primary leading-tight">{badge.name}</h4>
-                  <p className="text-[10px] text-text-secondary leading-tight mt-0.5">{badge.desc}</p>
+                  <h4 className="text-xs sm:text-sm font-black text-text-primary leading-snug">{badge.name}</h4>
+                  <p className="text-xs text-text-secondary leading-relaxed mt-0.5">{badge.desc}</p>
                 </div>
               </div>
             );
@@ -176,30 +177,30 @@ export const ProfilePage: React.FC = () => {
       </Card>
 
       {/* 3. Riwayat 2 Minggu Aktivitas Terkini (Recent Activity Timeline) */}
-      <Card className="p-4 bg-white space-y-3.5 border-surface-border shadow-eco-soft">
+      <Card className="p-5 sm:p-6 bg-white space-y-4 border-surface-border shadow-eco-soft">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-eco-neon/20 text-eco-900 flex items-center justify-center">
-              <History className="w-4 h-4" />
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-eco-neon/20 text-eco-900 flex items-center justify-center">
+              <History className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-xs font-black text-text-primary uppercase tracking-wider">
+              <h3 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider">
                 {user?.role === 'VERIFIER' ? 'Log Riwayat Verifikasi Terkini' : 'Riwayat Aksi 2 Minggu Terakhir'}
               </h3>
-              <p className="text-[10px] text-text-secondary">
+              <p className="text-xs text-text-secondary mt-0.5">
                 {userActivities.length} Kegiatan Terdata di Sistem
               </p>
             </div>
           </div>
           <Link
             to={user?.role === 'VERIFIER' ? '/verify' : '/wallet'}
-            className="text-[10px] font-black text-eco-800 hover:underline flex items-center gap-0.5"
+            className="text-xs font-black text-eco-800 hover:underline flex items-center gap-0.5"
           >
-            Lihat Semua <ChevronRight className="w-3 h-3" />
+            Lihat Semua <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+        <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
           {userActivities.map((act) => {
             const isApprovedFull = act.decision === 'APPROVED_FULL';
             const isCoinsOnly = act.decision === 'APPROVED_COINS_ONLY';
@@ -209,26 +210,26 @@ export const ProfilePage: React.FC = () => {
             return (
               <div
                 key={act.id}
-                className="p-3 rounded-2xl bg-surface-subtle border border-surface-border/60 hover:border-eco-300 transition-all flex items-start gap-3"
+                className="p-3.5 sm:p-4 rounded-2xl bg-surface-subtle border border-surface-border/60 hover:border-eco-300 transition-all flex items-start gap-3.5"
               >
                 {act.photoUrl ? (
                   <img
                     src={act.photoUrl}
                     alt={act.categoryName}
-                    className="w-12 h-12 rounded-xl object-cover ring-1 ring-surface-border shrink-0 mt-0.5"
+                    className="w-14 h-14 rounded-2xl object-cover ring-1 ring-surface-border shrink-0 mt-0.5"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-xl bg-eco-neon/20 text-eco-900 flex items-center justify-center shrink-0 mt-0.5 font-black text-xs">
+                  <div className="w-14 h-14 rounded-2xl bg-eco-neon/20 text-eco-900 flex items-center justify-center shrink-0 mt-0.5 font-black text-sm">
                     🌱
                   </div>
                 )}
 
-                <div className="min-w-0 flex-1 space-y-1">
-                  <div className="flex items-center justify-between gap-1">
-                    <h4 className="text-xs font-black text-text-primary truncate">
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-xs sm:text-sm font-black text-text-primary truncate">
                       {act.categoryName}
                     </h4>
-                    <span className={`text-[8px] font-black uppercase px-1.5 py-0.2 rounded-md shrink-0 ${
+                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md shrink-0 ${
                       isApprovedFull ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' :
                       isCoinsOnly ? 'bg-amber-100 text-amber-900 border border-amber-300' :
                       isPending ? 'bg-blue-100 text-blue-900 border border-blue-300' :
@@ -240,13 +241,13 @@ export const ProfilePage: React.FC = () => {
                     </span>
                   </div>
 
-                  <p className="text-[10px] text-text-secondary line-clamp-1 italic">
+                  <p className="text-xs text-text-secondary line-clamp-2 italic leading-relaxed">
                     "{act.story}"
                   </p>
 
-                  <div className="flex items-center justify-between text-[9px] text-text-muted pt-0.5 font-mono">
+                  <div className="flex items-center justify-between text-xs text-text-muted pt-1 font-mono border-t border-slate-100/70">
                     <span className="flex items-center gap-1 text-eco-800 font-bold">
-                      <Clock className="w-2.5 h-2.5" />
+                      <Clock className="w-3 h-3" />
                       {new Date(act.submittedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                     </span>
                     <span className="font-bold text-slate-700">
@@ -263,48 +264,44 @@ export const ProfilePage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 3. Quick Links & Eco-Volunteer Card */}
-      <div className="grid grid-cols-2 gap-2.5">
+      {/* 3. Quick Links & SDG Banner */}
+      <div className="grid grid-cols-1 gap-3">
         <Link
-          to="/guide"
-          className={`p-3.5 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-xs space-y-1 block ${
-            !canAccessAdmin ? 'col-span-2' : ''
-          }`}
+          to="/sdg-guideline"
+          className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 hover:border-emerald-400 transition-all text-left shadow-xs space-y-1 block"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-eco-800 bg-eco-50 px-2 py-0.5 rounded-md border border-eco-200">
+            <span className="text-[10px] font-black uppercase text-emerald-900 bg-emerald-100 px-2.5 py-0.5 rounded-md border border-emerald-300">
+              UN SDGs
+            </span>
+          </div>
+          <h4 className="text-xs sm:text-sm font-black text-emerald-950">Panduan Target SDG BINUS</h4>
+          <p className="text-xs text-text-secondary leading-relaxed">8 Target prioritas & formula kuantifikasi emisi IPCC</p>
+        </Link>
+
+        <Link
+          to="/guide"
+          className="p-4 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-xs space-y-1 block"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase text-eco-800 bg-eco-50 px-2.5 py-0.5 rounded-md border border-eco-200">
               Regulasi SSO
             </span>
           </div>
-          <h4 className="text-xs font-black text-text-primary">Panduan & FAQ TFI</h4>
-          <p className="text-[10px] text-text-secondary">Standar poin SAT & jam pengabdian</p>
+          <h4 className="text-xs sm:text-sm font-black text-text-primary">Panduan & FAQ TFI</h4>
+          <p className="text-xs text-text-secondary leading-relaxed">Standar poin SAT & jam pengabdian masyarakat</p>
         </Link>
-
-        {canAccessAdmin && (
-          <Link
-            to="/admin"
-            className="p-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white transition-all text-left shadow-xs space-y-1 block"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase text-blue-300 bg-blue-500/30 px-2 py-0.5 rounded-md">
-                AdminLTE 3.4
-              </span>
-            </div>
-            <h4 className="text-xs font-black">Super Admin Panel</h4>
-            <p className="text-[10px] text-slate-400">Web View Manajemen SSO</p>
-          </Link>
-        )}
       </div>
 
       {/* 4. Eco-Volunteer Application Card */}
-      <Card variant="subtle" className="p-4 border-eco-200/80 bg-gradient-to-r from-eco-50 via-emerald-50/70 to-teal-50/50 shadow-xs space-y-2">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-eco-700 text-white flex items-center justify-center shrink-0 shadow-sm">
-            <ShieldCheck className="w-5 h-5" />
+      <Card variant="subtle" className="p-5 sm:p-6 border-eco-200/80 bg-gradient-to-r from-eco-50 via-emerald-50/70 to-teal-50/50 shadow-xs space-y-3">
+        <div className="flex items-start gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-eco-700 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <ShieldCheck className="w-6 h-6" />
           </div>
           <div className="flex-1">
-            <h4 className="text-xs font-black text-text-primary">Gabung Jadi Eco-Volunteer Kampus</h4>
-            <p className="text-[11px] text-text-secondary mt-0.5 leading-relaxed">
+            <h4 className="text-xs sm:text-sm font-black text-text-primary">Gabung Jadi Eco-Volunteer Kampus</h4>
+            <p className="text-xs text-text-secondary mt-1 leading-relaxed">
               Dapatkan sertifikat resmi Teach For Indonesia (TFI) dan klaim jam pengabdian masyarakat.
             </p>
             {canAccessAdmin ? (
@@ -312,14 +309,14 @@ export const ProfilePage: React.FC = () => {
                 size="sm"
                 variant="primary"
                 onClick={() => loginAs('verifier')}
-                className="mt-2 text-xs py-1.5 px-3 font-bold"
+                className="mt-3 text-xs py-2 px-3.5 font-bold"
               >
                 Uji Coba Portal Verifikator →
               </Button>
             ) : (
               <Link
                 to="/guide"
-                className="inline-flex items-center gap-1 mt-2 text-xs font-black text-eco-800 hover:underline"
+                className="inline-flex items-center gap-1 mt-3 text-xs font-black text-eco-800 hover:underline"
               >
                 Pelajari Syarat & Pendaftaran Volunteer TFI →
               </Link>
@@ -329,18 +326,17 @@ export const ProfilePage: React.FC = () => {
       </Card>
 
       {/* 5. Switch Account & Logout Action Buttons */}
-      <div className="pt-1">
+      <div className="pt-2">
         <Button
           variant="danger"
           size="sm"
-          className="w-full text-xs font-bold py-2.5 flex items-center justify-center gap-1.5 bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100"
+          className="w-full text-xs sm:text-sm font-bold py-3.5 flex items-center justify-center gap-2 bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 rounded-2xl"
           onClick={handleLogout}
         >
-          <LogOut className="w-3.5 h-3.5" />
+          <LogOut className="w-4 h-4" />
           Keluar dari Akun (Logout)
         </Button>
       </div>
     </div>
   );
 };
-

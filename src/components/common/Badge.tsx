@@ -16,12 +16,12 @@ export const Badge: React.FC<BadgeProps> = ({
   icon,
   ...props
 }) => {
-  const baseStyles = "inline-flex items-center font-bold rounded-full tracking-tight";
+  const baseStyles = "inline-flex items-center justify-center font-bold rounded-full tracking-tight whitespace-nowrap shrink-0";
 
   const sizeStyles = {
-    sm: 'text-[10px] px-2 py-0.5 gap-1 leading-none',
-    md: 'text-[11px] px-2.5 py-1 gap-1.5 leading-tight',
-    lg: 'text-xs px-3 py-1.5 gap-1.5 leading-normal',
+    sm: 'text-[10px] px-2.5 py-0.5 gap-1 leading-none',
+    md: 'text-xs px-3 py-1 gap-1.5 leading-tight',
+    lg: 'text-xs sm:text-sm px-3.5 py-1.5 gap-1.5 leading-normal',
   };
 
   const variantStyles = {

@@ -14,12 +14,12 @@ export const Card: React.FC<CardProps> = ({
   hoverable = false,
   ...props
 }) => {
-  const baseStyles = "rounded-card p-4 sm:p-5 transition-all duration-200";
+  const baseStyles = "rounded-3xl p-5 sm:p-6 transition-all duration-200";
 
   const variantStyles = {
-    default: 'bg-white shadow-eco-soft border border-surface-border/70',
+    default: 'bg-white shadow-eco-soft border border-surface-border/80',
     eco: 'eco-gradient-hero text-white shadow-eco-float border border-white/15',
-    subtle: 'bg-surface-subtle border border-surface-border/60',
+    subtle: 'bg-surface-subtle border border-surface-border/70',
     outline: 'bg-transparent border border-surface-border',
     glass: 'eco-glass-card shadow-eco-soft',
     gold: 'gold-gradient-card border border-amber-200/80 shadow-eco-soft text-text-primary',

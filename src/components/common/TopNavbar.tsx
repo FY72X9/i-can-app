@@ -96,8 +96,8 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full eco-glass border-b border-surface-border/80 px-3.5 py-2.5 transition-all">
-      <div className="max-w-md mx-auto flex items-center justify-between relative">
+    <header className="sticky top-0 z-40 w-full eco-glass border-b border-surface-border/80 px-3.5 sm:px-4 py-2.5 transition-all">
+      <div className="max-w-lg lg:max-w-[500px] mx-auto flex items-center justify-between relative">
         {/* Left: Avatar + Student Info / Title */}
         <div className="flex items-center gap-2.5">
           <div 
@@ -191,18 +191,18 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
 
               {/* Account Selector Popover Dropdown */}
               {showAccountSelector && (
-                <div className="absolute right-0 top-10 w-64 bg-white rounded-2xl shadow-eco-card border border-surface-border p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1">
-                  <div className="text-[10px] font-black text-text-muted uppercase tracking-wider px-2 py-1 flex items-center justify-between">
+                <div className="absolute right-0 top-12 w-72 sm:w-80 bg-white rounded-3xl shadow-eco-card border border-surface-border p-3.5 sm:p-4 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-2">
+                  <div className="text-xs font-black text-text-muted uppercase tracking-wider px-2 py-1 flex items-center justify-between">
                     <span>Simulasi Akun ({usersList.length} Akun • {user?.role === 'ADMIN' ? 'Admin Mode' : 'Dev Mode'})</span>
-                    <span className="bg-eco-neon/20 text-eco-900 px-1.5 py-0.2 rounded text-[9px]">1-Klik</span>
+                    <span className="bg-eco-neon/20 text-eco-900 px-2 py-0.5 rounded text-[10px]">1-Klik</span>
                   </div>
 
-                  <div className="space-y-1 max-h-56 overflow-y-auto">
+                  <div className="space-y-1.5 max-h-64 overflow-y-auto">
                     {usersList.map((profile) => (
                       <button
                         key={profile.id}
                         onClick={() => handleSelectProfile(profile.id)}
-                        className={`w-full p-2 rounded-xl text-left flex items-center gap-2 transition-all ${
+                        className={`w-full p-2.5 rounded-2xl text-left flex items-center gap-2.5 transition-all ${
                           user?.id === profile.id
                             ? 'bg-eco-700 text-white font-bold shadow-xs'
                             : 'hover:bg-slate-100 text-slate-700'
@@ -211,11 +211,11 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
                         <img 
                           src={profile.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'} 
                           alt={profile.fullName} 
-                          className="w-7 h-7 rounded-lg object-cover ring-1 ring-black/5" 
+                          className="w-8 h-8 rounded-xl object-cover ring-1 ring-black/5 shrink-0" 
                         />
                         <div className="min-w-0 flex-1">
-                          <div className="text-[11px] font-black truncate">{profile.fullName}</div>
-                          <div className={`text-[9px] truncate ${user?.id === profile.id ? 'text-eco-100' : 'text-slate-500'}`}>
+                          <div className="text-xs font-black truncate">{profile.fullName}</div>
+                          <div className={`text-[10px] truncate ${user?.id === profile.id ? 'text-eco-100' : 'text-slate-500'}`}>
                             {profile.role} • {profile.totalSatPoints || 0} SAT
                           </div>
                         </div>
@@ -223,21 +223,21 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
                     ))}
                   </div>
 
-                  <div className="pt-1.5 border-t border-slate-100 flex gap-1">
+                  <div className="pt-2 border-t border-slate-100 flex gap-2">
                     <Link
-                      to="/admin"
+                      to="/sdg-guideline"
                       onClick={() => setShowAccountSelector(false)}
-                      className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-bold rounded-lg text-center transition-colors"
+                      className="flex-1 py-2 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 text-xs font-bold rounded-xl text-center transition-colors flex items-center justify-center gap-1"
                     >
-                      Buka Admin LTE →
+                      <span>🌍 Matriks SDG</span>
                     </Link>
                     <Link
                       to="/guide"
                       onClick={() => setShowAccountSelector(false)}
-                      className="flex-1 py-1.5 px-2 bg-eco-50 hover:bg-eco-100 text-eco-800 text-[10px] font-bold rounded-lg text-center transition-colors flex items-center justify-center gap-1"
+                      className="flex-1 py-2 px-2.5 bg-eco-50 hover:bg-eco-100 text-eco-800 text-xs font-bold rounded-xl text-center transition-colors flex items-center justify-center gap-1"
                     >
-                      <BookOpen className="w-3 h-3" />
-                      Panduan & FAQ
+                      <BookOpen className="w-3.5 h-3.5" />
+                      <span>Panduan</span>
                     </Link>
                   </div>
                 </div>
@@ -245,15 +245,15 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
             </div>
           ) : (
             /* Prototype Clean Mode Badge (Non-clickable for regular users) */
-            <div className="flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+            <div className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
               {user?.role === 'VERIFIER' ? (
                 <>
-                  <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                  <ShieldCheck className="w-4 h-4 text-amber-600" />
                   <span>Verifier SSO</span>
                 </>
               ) : (
                 <>
-                  <GraduationCap className="w-3.5 h-3.5 text-eco-700" />
+                  <GraduationCap className="w-4 h-4 text-eco-700" />
                   <span>Mahasiswa</span>
                 </>
               )}
@@ -262,10 +262,10 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
 
           {/* Burning Streak Pill (Duolingo Style) */}
           <div 
-            className="flex items-center gap-1 bg-gradient-to-r from-amber-50 to-orange-100 border border-amber-300/80 px-2 py-1 rounded-full text-xs font-black text-amber-900 shadow-xs active:scale-95 transition-transform cursor-pointer"
+            className="flex items-center gap-1.5 bg-gradient-to-r from-amber-50 to-orange-100 border border-amber-300/80 px-2.5 py-1 rounded-full text-xs font-black text-amber-900 shadow-xs active:scale-95 transition-transform cursor-pointer"
             title={`${user?.streakDays || 5} Hari Aktif Berkelanjutan`}
           >
-            <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500 animate-pulse" />
+            <Flame className="w-4 h-4 text-orange-500 fill-orange-500 animate-pulse" />
             <span className="font-mono">{user?.streakDays || 5}d</span>
           </div>
 
@@ -273,12 +273,16 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
           <div className="relative" ref={dropdownRef}>
             <button 
               onClick={() => setShowNotifications(!showNotifications)}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:text-eco-900 hover:bg-eco-50 active:scale-95 transition-all relative border border-transparent hover:border-eco-200 bg-white/60 shadow-xs"
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95 relative border shadow-xs ${
+                showNotifications
+                  ? 'bg-eco-700 text-white border-eco-700 shadow-neon-glow'
+                  : 'text-text-secondary hover:text-eco-900 hover:bg-eco-50 border-transparent hover:border-eco-200 bg-white/70'
+              }`}
               title="Notifikasi & Validasi Terkelola"
             >
-              <Bell className="w-4 h-4" />
+              <Bell className="w-4.5 h-4.5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-rose-500 text-white font-mono font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white shadow-xs animate-bounce-subtle">
+                <span className="absolute -top-1 -right-1 bg-rose-500 text-white font-mono font-black text-[10px] w-4.5 h-4.5 rounded-full flex items-center justify-center ring-2 ring-white shadow-xs animate-bounce-subtle">
                   {unreadCount}
                 </span>
               )}
@@ -286,104 +290,148 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
 
             {/* Notification Popover Dropdown with Full Management */}
             {showNotifications && (
-              <div className="absolute right-0 top-10 w-80 bg-white rounded-3xl shadow-eco-card border border-surface-border p-3.5 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-2.5">
-                <div className="flex items-center justify-between pb-2 border-b border-surface-border/60">
-                  <div className="flex items-center gap-1.5">
-                    <Bell className="w-3.5 h-3.5 text-eco-600" />
-                    <span className="text-xs font-black text-text-primary">Notifikasi & Validasi</span>
-                    {unreadCount > 0 && (
-                      <span className="text-[9px] bg-rose-100 text-rose-800 font-bold px-1.5 py-0.2 rounded-full">
-                        {unreadCount} baru
-                      </span>
-                    )}
+              <div className="absolute right-0 top-12 w-[calc(100vw-1.5rem)] max-w-sm sm:w-96 bg-white rounded-3xl shadow-eco-float border border-surface-border p-4 sm:p-5 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-3.5">
+                {/* Header with Title & Action Controls */}
+                <div className="flex items-center justify-between pb-3 border-b border-surface-border/70">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-eco-neon/20 text-eco-900 flex items-center justify-center font-bold shrink-0">
+                      <Bell className="w-4 h-4 text-eco-700" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs sm:text-sm font-black text-text-primary">Notifikasi & Validasi</span>
+                        {unreadCount > 0 && (
+                          <span className="text-[10px] bg-rose-100 text-rose-800 font-extrabold px-2 py-0.2 rounded-full">
+                            {unreadCount} baru
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-text-muted">Pembaruan Poin SAT, Aksi & BEKEN</p>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     {unreadCount > 0 && (
                       <button
                         onClick={markAllAsRead}
-                        className="text-[10px] font-bold text-eco-700 hover:underline"
+                        className="text-xs font-bold text-eco-800 hover:text-eco-950 px-2 py-1 rounded-lg hover:bg-eco-50 transition-colors"
                         title="Tandai semua telah dibaca"
                       >
-                        Tandai Dibaca
+                        Baca Semua
                       </button>
                     )}
                     {notifications.length > 0 && (
                       <button
                         onClick={clearAll}
-                        className="text-[10px] font-bold text-rose-600 hover:underline flex items-center gap-0.5"
+                        className="text-xs font-bold text-rose-600 hover:text-rose-700 p-1.5 rounded-lg hover:bg-rose-50 transition-colors"
                         title="Bersihkan semua notifikasi"
                       >
-                        <Trash2 className="w-2.5 h-2.5" />
-                        Hapus
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     )}
                   </div>
                 </div>
 
                 {/* Notifications Scroll List */}
-                <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1 no-scrollbar">
                   {notifications.length === 0 ? (
-                    <div className="text-center py-6 text-slate-400 space-y-1">
-                      <CheckCircle2 className="w-8 h-8 mx-auto text-slate-300" />
-                      <p className="text-xs font-bold text-slate-600">Semua notifikasi bersih!</p>
-                      <p className="text-[10px] text-slate-400">Tidak ada pembaruan baru saat ini.</p>
+                    <div className="text-center py-10 text-slate-400 space-y-2">
+                      <div className="w-12 h-12 rounded-3xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-xl">
+                        🔔
+                      </div>
+                      <p className="text-xs sm:text-sm font-bold text-slate-700">Semua notifikasi bersih!</p>
+                      <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                        Tidak ada pembaruan status atau validasi baru saat ini.
+                      </p>
                     </div>
                   ) : (
-                    notifications.map((notif) => (
-                      <div
-                        key={notif.id}
-                        onClick={() => handleNotificationClick(notif)}
-                        className={`p-2.5 rounded-2xl transition-all border text-left cursor-pointer relative group ${
-                          !notif.read
-                            ? 'bg-eco-50/70 border-eco-200/80 hover:bg-eco-50'
-                            : 'bg-surface-subtle border-surface-border/40 hover:bg-slate-100'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-1">
-                          <h4 className={`text-[11px] leading-tight ${!notif.read ? 'font-black text-eco-950' : 'font-bold text-text-primary'}`}>
-                            {notif.title}
-                          </h4>
-                          <span className="text-[9px] text-text-muted font-mono shrink-0">{notif.time}</span>
+                    notifications.map((notif) => {
+                      const isUnread = !notif.read;
+                      const isSat = notif.type === 'sat';
+                      const isQuest = notif.type === 'quest';
+                      const isRejection = notif.type === 'rejection';
+                      const isStreak = notif.type === 'streak';
+
+                      return (
+                        <div
+                          key={notif.id}
+                          onClick={() => handleNotificationClick(notif)}
+                          className={`p-3.5 rounded-2xl transition-all border text-left cursor-pointer relative group flex items-start gap-3 ${
+                            isUnread
+                              ? 'bg-gradient-to-r from-emerald-50/90 to-teal-50/60 border-eco-300 shadow-2xs hover:border-eco-400'
+                              : 'bg-surface-subtle border-surface-border/50 hover:bg-slate-100/80 hover:border-slate-300'
+                          }`}
+                        >
+                          {/* Categorized Notification Themed Icon */}
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-sm shadow-xs mt-0.5 ${
+                            isSat ? 'bg-blue-100 text-blue-800 border border-blue-200' :
+                            isQuest ? 'bg-amber-100 text-amber-900 border border-amber-200' :
+                            isStreak ? 'bg-orange-100 text-orange-900 border border-orange-200' :
+                            isRejection ? 'bg-rose-100 text-rose-800 border border-rose-200' :
+                            'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                          }`}>
+                            {isSat ? '🎓' : isQuest ? '⚡' : isStreak ? '🔥' : isRejection ? '⚠️' : '🌱'}
+                          </div>
+
+                          {/* Notification Content */}
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex items-start justify-between gap-1.5">
+                              <h4 className={`text-xs leading-snug truncate ${isUnread ? 'font-black text-eco-950' : 'font-bold text-text-primary'}`}>
+                                {notif.title}
+                              </h4>
+                              <span className="text-[10px] text-text-muted font-mono shrink-0">{notif.time}</span>
+                            </div>
+
+                            <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">
+                              {notif.desc}
+                            </p>
+
+                            {/* Action Links & Controls */}
+                            <div className="flex items-center justify-between pt-1.5 border-t border-black/5 text-[10px]">
+                              <div className="flex items-center gap-2">
+                                {isUnread ? (
+                                  <span className="text-eco-800 font-black flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-eco-neon inline-block shadow-xs animate-pulse" />
+                                    Baru
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-400">Dibaca</span>
+                                )}
+
+                                {notif.actionUrl && (
+                                  <span className="text-eco-700 font-bold hover:underline inline-flex items-center gap-0.5">
+                                    Lihat Detail →
+                                  </span>
+                                )}
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteNotification(notif.id);
+                                }}
+                                className="text-slate-400 hover:text-rose-600 p-1 rounded-md transition-colors"
+                                title="Hapus notifikasi ini"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
                         </div>
-
-                        <p className="text-[10px] text-text-secondary mt-1 leading-snug">{notif.desc}</p>
-
-                        <div className="flex items-center justify-between pt-1.5 mt-1 border-t border-black/5 text-[9px]">
-                          {!notif.read ? (
-                            <span className="text-eco-700 font-bold flex items-center gap-0.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-eco-neon inline-block" />
-                              Belum dibaca
-                            </span>
-                          ) : (
-                            <span className="text-slate-400">Sudah dibaca</span>
-                          )}
-
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteNotification(notif.id);
-                            }}
-                            className="text-slate-400 hover:text-rose-600 p-0.5 rounded"
-                            title="Hapus notifikasi ini"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
 
                 {/* Simulation Trigger Button (Only in Dev / Showcase Mode) */}
                 {isDemoMode() && (
-                  <div className="pt-2 border-t border-surface-border/60 flex items-center justify-between gap-2">
+                  <div className="pt-2 border-t border-surface-border/70">
                     <button
                       onClick={simulateIncomingNotification}
-                      className="w-full py-1.5 px-2 bg-gradient-to-r from-eco-50 to-emerald-50 hover:from-eco-100 hover:to-emerald-100 border border-eco-200 text-eco-900 rounded-xl text-[10px] font-black flex items-center justify-center gap-1 transition-all active:scale-98 shadow-xs"
+                      className="w-full py-2 px-3 bg-gradient-to-r from-eco-50 to-emerald-50 hover:from-eco-100 hover:to-emerald-100 border border-eco-200 text-eco-900 rounded-2xl text-xs font-black flex items-center justify-center gap-1.5 transition-all active:scale-98 shadow-xs"
                     >
-                      <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
+                      <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
                       <span>Simulasikan Notifikasi Baru (Dev Mode)</span>
                     </button>
                   </div>
