@@ -14,7 +14,7 @@
 
 > *"Banyak kampus menghadapi dilema yang sama: mahasiswa punya antusiasme tinggi untuk aksi sosial dan lingkungan, tapi partisipasinya sering terganjal alur pelaporan manual yang rumit dan verifikasi administratif yang memakan waktu berminggu-minggu.*  
 > 
-> *Kenalkan **I-CAN**—platform aksi iklim kampus pertama yang menerapkan **Dual-Track System** sesuai regulasi Student Service Office (SSO) dan Teach For Indonesia (TFI). I-CAN memisahkan perolehan akademik resmi (Poin SAT & Jam Community Service berbasis aksi fisik nyata) dengan gamifikasi reputasi hijau (*Green Coins* & *BEKEN Award*). Didukung **Multimodal Vision AI (Gemini 1.5 Flash)** untuk pra-verifikasi otomatis dan perhitungan dampak karbon berstandar IPCC, I-CAN siap diuji coba sebagai **MVP pada Q4 2026** dengan biaya infrastruktur awal **$0 (Zero Marginal Cost)**."*
+> *Kenalkan **I-CAN**—platform aksi iklim kampus pertama yang menerapkan **Dual-Track System** sesuai regulasi Student Service Office (SSO) dan Teach For Indonesia (TFI). I-CAN memisahkan perolehan akademik resmi (Poin SAT & Jam Community Service berbasis aksi fisik nyata) dengan gamifikasi reputasi hijau (*Green Coins* & *BEKEN Award*). Didukung **Multimodal Vision AI** untuk pra-verifikasi otomatis dan perhitungan dampak karbon berstandar IPCC, I-CAN siap diuji coba sebagai **MVP pada Q4 2026** dengan biaya infrastruktur awal **$0 (Zero Marginal Cost)**."*
 
 ---
 

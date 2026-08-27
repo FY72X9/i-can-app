@@ -84,13 +84,13 @@ export const HomePage: React.FC = () => {
       id: 'tumbler',
       title: 'Bawa Tumbler & Zero Waste',
       category: 'Self Green Campaign',
-      satPoints: 1,
-      comservHours: 0.5,
+      satPoints: 0,
+      comservHours: 0,
       coins: 10,
       co2: '0.05 kg',
       icon: CupSoda,
       color: 'from-amber-500 to-orange-600',
-      tag: 'SDG 12 Consumption',
+      tag: 'SDG 12 (BEKEN Track)',
       urgency: 'Daily Quest ⚡',
     },
   ];
@@ -100,7 +100,7 @@ export const HomePage: React.FC = () => {
       id: 'q1',
       title: 'Campus Tumbler Boost 🥤',
       desc: 'Isi ulang air minum di Water Station Gedung Anggrek lantai 2.',
-      reward: '+15 GC & +1 SAT',
+      reward: '+15 Green Coins',
       deadline: 'Sisa 3 Jam',
       completed: true,
     },
@@ -115,7 +115,7 @@ export const HomePage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 pb-6">
+    <div className="space-y-6 pb-8">
       {/* 1. Gen Z Eco-Flex Hero Card with Clean Bento */}
       <Card variant="eco" className="relative overflow-hidden p-6 shadow-eco-float border-white/20">
         <div className="absolute -top-12 -right-12 w-44 h-44 bg-eco-neon/30 rounded-full blur-3xl pointer-events-none" />

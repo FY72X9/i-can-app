@@ -75,6 +75,11 @@ export interface GreenAction {
   comservHoursEarned?: number;
   guidelineComplied?: boolean;
   realActivityVerified?: boolean;
+  isSurveyProposal?: boolean;
+  actionStep?: 'SURVEY_PROPOSAL' | 'FINAL_REPORT';
+  surveyLocation?: string;
+  partnerName?: string; // RT/RW or partner contact
+  safetyAssessed?: boolean;
   submittedAt: string;
   verifiedAt?: string;
   verifiedBy?: string;
@@ -90,15 +95,6 @@ export interface SatRecognition {
   comservHoursAwarded: number;
   status: 'VERIFIED' | 'EXPORTED' | 'SYNCED';
   recognizedAt: string;
-}
-
-export interface SatConversion {
-  id: string;
-  userId: string;
-  greenCoinsSpent: number;
-  satPointsReceived: number;
-  status: 'PENDING' | 'COMPLETED' | 'FAILED';
-  createdAt: string;
 }
 
 export interface Badge {

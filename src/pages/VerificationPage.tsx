@@ -283,6 +283,29 @@ export const VerificationPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Survey / Action Step Badge */}
+              {action.isSurveyProposal && (
+                <div className="bg-amber-50 p-2.5 rounded-xl border border-amber-200/80 space-y-1">
+                  <div className="flex items-center justify-between text-[11px] font-black text-amber-900">
+                    <span>📋 Proposal Survei Lokasi</span>
+                    <span className="bg-amber-200 text-amber-950 px-2 py-0.2 rounded-full text-[9px]">Pra-Kegiatan TFI</span>
+                  </div>
+                  <p className="text-[10px] text-amber-900">
+                    <strong>Lokasi:</strong> {action.surveyLocation || 'Lahan Terbuka Kampus / Lingkungan Sekitar'}
+                  </p>
+                  {action.partnerName && (
+                    <p className="text-[10px] text-amber-900">
+                      <strong>Mitra:</strong> {action.partnerName}
+                    </p>
+                  )}
+                  {action.safetyAssessed && (
+                    <p className="text-[9px] text-emerald-800 font-bold flex items-center gap-1">
+                      <Check className="w-3 h-3 text-emerald-700" /> K3 Terverifikasi (Aman dari jaringan listrik/pipa gas)
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Story Description */}
               {action.story && (
                 <p className="text-xs text-text-secondary leading-relaxed bg-surface-subtle p-2.5 rounded-xl border border-surface-border/60">

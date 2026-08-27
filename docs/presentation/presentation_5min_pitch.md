@@ -203,7 +203,7 @@
 | :--- | :--- | :--- |
 | **Self-Determination Theory** | Deci & Ryan (2000) `[1]`; Ryan & Deci (2017) `[2]` | Fondasi pemisahan motivasi intrinsik (Green Coins) dari ekstrinsik (SAT Points). |
 | **Task-Technology Fit** | Goodhue & Thompson (1995) `[3]`; Isaac et al. (2019) `[4]` | Desain formulir pelaporan adaptif sesuai jenis tugas lapangan mahasiswa. |
-| **D&M IS Success Model** | DeLone & McLean (2003) `[5]`; Petter et al. (2013) `[6]` | Tolok ukur evaluasi kualitas sistem, informasi, dan penerimaan pengguna. |
+| **D&M IS Success Model** | DeLone & McLean (2003) `[5]`; Petter et al. (2013) `[6]` | Tolak ukur evaluasi kualitas sistem, informasi, dan penerimaan pengguna. |
 | **Theory of Planned Behavior** | Ajzen (1991) `[7]`; Yuriev et al. (2020) `[8]` | Landasan fitur interaksi sosial komunitas dan lencana pencapaian. |
 | **IPCC Carbon Accounting** | IPCC Refinement Guidelines (2019) `[9]` | Perhitungan sekuestrasi karbon pohon ($5,00\text{ kg CO}_2e$/bibit). |
 | **GHG Protocol Standard** | WRI & WBCSD Scope 3 (2020) `[10]` | Perhitungan pencegahan emisi metana pada lubang biopori ($0,50\text{ kg CO}_2e$). |
