@@ -22,62 +22,104 @@ import {
   ArrowRight,
   MessageCircle,
   FileCheck2,
-  Globe2
+  Globe2,
+  X,
+  RotateCcw
 } from 'lucide-react';
 
 interface FaqItem {
+  id: string;
   q: string;
   a: string;
-  category: 'sat' | 'tfi' | 'beken' | 'technical' | 'sdg';
+  category: 'sat' | 'tfi' | 'beken' | 'technical' | 'sdg' | 'k3';
+  keywords: string[];
 }
 
 const FAQ_LIST: FaqItem[] = [
   {
+    id: 'faq-sdg',
     q: 'Bagaimana aksi keberlanjutan saya dipetakan ke Target SDG BINUS?',
     a: 'Setiap aksi yang dilaporkan secara otomatis dipetakan ke target prioritas United Nations Sustainable Development Goals (SDG) yang didukung BINUS (SDG 13 Iklim, SDG 15 Ekosistem Daratan, SDG 6 Air Bersih & Sanitasi, SDG 4 Pendidikan Berkualitas, SDG 12 Konsumsi Bertanggung Jawab, dll.) lengkap dengan kalkulasi pengurangan emisi karbon berbasis IPCC Tier-1.',
     category: 'sdg',
+    keywords: ['sdg', 'un', 'tujuan', 'global', 'ipcc', 'emisi', 'iklim', 'karbon'],
   },
   {
+    id: 'faq-sat-direct',
     q: 'Mengapa saldo Green Coins tidak bisa lagi ditukar langsung jadi Poin SAT?',
-    a: 'Sesuai regulasi Student Service Office (SSO) dan Teach For Indonesia (TFI), setiap Poin SAT dan jam Community Service wajib dipetakan langsung (Direct Activity Mapping) dari kegiatan nyata yang tervalidasi lengkap, bukan dari konversi skor arbitrer.',
+    a: 'Sesuai regulasi Student Service Office (SSO) dan Teach For Indonesia (TFI), setiap Poin SAT dan jam Community Service wajib dipetakan langsung (Direct Activity Mapping) dari kegiatan nyata fisik yang tervalidasi lengkap, bukan dari konversi skor atau koin arbitrer.',
     category: 'sat',
+    keywords: ['sat', 'poin', 'tukar', 'konversi', 'direct', 'mapping', 'sso', 'comserv'],
   },
   {
+    id: 'faq-coins-beken',
     q: 'Lalu, apa fungsi dari Green Coins yang saya kumpulkan?',
-    a: 'Green Coins berfungsi sebagai reputasi gamifikasi keberlanjutan kampus. Mahasiswa dengan perolehan Green Coins tertinggi akan masuk ke Leaderboard tahunan dan mendapatkan nominasi resmi BEKEN Award (BINUS Eco-Ksatria Environmental Network Award).',
+    a: 'Green Coins berfungsi sebagai reputasi gamifikasi keberlanjutan kampus. Mahasiswa dengan perolehan Green Coins tertinggi akan masuk ke Leaderboard tahunan dan mendapatkan nominasi resmi BEKEN Award (BINUS Eco-Ksatria Environmental Network Award) serta apresiasi rektorat.',
     category: 'beken',
+    keywords: ['green', 'coins', 'gc', 'beken', 'award', 'leaderboard', 'hadiah', 'ranking'],
   },
   {
+    id: 'faq-tfi-standards',
     q: 'Berapa jumlah minimal penanaman pohon atau pembuatan biopori agar disetujui TFI?',
     a: 'Untuk program Aksi Nyata TFI: Penanaman pohon wajib minimal 5 bibit pohon berbatang keras di taman kota/sekolah/fasilitas umum. Pembuatan biopori wajib minimal 5 lubang resapan biopori bersama masyarakat sekitar.',
     category: 'tfi',
+    keywords: ['pohon', 'biopori', 'minimal', '5', 'bibit', 'keras', 'tfi', 'lubang'],
   },
   {
+    id: 'faq-vbl',
     q: 'Apa saja syarat wajib untuk Video Based Learning (VBL)?',
     a: 'Video berdurasi 5–10 menit, wajib mengenakan jaket almamater BINUS, menampilkan logo resmi TFI di awal, menyertakan perkenalan diri, dan mencantumkan daftar referensi kredibel berformat APA Style di akhir video.',
     category: 'tfi',
+    keywords: ['vbl', 'video', 'durasi', '5-10', 'menit', 'almamater', 'jaket', 'apa', 'style', 'sitasi'],
   },
   {
+    id: 'faq-hashtags',
     q: 'Apa saja hashtag resmi yang wajib dicantumkan pada postingan media sosial?',
     a: 'Wajib mencantumkan 3 hashtag resmi: #TeachForIndonesia #FosteringandEmpowering #BinusianCommunityService pada caption postingan Instagram Reels, TikTok, atau YouTube Anda.',
     category: 'tfi',
+    keywords: ['hashtag', 'medsos', 'instagram', 'reels', 'tiktok', 'youtube', 'tag'],
   },
   {
+    id: 'faq-k3',
+    q: 'Bagaimana kriteria keselamatan K3 untuk survei awal penanaman pohon & biopori?',
+    a: 'Tahap survei pra-aksi (Tahap 1) bertujuan memastikan lahan aman dari jaringan kabel listrik tegangan tinggi, pipa gas, dan pipa air bawah tanah. Verifikator TFI akan menyetujui survei lokasi sebelum mahasiswa mulai menanam atau mengebor tanah.',
+    category: 'k3',
+    keywords: ['k3', 'survei', 'lokasi', 'keselamatan', 'kabel', 'pipa', 'tanah', 'mitra'],
+  },
+  {
+    id: 'faq-group',
+    q: 'Berapa batas anggota tim untuk kegiatan kelompok?',
+    a: 'Kegiatan Aksi Nyata TFI dapat dilakukan secara kelompok maksimal 3 orang mahasiswa (1 pelapor utama + 2 anggota tim). Setiap anggota yang NIM-nya tercantum dan terverifikasi akan memperoleh Poin SAT dan jam Comserv yang setara.',
+    category: 'tfi',
+    keywords: ['kelompok', 'tim', 'anggota', 'nim', '3', 'orang', 'group'],
+  },
+  {
+    id: 'faq-verify-duration',
     q: 'Berapa lama proses verifikasi aksi oleh Admin SSO / Verifikator?',
     a: 'Mesin Multimodal AI melakukan pra-verifikasi instan dalam hitungan detik. Verifikasi akhir oleh tim Verifikator SSO dan TFI diselesaikan maksimal 1x24 jam kerja.',
     category: 'technical',
+    keywords: ['verifikasi', 'lama', 'waktu', 'sso', 'ai', 'review', 'jadwal'],
   },
   {
+    id: 'faq-export-sat',
     q: 'Bagaimana cara mengekspor transkrip SAT ke myBINUS?',
     a: 'Buka menu Portofolio Rekognisi (Wallet), lalu klik tombol "Salin Ringkasan Transkrip" untuk mendapatkan teks berformat resmi yang siap disinkronisasikan ke portal myBINUS.',
     category: 'sat',
+    keywords: ['ekspor', 'transkrip', 'mybinus', 'wallet', 'portofolio', 'salin', 'unduh'],
+  },
+  {
+    id: 'faq-rejection',
+    q: 'Bagaimana jika pengajuan aksi saya ditolak oleh Verifikator?',
+    a: 'Jika pengajuan ditolak atau memerlukan perbaikan (misalnya: lupa almamater pada video VBL atau bibit belum tertanam di tanah), verifikator akan memberikan catatan spesifik. Anda dapat mengunggah ulang perbaikan melalui halaman Pelaporan tanpa penalti.',
+    category: 'technical',
+    keywords: ['tolak', 'ditolak', 'revisi', 'perbaikan', 'catatan', 'unggah', 'ulang'],
   },
 ];
 
 export const GuidePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'ALL' | 'TFI' | 'DUAL' | 'SDG' | 'FAQ'>('ALL');
+  const [faqCategoryFilter, setFaqCategoryFilter] = useState<'ALL' | 'sat' | 'tfi' | 'beken' | 'sdg' | 'technical' | 'k3'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [openFaqIds, setOpenFaqIds] = useState<string[]>(['faq-sdg']);
   const [copiedHashtags, setCopiedHashtags] = useState(false);
 
   const officialHashtags = '#TeachForIndonesia #FosteringandEmpowering #BinusianCommunityService';
@@ -88,16 +130,50 @@ export const GuidePage: React.FC = () => {
     setTimeout(() => setCopiedHashtags(false), 2000);
   };
 
+  const toggleFaq = (id: string) => {
+    setOpenFaqIds((prev) => 
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  // Live filter matching
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+
   const filteredFaqs = FAQ_LIST.filter((item) => {
-    const matchesSearch = item.q.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          item.a.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    const matchesCategory = faqCategoryFilter === 'ALL' || item.category === faqCategoryFilter;
+    
+    if (!normalizedQuery) {
+      return matchesCategory;
+    }
+
+    const matchesQuestion = item.q.toLowerCase().includes(normalizedQuery);
+    const matchesAnswer = item.a.toLowerCase().includes(normalizedQuery);
+    const matchesKeywords = item.keywords.some((kw) => kw.toLowerCase().includes(normalizedQuery));
+    const matchesCat = item.category.toLowerCase().includes(normalizedQuery);
+
+    return matchesCategory && (matchesQuestion || matchesAnswer || matchesKeywords || matchesCat);
   });
+
+  const highlightMatch = (text: string, query: string) => {
+    if (!query) return text;
+    const parts = text.split(new RegExp(`(${query})`, 'gi'));
+    return parts.map((part, idx) => 
+      part.toLowerCase() === query.toLowerCase() ? (
+        <mark key={idx} className="bg-amber-200 text-slate-950 font-black px-1 py-0.5 rounded-sm">
+          {part}
+        </mark>
+      ) : (
+        part
+      )
+    );
+  };
+
+  const isSearching = normalizedQuery.length > 0;
 
   return (
     <div className="space-y-6 sm:space-y-7 pb-8">
-      {/* 1. Header Hero Card */}
-      <Card variant="eco" className="p-6 sm:p-7 text-white space-y-4 shadow-eco-float relative overflow-hidden">
+      {/* 1. Header Hero Card with Search */}
+      <Card variant="eco" className="p-6 sm:p-7 text-white space-y-4 shadow-eco-float relative overflow-hidden rounded-3xl">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-eco-neon shadow-neon-glow border border-white/20 shrink-0">
             <BookOpen className="w-6 h-6" />
@@ -107,7 +183,7 @@ export const GuidePage: React.FC = () => {
               Panduan Resmi 2026
             </Badge>
             <h1 className="text-lg sm:text-xl font-black text-white leading-tight">
-              Pusat Panduan & Regulasi TFI
+              Pusat Panduan & FAQ TFI
             </h1>
           </div>
         </div>
@@ -116,75 +192,146 @@ export const GuidePage: React.FC = () => {
           Semua informasi seputar regulasi Student Service Office (SSO), standar program Teach For Indonesia (TFI), dan panduan klaim poin SAT transparan.
         </p>
 
-        {/* Quick Search Input */}
+        {/* Global Interactive Search Input */}
         <div className="relative pt-2">
           <input
             type="text"
-            placeholder="Cari pertanyaan atau kata kunci (contoh: pohon, VBL, hashtag, SDG)..."
+            placeholder="Cari pertanyaan, regulasi, atau kata kunci (contoh: pohon, VBL, hashtag, SDG, K3)..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-xs sm:text-sm p-3.5 pl-10 rounded-2xl bg-black/25 text-white placeholder-eco-200/70 border border-white/20 focus:outline-none focus:ring-2 focus:ring-eco-neon transition-all"
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              // Auto-expand all matching FAQs on search
+              if (e.target.value.trim()) {
+                const matchingIds = FAQ_LIST.filter(
+                  (f) => f.q.toLowerCase().includes(e.target.value.toLowerCase()) || 
+                         f.a.toLowerCase().includes(e.target.value.toLowerCase())
+                ).map((f) => f.id);
+                setOpenFaqIds(matchingIds);
+              }
+            }}
+            className="w-full text-xs sm:text-sm p-3.5 pl-10 pr-10 rounded-2xl bg-black/35 text-white placeholder-eco-200/70 border border-white/25 focus:outline-none focus:ring-2 focus:ring-eco-neon transition-all shadow-inner"
           />
-          <Search className="w-4 h-4 text-eco-200 absolute left-3.5 top-[21px]" />
+          <Search className="w-4 h-4 text-eco-neon absolute left-3.5 top-[22px]" />
+          
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3.5 top-[20px] text-eco-200 hover:text-white p-1 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              title="Hapus pencarian"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Quick Tag Suggestions for Search */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1">
+          <span className="text-[11px] text-eco-200 font-bold shrink-0">Cari Cepat:</span>
+          {['Pohon', 'Biopori', 'VBL', 'Poin SAT', 'BEKEN', 'Hashtag', 'K3 Survei', 'SDG'].map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => {
+                setSearchQuery(tag);
+                const matchingIds = FAQ_LIST.filter(
+                  (f) => f.q.toLowerCase().includes(tag.toLowerCase()) || 
+                         f.a.toLowerCase().includes(tag.toLowerCase())
+                ).map((f) => f.id);
+                setOpenFaqIds(matchingIds);
+              }}
+              className="px-2.5 py-0.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-[11px] font-bold border border-white/20 transition-all shrink-0"
+            >
+              {tag}
+            </button>
+          ))}
         </div>
       </Card>
 
-      {/* Spotlight Subpage Card: BINUS SDG Guideline */}
-      <Card className="p-5 sm:p-6 bg-gradient-to-r from-emerald-950 via-slate-900 to-teal-950 text-white rounded-3xl border border-emerald-500/30 shadow-eco-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-eco-neon/20 border border-eco-neon/40 flex items-center justify-center text-eco-neon shrink-0 shadow-neon-glow">
-            <Globe2 className="w-6 h-6" />
-          </div>
-          <div>
+      {/* SEARCH ACTIVE SPOTLIGHT BANNER (Shown when search query is typed) */}
+      {isSearching && (
+        <div className="p-4 bg-gradient-to-r from-amber-50 to-emerald-50 border-2 border-amber-300 rounded-3xl space-y-3 animate-in fade-in duration-200 shadow-xs">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-wider bg-eco-neon/30 text-eco-neon px-2.5 py-0.5 rounded-full border border-eco-neon/40">
-                Pilar Keberlanjutan
+              <Sparkles className="w-4 h-4 text-amber-600" />
+              <span className="text-xs sm:text-sm font-black text-amber-950">
+                Hasil Pencarian: "{searchQuery}"
               </span>
-              <span className="text-xs text-slate-300 font-bold">8 Target Utama</span>
             </div>
-            <h3 className="text-sm sm:text-base font-black text-white mt-1">
-              Panduan & Matriks Target SDG BINUS
-            </h3>
-            <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
-              Pelajari pemetaan kegiatan I-CAN ke UN SDGs & formula reduksi emisi IPCC Tier-1.
-            </p>
+            <button
+              onClick={() => setSearchQuery('')}
+              className="text-xs font-bold text-amber-900 bg-white hover:bg-amber-100 px-3 py-1 rounded-xl border border-amber-300 flex items-center gap-1 transition-all"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Reset
+            </button>
           </div>
+          <p className="text-xs text-text-secondary">
+            Ditemukan <strong>{filteredFaqs.length}</strong> pertanyaan yang relevan dengan kata kunci Anda.
+          </p>
         </div>
+      )}
 
-        <Link
-          to="/sdg-guideline"
-          className="px-4 py-2.5 rounded-2xl bg-eco-neon text-eco-950 font-black text-xs hover:bg-emerald-300 transition-all flex items-center gap-1.5 shadow-sm shrink-0"
-        >
-          <span>Buka Matriks SDG</span>
-          <ArrowRight className="w-4 h-4" />
-        </Link>
-      </Card>
+      {/* Spotlight Subpage Card: BINUS SDG Guideline (Hidden during specific searches to reduce clutter) */}
+      {!isSearching && (
+        <Card className="p-5 sm:p-6 bg-gradient-to-r from-emerald-950 via-slate-900 to-teal-950 text-white rounded-3xl border border-emerald-500/30 shadow-eco-card flex flex-col items-start justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-eco-neon/20 border border-eco-neon/40 flex items-center justify-center text-eco-neon shrink-0 shadow-neon-glow">
+              <Globe2 className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider bg-eco-neon/30 text-eco-neon px-2.5 py-0.5 rounded-full border border-eco-neon/40">
+                  Pilar Keberlanjutan
+                </span>
+                <span className="text-xs text-slate-300 font-bold">8 Target Utama</span>
+              </div>
+              <h3 className="text-sm sm:text-base font-black text-white mt-1">
+                Panduan & Matriks Target SDG BINUS
+              </h3>
+              <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                Pelajari pemetaan kegiatan I-CAN ke UN SDGs & formula reduksi emisi IPCC Tier-1.
+              </p>
+            </div>
+          </div>
+
+          <Link
+            to="/sdg-guideline"
+            className="px-4 py-2.5 rounded-2xl bg-eco-neon text-eco-950 font-black text-xs hover:bg-emerald-300 transition-all flex items-center gap-1.5 shadow-sm shrink-0"
+          >
+            <span>Buka Matriks SDG</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </Card>
+      )}
 
       {/* 2. Navigation Filter Tabs */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5">
-        {[
-          { id: 'ALL', label: 'Ringkasan Lengkap' },
-          { id: 'SDG', label: '🌍 Target SDG BINUS' },
-          { id: 'TFI', label: 'Standar Program TFI' },
-          { id: 'DUAL', label: 'Sistem Dual-Track' },
-          { id: 'FAQ', label: 'Tanya Jawab (FAQ)' },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`text-xs font-black px-4 py-2.5 rounded-2xl transition-all whitespace-nowrap ${
-              activeTab === tab.id
-                ? 'bg-eco-700 text-white shadow-sm'
-                : 'bg-white text-text-secondary border border-surface-border hover:bg-surface-subtle'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {!isSearching && (
+        <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5">
+          {[
+            { id: 'ALL', label: 'Ringkasan Lengkap' },
+            { id: 'SDG', label: '🌍 Target SDG BINUS' },
+            { id: 'TFI', label: 'Standar Program TFI' },
+            { id: 'DUAL', label: 'Sistem Dual-Track' },
+            { id: 'FAQ', label: 'Tanya Jawab (FAQ)' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`text-xs font-black px-4 py-2.5 rounded-2xl transition-all whitespace-nowrap ${
+                activeTab === tab.id
+                  ? 'bg-eco-700 text-white shadow-sm'
+                  : 'bg-white text-text-secondary border border-surface-border hover:bg-surface-subtle'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 2.5 SDG BINUS Section */}
-      {(activeTab === 'ALL' || activeTab === 'SDG') && (
+      {!isSearching && (activeTab === 'ALL' || activeTab === 'SDG') && (
         <div className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <h2 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
@@ -260,7 +407,7 @@ export const GuidePage: React.FC = () => {
       )}
 
       {/* 3. Official TFI Standards Section */}
-      {(activeTab === 'ALL' || activeTab === 'TFI') && (
+      {!isSearching && (activeTab === 'ALL' || activeTab === 'TFI') && (
         <div className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <h2 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
@@ -274,7 +421,7 @@ export const GuidePage: React.FC = () => {
 
           <div className="space-y-3.5">
             {/* Tree Planting */}
-            <Card className="p-5 sm:p-6 bg-white border-surface-border shadow-eco-sm space-y-3">
+            <Card className="p-5 sm:p-6 bg-white border-surface-border shadow-eco-sm space-y-3 rounded-3xl">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold shrink-0">
                   <TreePine className="w-6 h-6" />
@@ -292,7 +439,7 @@ export const GuidePage: React.FC = () => {
             </Card>
 
             {/* Biopori */}
-            <Card className="p-5 sm:p-6 bg-white border-surface-border shadow-eco-sm space-y-3">
+            <Card className="p-5 sm:p-6 bg-white border-surface-border shadow-eco-sm space-y-3 rounded-3xl">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-2xl bg-cyan-100 text-cyan-800 flex items-center justify-center font-bold shrink-0">
                   <Droplets className="w-6 h-6" />
@@ -310,7 +457,7 @@ export const GuidePage: React.FC = () => {
             </Card>
 
             {/* Video Based Learning */}
-            <Card className="p-5 sm:p-6 bg-white border-surface-border shadow-eco-sm space-y-3">
+            <Card className="p-5 sm:p-6 bg-white border-surface-border shadow-eco-sm space-y-3 rounded-3xl">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-2xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold shrink-0">
                   <Video className="w-6 h-6" />
@@ -324,13 +471,13 @@ export const GuidePage: React.FC = () => {
                 <li>Durasi video <strong>5 hingga 10 menit</strong> yang ditujukan untuk pelajar/masyarakat.</li>
                 <li>Menampilkan <strong>logo resmi TFI</strong> dan perkenalan identitas di awal video.</li>
                 <li>Wajib mengenakan <strong>jaket almamater BINUS</strong> selama perekaman.</li>
-                <li>Mencantumkan daftar referensi berstandar <strong>APA Style</strong> di bagian penutup.</li>
+                <li>Mencantumkan daftar referensi kredibel berformat <strong>APA Style</strong> di bagian penutup.</li>
               </ul>
             </Card>
           </div>
 
           {/* Hashtag Card with 1-Click Copy */}
-          <Card className="p-5 sm:p-6 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200/80 shadow-xs space-y-3">
+          <Card className="p-5 sm:p-6 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200/80 shadow-xs space-y-3 rounded-3xl">
             <div className="flex items-center justify-between">
               <span className="text-xs sm:text-sm font-black text-amber-950 flex items-center gap-2">
                 <Zap className="w-4 h-4 text-amber-600 fill-amber-600" />
@@ -353,7 +500,7 @@ export const GuidePage: React.FC = () => {
       )}
 
       {/* 4. Dual-Track Comparison Section */}
-      {(activeTab === 'ALL' || activeTab === 'DUAL') && (
+      {!isSearching && (activeTab === 'ALL' || activeTab === 'DUAL') && (
         <div className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <h2 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
@@ -364,7 +511,7 @@ export const GuidePage: React.FC = () => {
 
           <div className="grid grid-cols-1 gap-3.5">
             {/* Track A: BEKEN Award */}
-            <Card className="p-5 sm:p-6 bg-white border-surface-border shadow-eco-sm space-y-3">
+            <Card className="p-5 sm:p-6 bg-white border-surface-border shadow-eco-sm space-y-3 rounded-3xl">
               <div className="flex items-center gap-2.5 text-amber-800">
                 <Sparkles className="w-4 h-4 text-gold-neon fill-gold-neon" />
                 <h3 className="text-xs sm:text-sm font-black">Track A: Green Coins & BEKEN Award</h3>
@@ -378,7 +525,7 @@ export const GuidePage: React.FC = () => {
             </Card>
 
             {/* Track B: SAT Points */}
-            <Card className="p-5 sm:p-6 bg-white border-surface-border shadow-eco-sm space-y-3">
+            <Card className="p-5 sm:p-6 bg-white border-surface-border shadow-eco-sm space-y-3 rounded-3xl">
               <div className="flex items-center gap-2.5 text-blue-800">
                 <GraduationCap className="w-4 h-4 text-blue-600" />
                 <h3 className="text-xs sm:text-sm font-black">Track B: Poin SAT & Jam Pengabdian</h3>
@@ -394,46 +541,126 @@ export const GuidePage: React.FC = () => {
         </div>
       )}
 
-      {/* 5. Interactive FAQ Accordion */}
-      {(activeTab === 'ALL' || activeTab === 'FAQ') && (
+      {/* 5. Interactive FAQ Accordion (Primary Search Results View) */}
+      {(activeTab === 'ALL' || activeTab === 'FAQ' || isSearching) && (
         <div className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <h2 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
               <HelpCircle className="w-4 h-4 text-eco-700" />
-              3. Pertanyaan yang Sering Diajukan (FAQ)
+              {isSearching ? 'Jawaban Terkait Pencarian' : 'Tanya Jawab & Regulasi (FAQ)'}
             </h2>
-            <span className="text-xs text-text-muted">{filteredFaqs.length} Pertanyaan</span>
+            <span className="text-xs text-text-muted font-bold">
+              {filteredFaqs.length} Pertanyaan
+            </span>
           </div>
 
-          <div className="space-y-3">
-            {filteredFaqs.map((faq, idx) => {
-              const isOpen = openFaqIndex === idx;
-              return (
-                <Card
-                  key={idx}
-                  className="bg-white border-surface-border overflow-hidden transition-all shadow-xs rounded-2xl sm:rounded-3xl"
-                >
-                  <button
-                    onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
-                    className="w-full p-4 sm:p-5 text-left flex items-start justify-between gap-3 hover:bg-slate-50/80 transition-colors"
+          {/* Sub-Category Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+            {[
+              { id: 'ALL', label: 'Semua Kategori' },
+              { id: 'sat', label: '🎓 Poin SAT' },
+              { id: 'tfi', label: '🌱 Aksi TFI' },
+              { id: 'beken', label: '🏆 BEKEN Coins' },
+              { id: 'sdg', label: '🌍 UN SDGs' },
+              { id: 'k3', label: '📋 K3 & Survei' },
+              { id: 'technical', label: '⚙️ Verifikasi SSO' },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setFaqCategoryFilter(cat.id as any)}
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all whitespace-nowrap ${
+                  faqCategoryFilter === cat.id
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'bg-white text-text-secondary border border-surface-border hover:bg-slate-100'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          {/* FAQ Accordion List */}
+          {filteredFaqs.length === 0 ? (
+            <Card className="p-8 text-center bg-white border-surface-border space-y-3 shadow-eco-card rounded-3xl">
+              <div className="w-14 h-14 rounded-3xl bg-amber-50 text-amber-700 flex items-center justify-center mx-auto text-2xl shadow-xs">
+                🔍
+              </div>
+              <h3 className="text-sm font-black text-text-primary">
+                Pertanyaan Tidak Ditemukan
+              </h3>
+              <p className="text-xs text-text-secondary max-w-xs mx-auto leading-relaxed">
+                Tidak ada topik FAQ yang cocok dengan kata kunci <strong>"{searchQuery}"</strong>. Coba gunakan kata kunci umum seperti <em>pohon, biopori, VBL, almamater, atau SAT</em>.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setFaqCategoryFilter('ALL');
+                }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-eco-700 hover:bg-eco-800 text-white text-xs font-black shadow-sm transition-all"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reset Pencarian
+              </button>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {filteredFaqs.map((faq) => {
+                const isOpen = openFaqIds.includes(faq.id);
+
+                return (
+                  <Card
+                    key={faq.id}
+                    className={`bg-white overflow-hidden transition-all shadow-xs rounded-2xl sm:rounded-3xl border ${
+                      isOpen ? 'border-eco-300 ring-1 ring-eco-200/50' : 'border-surface-border hover:border-slate-300'
+                    }`}
                   >
-                    <span className="text-xs sm:text-sm font-black text-text-primary leading-snug">
-                      {faq.q}
-                    </span>
-                    <div className="p-1 rounded-lg bg-surface-subtle text-text-muted shrink-0 mt-0.5">
-                      {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </div>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleFaq(faq.id)}
+                      className="w-full p-4 sm:p-5 text-left flex items-start justify-between gap-3 hover:bg-slate-50/80 transition-colors"
+                    >
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
+                            faq.category === 'sat' ? 'bg-blue-100 text-blue-800' :
+                            faq.category === 'tfi' ? 'bg-emerald-100 text-emerald-800' :
+                            faq.category === 'beken' ? 'bg-amber-100 text-amber-900' :
+                            faq.category === 'sdg' ? 'bg-teal-100 text-teal-900' :
+                            faq.category === 'k3' ? 'bg-orange-100 text-orange-900' :
+                            'bg-purple-100 text-purple-800'
+                          }`}>
+                            {faq.category === 'sat' ? 'SAT & Comserv' :
+                             faq.category === 'tfi' ? 'Aksi TFI' :
+                             faq.category === 'beken' ? 'BEKEN Gamifikasi' :
+                             faq.category === 'sdg' ? 'Target SDG' :
+                             faq.category === 'k3' ? 'K3 Pra-Survei' :
+                             'Verifikasi SSO'}
+                          </span>
+                        </div>
+                        <h4 className="text-xs sm:text-sm font-black text-text-primary leading-snug">
+                          {highlightMatch(faq.q, normalizedQuery)}
+                        </h4>
+                      </div>
 
-                  {isOpen && (
-                    <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-1 text-xs sm:text-sm text-text-secondary leading-relaxed border-t border-slate-100 bg-surface-subtle/50 animate-in fade-in duration-150">
-                      <p>{faq.a}</p>
-                    </div>
-                  )}
-                </Card>
-              );
-            })}
-          </div>
+                      <div className={`p-1.5 rounded-xl transition-all shrink-0 mt-0.5 ${
+                        isOpen ? 'bg-eco-700 text-white' : 'bg-surface-subtle text-text-muted'
+                      }`}>
+                        {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </div>
+                    </button>
+
+                    {isOpen && (
+                      <div className="px-4 sm:px-5 pb-4 sm:pb-5 pt-1 text-xs sm:text-sm text-text-secondary leading-relaxed border-t border-slate-100 bg-surface-subtle/50 animate-in fade-in duration-150">
+                        <p>{highlightMatch(faq.a, normalizedQuery)}</p>
+                      </div>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
