@@ -16,10 +16,12 @@ import {
   ExternalLink,
   Shield,
   Layers,
-  BookOpen
+  BookOpen,
+  GraduationCap
 } from 'lucide-react';
 import { useAuthStore, DEMO_PROFILES } from '@/stores/authStore';
 import { useNotificationStore } from '@/stores/notificationStore';
+import { useAppModeStore } from '@/stores/appModeStore';
 
 interface TopNavbarProps {
   title?: string;
@@ -29,6 +31,7 @@ interface TopNavbarProps {
 export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
   const navigate = useNavigate();
   const { user, loginAs } = useAuthStore();
+  const { mode, isDemoMode, isPrototypeMode, toggleMode } = useAppModeStore();
   const { 
     notifications, 
     unreadCount, 
@@ -43,6 +46,8 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
   const [showAccountSelector, setShowAccountSelector] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const accountDropdownRef = useRef<HTMLDivElement>(null);
+
+  const canSwitchRoles = isDemoMode() || user?.role === 'ADMIN';
 
   // Close modals on click outside
   useEffect(() => {
@@ -63,6 +68,14 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
     setShowAccountSelector(false);
   };
 
+  const handleAvatarClick = () => {
+    if (canSwitchRoles) {
+      setShowAccountSelector(!showAccountSelector);
+    } else {
+      navigate('/profile');
+    }
+  };
+
   const handleNotificationClick = (notif: any) => {
     markAsRead(notif.id);
     if (notif.actionUrl) {
@@ -78,8 +91,8 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
         <div className="flex items-center gap-2.5">
           <div 
             className="relative group cursor-pointer" 
-            onClick={() => setShowAccountSelector(!showAccountSelector)}
-            title="Klik untuk ganti akun demo"
+            onClick={handleAvatarClick}
+            title={canSwitchRoles ? 'Klik untuk simulasi ganti akun demo' : 'Buka profil Anda'}
           >
             {user?.avatarUrl ? (
               <img
@@ -130,90 +143,107 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
           </div>
         </div>
 
-        {/* Right: Account Switcher Pill + Streak + Notification Bell */}
+        {/* Right: Account Switcher / Role Pill + Streak + Notification Bell */}
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Quick Account Switcher Button */}
-          <div className="relative" ref={accountDropdownRef}>
-            <button
-              onClick={() => setShowAccountSelector(!showAccountSelector)}
-              className={`flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full border transition-all active:scale-95 shadow-xs ${
-                user?.role === 'ADMIN'
-                  ? 'bg-purple-100 text-purple-950 border-purple-300 hover:bg-purple-200'
-                  : user?.role === 'VERIFIER'
-                  ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200'
-                  : 'bg-white hover:bg-eco-50 text-eco-900 border-eco-200'
-              }`}
-              title="Pilih akun demo (5 Akun Tersedia)"
-            >
-              {user?.role === 'ADMIN' ? (
+          {/* Quick Account Switcher Button (Only for Admin or in Demo Mode) */}
+          {canSwitchRoles ? (
+            <div className="relative" ref={accountDropdownRef}>
+              <button
+                onClick={() => setShowAccountSelector(!showAccountSelector)}
+                className={`flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full border transition-all active:scale-95 shadow-xs ${
+                  user?.role === 'ADMIN'
+                    ? 'bg-purple-100 text-purple-950 border-purple-300 hover:bg-purple-200'
+                    : user?.role === 'VERIFIER'
+                    ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200'
+                    : 'bg-white hover:bg-eco-50 text-eco-900 border-eco-200'
+                }`}
+                title="Pilih akun simulasi (Role Switcher)"
+              >
+                {user?.role === 'ADMIN' ? (
+                  <>
+                    <Shield className="w-3.5 h-3.5 text-purple-700" />
+                    <span>Admin</span>
+                  </>
+                ) : user?.role === 'VERIFIER' ? (
+                  <>
+                    <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
+                    <span>Verifier</span>
+                  </>
+                ) : (
+                  <>
+                    <User className="w-3.5 h-3.5 text-eco-700" />
+                    <span>{user?.fullName.split(' ')[0] || 'Student'}</span>
+                  </>
+                )}
+                <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+              </button>
+
+              {/* Account Selector Popover Dropdown */}
+              {showAccountSelector && (
+                <div className="absolute right-0 top-10 w-64 bg-white rounded-2xl shadow-eco-card border border-surface-border p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1">
+                  <div className="text-[10px] font-black text-text-muted uppercase tracking-wider px-2 py-1 flex items-center justify-between">
+                    <span>Simulasi Akun ({user?.role === 'ADMIN' ? 'Admin Mode' : 'Dev Mode'})</span>
+                    <span className="bg-eco-neon/20 text-eco-900 px-1.5 py-0.2 rounded text-[9px]">1-Klik</span>
+                  </div>
+
+                  <div className="space-y-1 max-h-56 overflow-y-auto">
+                    {Object.entries(DEMO_PROFILES).map(([key, profile]) => (
+                      <button
+                        key={key}
+                        onClick={() => handleSelectProfile(key)}
+                        className={`w-full p-2 rounded-xl text-left flex items-center gap-2 transition-all ${
+                          user?.id === profile.id
+                            ? 'bg-eco-700 text-white font-bold shadow-xs'
+                            : 'hover:bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        <img src={profile.avatarUrl} alt={profile.fullName} className="w-7 h-7 rounded-lg object-cover" />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[11px] font-black truncate">{profile.fullName}</div>
+                          <div className={`text-[9px] truncate ${user?.id === profile.id ? 'text-eco-100' : 'text-slate-500'}`}>
+                            {profile.role} • {profile.facultyName?.split(' ')[0] || 'BINUS'}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="pt-1.5 border-t border-slate-100 flex gap-1">
+                    <Link
+                      to="/admin"
+                      onClick={() => setShowAccountSelector(false)}
+                      className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-bold rounded-lg text-center transition-colors"
+                    >
+                      Buka Admin LTE →
+                    </Link>
+                    <Link
+                      to="/guide"
+                      onClick={() => setShowAccountSelector(false)}
+                      className="flex-1 py-1.5 px-2 bg-eco-50 hover:bg-eco-100 text-eco-800 text-[10px] font-bold rounded-lg text-center transition-colors flex items-center justify-center gap-1"
+                    >
+                      <BookOpen className="w-3 h-3" />
+                      Panduan & FAQ
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Prototype Clean Mode Badge (Non-clickable for regular users) */
+            <div className="flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+              {user?.role === 'VERIFIER' ? (
                 <>
-                  <Shield className="w-3.5 h-3.5 text-purple-700" />
-                  <span>Admin</span>
-                </>
-              ) : user?.role === 'VERIFIER' ? (
-                <>
-                  <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
-                  <span>Verifier</span>
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Verifier SSO</span>
                 </>
               ) : (
                 <>
-                  <User className="w-3.5 h-3.5 text-eco-700" />
-                  <span>{user?.fullName.split(' ')[0] || 'Student'}</span>
+                  <GraduationCap className="w-3.5 h-3.5 text-eco-700" />
+                  <span>Mahasiswa</span>
                 </>
               )}
-              <ChevronDown className="w-2.5 h-2.5 opacity-60" />
-            </button>
-
-            {/* Account Selector Popover Dropdown */}
-            {showAccountSelector && (
-              <div className="absolute right-0 top-10 w-64 bg-white rounded-2xl shadow-eco-card border border-surface-border p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1">
-                <div className="text-[10px] font-black text-text-muted uppercase tracking-wider px-2 py-1 flex items-center justify-between">
-                  <span>Pilih Akun Demo (5 Akun)</span>
-                  <span className="bg-eco-neon/20 text-eco-900 px-1.5 py-0.2 rounded text-[9px]">1-Klik</span>
-                </div>
-
-                <div className="space-y-1 max-h-56 overflow-y-auto">
-                  {Object.entries(DEMO_PROFILES).map(([key, profile]) => (
-                    <button
-                      key={key}
-                      onClick={() => handleSelectProfile(key)}
-                      className={`w-full p-2 rounded-xl text-left flex items-center gap-2 transition-all ${
-                        user?.id === profile.id
-                          ? 'bg-eco-700 text-white font-bold shadow-xs'
-                          : 'hover:bg-slate-100 text-slate-700'
-                      }`}
-                    >
-                      <img src={profile.avatarUrl} alt={profile.fullName} className="w-7 h-7 rounded-lg object-cover" />
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[11px] font-black truncate">{profile.fullName}</div>
-                        <div className={`text-[9px] truncate ${user?.id === profile.id ? 'text-eco-100' : 'text-slate-500'}`}>
-                          {profile.role} • {profile.facultyName?.split(' ')[0] || 'BINUS'}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="pt-1.5 border-t border-slate-100 flex gap-1">
-                  <Link
-                    to="/admin"
-                    onClick={() => setShowAccountSelector(false)}
-                    className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-bold rounded-lg text-center transition-colors"
-                  >
-                    Buka Admin LTE →
-                  </Link>
-                  <Link
-                    to="/guide"
-                    onClick={() => setShowAccountSelector(false)}
-                    className="flex-1 py-1.5 px-2 bg-eco-50 hover:bg-eco-100 text-eco-800 text-[10px] font-bold rounded-lg text-center transition-colors flex items-center justify-center gap-1"
-                  >
-                    <BookOpen className="w-3 h-3" />
-                    Panduan & FAQ
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Burning Streak Pill (Duolingo Style) */}
           <div 

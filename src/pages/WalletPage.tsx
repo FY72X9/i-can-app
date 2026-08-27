@@ -88,11 +88,13 @@ export const WalletPage: React.FC = () => {
   useEffect(() => {
     async function load() {
       const actions = await getActions();
-      const approved = actions.filter((a) => a.status === 'APPROVED');
-      setVerifiedActions(approved.length > 0 ? approved : defaultVerified);
+      const userApproved = actions.filter(
+        (a) => a.status === 'APPROVED' && (a.userId === user?.id || !user?.id)
+      );
+      setVerifiedActions(userApproved.length > 0 ? userApproved : defaultVerified);
     }
     load();
-  }, []);
+  }, [user?.id]);
 
   const totalSat = verifiedActions.reduce((acc, a) => acc + (a.satPointsEarned || 0), 0) || (user?.totalSatPoints || 9);
   const totalComserv = verifiedActions.reduce((acc, a) => acc + (a.comservHoursEarned || 0), 0) || 4.5;

@@ -81,7 +81,13 @@ export const AdminLtePage: React.FC = () => {
   };
 
   const handleAdminVerify = async (actionId: string, decision: 'APPROVED_FULL' | 'APPROVED_COINS_ONLY' | 'REJECTED') => {
-    await updateActionVerification(actionId, decision, 'Diverifikasi langsung oleh Super Admin SSO');
+    await updateActionVerification(
+      actionId, 
+      decision, 
+      'usr-admin-005', 
+      'Hendra Kusuma (SSO Super Admin)', 
+      'Diverifikasi langsung oleh Super Admin SSO'
+    );
     await loadData();
     alert(`Status aksi ${actionId} berhasil diperbarui.`);
   };

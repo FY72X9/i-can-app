@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Rss, Plus, Wallet, User, CheckSquare, Sparkles } from 'lucide-react';
+import { Home, Rss, Plus, Wallet, User, CheckSquare, Sparkles, Trophy } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 export const BottomNav: React.FC = () => {
@@ -9,9 +9,9 @@ export const BottomNav: React.FC = () => {
 
   const navItems = [
     { name: 'Home', path: '/home', icon: Home },
-    { name: 'Feed', path: '/feed', icon: Rss },
+    { name: isVerifier ? 'Verify' : 'Feed', path: isVerifier ? '/verify' : '/feed', icon: isVerifier ? CheckSquare : Rss },
     { name: 'Upload', path: '/upload', icon: Plus, isAction: true },
-    { name: isVerifier ? 'Verify' : 'Wallet', path: isVerifier ? '/verify' : '/wallet', icon: isVerifier ? CheckSquare : Wallet },
+    { name: 'Rank', path: '/leaderboard', icon: Trophy },
     { name: 'Profile', path: '/profile', icon: User },
   ];
 

@@ -20,7 +20,8 @@ import {
   Target, 
   Heart,
   BookOpen,
-  ArrowRight
+  ArrowRight,
+  Trophy
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
@@ -318,38 +319,76 @@ export const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* 5. Campus SDG Leaderboard & Cheer */}
+      {/* 5. Campus SDG Leaderboard & Top Student Highlight */}
       <div className="space-y-3">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-1.5">
-            <Award className="w-4 h-4 text-gold-500 fill-gold-500" />
-            Peringkat Fakultas & Cheer Komunitas
+            <Trophy className="w-4 h-4 text-gold-500 fill-gold-500" />
+            Top Student & BEKEN Leaderboard
           </h2>
-          <span className="text-[10px] font-bold text-text-muted">Live Update</span>
+          <Link to="/leaderboard" className="text-[11px] font-black text-eco-800 hover:text-eco-950 flex items-center gap-0.5">
+            Lihat Semua <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
 
-        <Card className="p-4 bg-white space-y-2.5 border-surface-border shadow-eco-soft">
-          <div className="space-y-2">
+        {/* Top 1 Student Spotlight Mini Card */}
+        <Link to="/leaderboard" className="block">
+          <Card className="p-3.5 bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-amber-500/10 border-amber-300/80 hover:border-amber-400 transition-all shadow-xs space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black uppercase tracking-wider bg-gold-neon/30 text-amber-950 px-2 py-0.5 rounded-full border border-gold-neon/60">
+                👑 #1 BEKEN Nominee
+              </span>
+              <span className="text-[10px] font-black text-amber-900">
+                890 GC • 68 SAT
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <img
+                src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80"
+                alt="Nadia Safira"
+                className="w-11 h-11 rounded-2xl object-cover ring-2 ring-gold-neon shadow-xs shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <h4 className="text-xs font-black text-text-primary truncate">Nadia Safira (SOD)</h4>
+                <p className="text-[10px] text-text-secondary truncate italic">
+                  "Penanaman 5 Pohon Tabebuya & VBL Zero Waste"
+                </p>
+                <div className="text-[9px] font-bold text-eco-800 mt-0.5">
+                  🌿 24.8 kg CO2e Hemat • 9 Hari Streak 🔥
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-amber-700 shrink-0" />
+            </div>
+          </Card>
+        </Link>
+
+        {/* Faculty Standing Mini List */}
+        <Card className="p-3.5 bg-white space-y-2 border-surface-border shadow-eco-soft">
+          <div className="space-y-1.5">
             {[
-              { id: 'socs', rank: '🥇 1', name: 'School of Computer Science', points: '1,450 GC', sat: '420 SAT' },
-              { id: 'sod', rank: '🥈 2', name: 'School of Design (SOD)', points: '1,120 GC', sat: '360 SAT' },
-              { id: 'sis', rank: '🥉 3', name: 'School of Information Systems', points: '980 GC', sat: '310 SAT' },
+              { id: 'socs', rank: '🥇 1', name: 'School of Computer Science', points: '4,850 GC', sat: '640 SAT' },
+              { id: 'sod', rank: '🥈 2', name: 'School of Design (SOD)', points: '4,120 GC', sat: '580 SAT' },
+              { id: 'sis', rank: '🥉 3', name: 'School of Information Systems', points: '3,560 GC', sat: '490 SAT' },
             ].map((fac) => (
               <div
                 key={fac.id}
-                className="p-3 rounded-2xl bg-surface-subtle hover:bg-eco-50/60 transition-colors flex items-center justify-between border border-surface-border/50"
+                className="p-2.5 rounded-xl bg-surface-subtle hover:bg-eco-50/60 transition-colors flex items-center justify-between border border-surface-border/50"
               >
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
                   <span className="text-xs font-black">{fac.rank}</span>
                   <div className="min-w-0">
-                    <h4 className="text-xs font-black text-text-primary truncate">{fac.name}</h4>
-                    <p className="text-[10px] text-text-muted font-mono">{fac.points} • {fac.sat}</p>
+                    <h4 className="text-[11px] font-black text-text-primary truncate">{fac.name}</h4>
+                    <p className="text-[9px] text-text-muted font-mono">{fac.points} • {fac.sat}</p>
                   </div>
                 </div>
 
                 <button
-                  onClick={() => handleCheer(fac.id)}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-black transition-all active:scale-95 ${
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleCheer(fac.id);
+                  }}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black transition-all active:scale-95 ${
                     hasCheered[fac.id]
                       ? 'bg-rose-500 text-white shadow-xs'
                       : 'bg-white hover:bg-rose-50 text-rose-600 border border-rose-200'
@@ -362,6 +401,13 @@ export const HomePage: React.FC = () => {
               </div>
             ))}
           </div>
+
+          <Link
+            to="/leaderboard"
+            className="block text-center pt-1.5 text-xs font-black text-eco-800 hover:underline border-t border-slate-100"
+          >
+            Buka Papan Peringkat Lengkap (BEKEN, SAT & Fakultas) →
+          </Link>
         </Card>
       </div>
     </div>

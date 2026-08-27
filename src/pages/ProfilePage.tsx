@@ -4,6 +4,7 @@ import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
+import { useAppModeStore } from '@/stores/appModeStore';
 import { 
   Award, 
   Flame, 
@@ -23,6 +24,9 @@ import {
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, loginAs, logout } = useAuthStore();
+  const { isDemoMode, isPrototypeMode } = useAppModeStore();
+
+  const canAccessAdmin = isDemoMode() || user?.role === 'ADMIN';
 
   const handleLogout = () => {
     logout();
@@ -147,7 +151,9 @@ export const ProfilePage: React.FC = () => {
       <div className="grid grid-cols-2 gap-2.5">
         <Link
           to="/guide"
-          className="p-3.5 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-xs space-y-1 block"
+          className={`p-3.5 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-xs space-y-1 block ${
+            !canAccessAdmin ? 'col-span-2' : ''
+          }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-black uppercase text-eco-800 bg-eco-50 px-2 py-0.5 rounded-md border border-eco-200">
@@ -155,21 +161,23 @@ export const ProfilePage: React.FC = () => {
             </span>
           </div>
           <h4 className="text-xs font-black text-text-primary">Panduan & FAQ TFI</h4>
-          <p className="text-[10px] text-text-secondary">Standar poin SAT & Comserv</p>
+          <p className="text-[10px] text-text-secondary">Standar poin SAT & jam pengabdian</p>
         </Link>
 
-        <Link
-          to="/admin"
-          className="p-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white transition-all text-left shadow-xs space-y-1 block"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-blue-300 bg-blue-500/30 px-2 py-0.5 rounded-md">
-              AdminLTE 3.4
-            </span>
-          </div>
-          <h4 className="text-xs font-black">Super Admin Panel</h4>
-          <p className="text-[10px] text-slate-400">Web View Manajemen SSO</p>
-        </Link>
+        {canAccessAdmin && (
+          <Link
+            to="/admin"
+            className="p-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white transition-all text-left shadow-xs space-y-1 block"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase text-blue-300 bg-blue-500/30 px-2 py-0.5 rounded-md">
+                AdminLTE 3.4
+              </span>
+            </div>
+            <h4 className="text-xs font-black">Super Admin Panel</h4>
+            <p className="text-[10px] text-slate-400">Web View Manajemen SSO</p>
+          </Link>
+        )}
       </div>
 
       {/* 4. Eco-Volunteer Application Card */}
@@ -183,14 +191,23 @@ export const ProfilePage: React.FC = () => {
             <p className="text-[11px] text-text-secondary mt-0.5 leading-relaxed">
               Dapatkan sertifikat resmi Teach For Indonesia (TFI) dan klaim jam pengabdian masyarakat.
             </p>
-            <Button
-              size="sm"
-              variant="primary"
-              onClick={() => loginAs('verifier')}
-              className="mt-2 text-xs py-1.5 px-3 font-bold"
-            >
-              Uji Coba Portal Verifikator →
-            </Button>
+            {canAccessAdmin ? (
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() => loginAs('verifier')}
+                className="mt-2 text-xs py-1.5 px-3 font-bold"
+              >
+                Uji Coba Portal Verifikator →
+              </Button>
+            ) : (
+              <Link
+                to="/guide"
+                className="inline-flex items-center gap-1 mt-2 text-xs font-black text-eco-800 hover:underline"
+              >
+                Pelajari Syarat & Pendaftaran Volunteer TFI →
+              </Link>
+            )}
           </div>
         </div>
       </Card>

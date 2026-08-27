@@ -5,6 +5,7 @@ import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { getActions, updateActionVerification } from '@/services/actionService';
 import { useNotificationStore } from '@/stores/notificationStore';
+import { useAuthStore } from '@/stores/authStore';
 import { GreenAction, VerificationDecision } from '@/types';
 import { 
   ShieldCheck, 
@@ -26,6 +27,7 @@ import {
 } from 'lucide-react';
 
 export const VerificationPage: React.FC = () => {
+  const { user } = useAuthStore();
   const [queue, setQueue] = useState<GreenAction[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<'ALL' | 'TFI' | 'VBL' | 'SELF'>('ALL');
@@ -152,7 +154,13 @@ export const VerificationPage: React.FC = () => {
     if (!rejectModalId) return;
     const target = queue.find((a) => a.id === rejectModalId);
     const reason = rejectionReason.trim() || 'Bukti belum memenuhi kelengkapan regulasi TFI.';
-    await updateActionVerification(rejectModalId, 'REJECTED', undefined, reason);
+    await updateActionVerification(
+      rejectModalId, 
+      'REJECTED', 
+      user?.id || 'usr-verifier-002', 
+      user?.fullName || 'Siska Amanda (SSO)', 
+      reason
+    );
     
     useNotificationStore.getState().addNotification({
       title: 'Laporan Aksi Perlu Perbaikan ⚠️',
