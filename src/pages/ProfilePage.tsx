@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppModeStore } from '@/stores/appModeStore';
+import { getActions } from '@/services/actionService';
+import { GreenAction } from '@/types';
 import { 
   Award, 
   Flame, 
@@ -18,15 +20,41 @@ import {
   Lock, 
   Zap,
   LogOut,
-  UserCheck
+  UserCheck,
+  Clock,
+  Calendar,
+  CheckCheck,
+  ChevronRight,
+  History,
+  AlertCircle
 } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, loginAs, logout } = useAuthStore();
   const { isDemoMode, isPrototypeMode } = useAppModeStore();
+  const [userActivities, setUserActivities] = useState<GreenAction[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const canAccessAdmin = isDemoMode() || user?.role === 'ADMIN';
+
+  useEffect(() => {
+    async function loadActivities() {
+      setLoading(true);
+      const allActions = await getActions();
+      if (user?.role === 'VERIFIER') {
+        // If verifier, show actions verified by verifier or all actions
+        const verified = allActions.filter((a) => a.verifiedBy?.includes(user.fullName.split(' ')[0]) || a.status === 'APPROVED');
+        setUserActivities(verified);
+      } else {
+        // Filter by user ID or match user name
+        const userSpecific = allActions.filter((a) => a.userId === user?.id || (user?.fullName && a.userName && a.userName.includes(user.fullName.split(' ')[0])));
+        setUserActivities(userSpecific.length > 0 ? userSpecific : allActions.slice(0, 8));
+      }
+      setLoading(false);
+    }
+    loadActivities();
+  }, [user?.id, user?.role, user?.fullName]);
 
   const handleLogout = () => {
     logout();
@@ -140,6 +168,94 @@ export const ProfilePage: React.FC = () => {
                 <div>
                   <h4 className="text-xs font-black text-text-primary leading-tight">{badge.name}</h4>
                   <p className="text-[10px] text-text-secondary leading-tight mt-0.5">{badge.desc}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
+      {/* 3. Riwayat 2 Minggu Aktivitas Terkini (Recent Activity Timeline) */}
+      <Card className="p-4 bg-white space-y-3.5 border-surface-border shadow-eco-soft">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-eco-neon/20 text-eco-900 flex items-center justify-center">
+              <History className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-xs font-black text-text-primary uppercase tracking-wider">
+                {user?.role === 'VERIFIER' ? 'Log Riwayat Verifikasi Terkini' : 'Riwayat Aksi 2 Minggu Terakhir'}
+              </h3>
+              <p className="text-[10px] text-text-secondary">
+                {userActivities.length} Kegiatan Terdata di Sistem
+              </p>
+            </div>
+          </div>
+          <Link
+            to={user?.role === 'VERIFIER' ? '/verify' : '/wallet'}
+            className="text-[10px] font-black text-eco-800 hover:underline flex items-center gap-0.5"
+          >
+            Lihat Semua <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+          {userActivities.map((act) => {
+            const isApprovedFull = act.decision === 'APPROVED_FULL';
+            const isCoinsOnly = act.decision === 'APPROVED_COINS_ONLY';
+            const isPending = act.status === 'PENDING';
+            const isRejected = act.status === 'REJECTED';
+
+            return (
+              <div
+                key={act.id}
+                className="p-3 rounded-2xl bg-surface-subtle border border-surface-border/60 hover:border-eco-300 transition-all flex items-start gap-3"
+              >
+                {act.photoUrl ? (
+                  <img
+                    src={act.photoUrl}
+                    alt={act.categoryName}
+                    className="w-12 h-12 rounded-xl object-cover ring-1 ring-surface-border shrink-0 mt-0.5"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-eco-neon/20 text-eco-900 flex items-center justify-center shrink-0 mt-0.5 font-black text-xs">
+                    🌱
+                  </div>
+                )}
+
+                <div className="min-w-0 flex-1 space-y-1">
+                  <div className="flex items-center justify-between gap-1">
+                    <h4 className="text-xs font-black text-text-primary truncate">
+                      {act.categoryName}
+                    </h4>
+                    <span className={`text-[8px] font-black uppercase px-1.5 py-0.2 rounded-md shrink-0 ${
+                      isApprovedFull ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' :
+                      isCoinsOnly ? 'bg-amber-100 text-amber-900 border border-amber-300' :
+                      isPending ? 'bg-blue-100 text-blue-900 border border-blue-300' :
+                      'bg-rose-100 text-rose-900 border border-rose-300'
+                    }`}>
+                      {isApprovedFull ? '+SAT & Coins' :
+                       isCoinsOnly ? 'Coins Only' :
+                       isPending ? 'Pending' : 'Ditolak'}
+                    </span>
+                  </div>
+
+                  <p className="text-[10px] text-text-secondary line-clamp-1 italic">
+                    "{act.story}"
+                  </p>
+
+                  <div className="flex items-center justify-between text-[9px] text-text-muted pt-0.5 font-mono">
+                    <span className="flex items-center gap-1 text-eco-800 font-bold">
+                      <Clock className="w-2.5 h-2.5" />
+                      {new Date(act.submittedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                    </span>
+                    <span className="font-bold text-slate-700">
+                      {act.carbonImpactKg > 0 ? `-${act.carbonImpactKg} kg CO2e` : 'Survey Validated'}
+                    </span>
+                    <span className="font-black text-amber-800">
+                      +{act.greenCoinsEarned} GC
+                    </span>
+                  </div>
                 </div>
               </div>
             );

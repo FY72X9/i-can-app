@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
+import { useAuthStore } from '@/stores/authStore';
 import { getActions } from '@/services/actionService';
 import { GreenAction } from '@/types';
 import { 
@@ -16,16 +17,18 @@ import {
   TreePine, 
   Droplets, 
   Video, 
-  CupSoda,
-  Award,
-  Flame,
-  Zap,
-  BookOpen,
-  ChevronRight
+  CupSoda, 
+  Award, 
+  Flame, 
+  Zap, 
+  BookOpen, 
+  ChevronRight,
+  User
 } from 'lucide-react';
 
 export const FeedPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'ALL' | 'TFI' | 'VBL' | 'SELF'>('ALL');
+  const { user } = useAuthStore();
+  const [activeTab, setActiveTab] = useState<'ALL' | 'MY_ACTIVITIES' | 'TFI' | 'VBL' | 'SELF'>('ALL');
   const [postsList, setPostsList] = useState<any[]>([]);
   const [likes, setLikes] = useState<Record<string, number>>({
     '1': 48,
@@ -47,6 +50,7 @@ export const FeedPage: React.FC = () => {
       
       const mapped = approved.map((a, idx) => ({
         id: a.id || `post-${idx}`,
+        userId: a.userId,
         author: a.userName || 'Mahasiswa BINUS',
         faculty: a.userFaculty || 'Fakultas BINUS',
         avatar: a.userAvatar || (idx % 2 === 0 ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' : 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80'),
@@ -117,6 +121,9 @@ export const FeedPage: React.FC = () => {
 
   const filteredPosts = postsList.filter((p) => {
     if (activeTab === 'ALL') return true;
+    if (activeTab === 'MY_ACTIVITIES') {
+      return p.userId === user?.id || (user?.fullName && p.author.includes(user.fullName.split(' ')[0]));
+    }
     if (activeTab === 'TFI') return p.type === 'TFI';
     if (activeTab === 'VBL') return p.type === 'VBL';
     if (activeTab === 'SELF') return p.type === 'SELF';
@@ -154,9 +161,10 @@ export const FeedPage: React.FC = () => {
       </Link>
 
       {/* Feed Filter Pills */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5">
+      <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5">
         {[
           { id: 'ALL', label: 'Semua Feed' },
+          { id: 'MY_ACTIVITIES', label: '👤 Aksi Saya' },
           { id: 'TFI', label: 'Aksi Nyata TFI' },
           { id: 'VBL', label: 'Video VBL' },
           { id: 'SELF', label: 'Aksi Harian' },

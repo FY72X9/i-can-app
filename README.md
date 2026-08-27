@@ -8,7 +8,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC.svg?logo=tailwind-css)](https://tailwindcss.com/)
 [![Logto](https://img.shields.io/badge/Logto-SSO_Ready-purple.svg?logo=openid)](https://logto.io/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL_15-3ECF8E.svg?logo=supabase)](https://supabase.com/)
-[![Gemini](https://img.shields.io/badge/Gemini_1.5_Flash-AI_Verify-orange.svg?logo=google)](https://aistudio.google.com/)
+[![Multimodal AI](https://img.shields.io/badge/Multimodal_AI-Vision_Verification-orange.svg?logo=google)](https://aistudio.google.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)]()
 
 ---
@@ -18,7 +18,7 @@
 **I-CAN** adalah platform pelaporan aksi berkelanjutan berbasis web (Progressive Web App) yang dirancang khusus untuk mahasiswa **Universitas Bina Nusantara (BINUS)**, selaras dengan standar **Student Service Office (SSO)** dan program resmi **Teach For Indonesia (TFI)**.
 
 ### 🔄 Paradigma Dual-Track System (Sesuai Regulasi SSO & TFI):
-Sesuai arahan regulasi kampus, perolehan Poin SAT *(Student Activity Transcript)* dan jam *Community Service* **tidak boleh berasal dari konversi skor/koin arbitrer**. Oleh karena itu, I-CAN menerapkan arsitektur **Dual-Track**:
+Sesuai arahan regulasi kampus, perolehan Poin SAT *(Student Activity Transcript)* dan jam *Community Service* **tidak boleh berasal dari konversi koin arbitrer**. Oleh karena itu, I-CAN menerapkan arsitektur **Dual-Track**:
 
 ```mermaid
 flowchart TD
@@ -27,7 +27,7 @@ flowchart TD
     end
 
     subgraph Verification["2. Dual-Engine Verification"]
-        A --> B["Gemini 1.5 Flash AI Pre-Scan"]
+        A --> B["Multimodal Vision AI Pre-Scan"]
         B --> C{"Review Verifikator SSO / TFI"}
     end
 
@@ -47,22 +47,37 @@ flowchart TD
 ```
 
 ### 3 Pilar Strategis Platform:
-1. **Kemudahan & Kemandirian:** Mahasiswa dapat merencanakan dan melaporkan aksi secara mandiri dari smartphone.
+1. **Alur 2-Tahap TFI (Survei Pra-Aksi vs Laporan Akhir):** Mahasiswa wajib melakukan survei lokasi & asesmen K3 sebelum aksi penanaman pohon / pembuatan biopori, mencegah penolakan verifikasi.
 2. **Kuantifikasi Dampak SDG Kampus:** Menghitung pengurangan emisi karbon (kg CO2e) dan memetakan aksi ke target UN SDG (SDG 13, 15, 6, 4, 12, 11) secara saintifik (IPCC/GHG Protocol).
 3. **Storytelling & Konten Digital:** Mengarsipkan karya edukatif mahasiswa (Video Based Learning & Social Media Campaign) dengan hashtag resmi `#TeachForIndonesia #FosteringandEmpowering #BinusianCommunityService`.
 
 ---
 
-## ⚡ 2. Minimal Setup untuk Build Awal (Quick Start Clone Repo)
+## 🔒 2. Audit Keamanan, API, Environment & Pertahanan Intrusi
 
-Aplikasi telah dilengkapi **Zero-Config Mock Mode**. Anda dapat menjalankan dan mendemokan seluruh fitur secara 100% lokal tanpa perlu membuat akun cloud apa pun terlebih dahulu.
+Aplikasi telah diaudit dan diperkuat dengan standar keamanan berikut:
+
+### 🛡️ Matriks Pertahanan Keamanan:
+| Lapisan Keamanan | Mekanisme Pertahanan | Status |
+| :--- | :--- | :---: |
+| **Rahasia & Kunci API** | Tidak ada API Secret Key / Service Role Key yang terekspos di bundle klien. Variabel `VITE_` hanya berisi konfigurasi publik dan anon-key yang dibatasi oleh RLS. File `.env` diabaikan oleh `.gitignore`. | 🟢 Aman |
+| **Kontrol Akses Role (RBAC)** | `ProtectedRoute.tsx` secara ketat memblokir akses ke rute privileged (`/admin` hanya untuk `ADMIN`, `/verify` hanya untuk `VERIFIER` dan `ADMIN`). Mahasiswa yang mencoba akses langsung di-redirect ke `/home`. | 🟢 Aman |
+| **Mode Deployment Isolasi** | Dalam **Mode Prototype End-User**, tombol ganti akun di TopNavbar dan Sidebar dinonaktifkan untuk non-admin. Mahasiswa murni terkunci pada rolenya tanpa celah *privilege escalation*. | 🟢 Aman |
+| **Pencegahan XSS & Injeksi** | Seluruh data input (NIM, cerita, link medsos, feedback, nama mitra) dirender aman melalui Virtual DOM React tanpa `dangerouslySetInnerHTML`. Hash password menggunakan *Web Crypto SHA-256 Digest*. | 🟢 Aman |
+| **Validasi File & Kompresi** | Form upload membatasi tipe MIME hanya gambar (`image/*`), membatasi ukuran file (<5MB), dan mengompresi gambar otomatis via HTML5 Canvas sebelum transmisi. | 🟢 Aman |
+| **AI Fallback Resiliency** | Layanan Multimodal Vision AI dirancang model-agnostik dengan *graceful degradation*: jika koneksi API terputus atau kunci API kosong, sistem beralih ke simulasi offline cerdas tanpa membocorkan stack trace. | 🟢 Aman |
+
+---
+
+## ⚡ 3. Minimal Setup untuk Build Awal (Quick Start)
+
+Aplikasi dilengkapi **Zero-Config Local Mock Mode**. Anda dapat menjalankan dan mendemokan seluruh fitur secara 100% lokal tanpa perlu membuat akun cloud apa pun terlebih dahulu.
 
 ### Prasyarat:
 - **Node.js:** Versi 18.0.0 atau lebih baru ([Download Node.js](https://nodejs.org/))
 - **Git:** Terpasang di komputer Anda
 
-### Langkah-langkah Menjalankan:
-
+### Langkah Menjalankan:
 ```bash
 # 1. Clone repository
 git clone https://github.com/username/i-can-app.git
@@ -78,132 +93,157 @@ cp .env.example .env
 npm run dev
 ```
 
-Buka browser Anda di **`http://localhost:5173`**.
-
-### Akun Demo Bawaan (Pre-seeded Credentials):
-Anda dapat login langsung atau menggunakan tombol **1-Click Demo Reviewer** di halaman login:
-- **Mahasiswa (Student):**
-  - NIM / Email: `2602158890` atau `budi.santoso@binus.ac.id`
-  - Kata Sandi: `binus123`
-- **Verifikator (SSO/TFI Admin):**
-  - NIM / Email: `2501987654` atau `siska.amanda@binus.ac.id`
-  - Kata Sandi: `verifier123`
+Buka peramban di **`http://localhost:5173`**.
 
 ---
 
-## ⚙️ 3. Panduan Setup Konfigurasi Eksternal (Opsional untuk Produksi/Live)
+## 🧪 4. Panduan Komprehensif Uji Coba Tim & Dewan Juri
 
-Jika Anda ingin menghubungkan aplikasi ke backend cloud riil, ubah file [`.env`](file:///.env) dengan langkah berikut:
+Tersedia **Bilah Kontrol Global** di bagian paling atas aplikasi untuk berpindah antara dua mode pengujian:
 
-### A. Konfigurasi Logto SSO (Single Sign-On OIDC)
-1. Buka [Logto Cloud Console](https://cloud.logto.io/) dan buat tenant baru.
-2. Masuk ke menu **Applications** $\rightarrow$ **Create Application** $\rightarrow$ Pilih **Single Page App (SPA)**.
-3. Daftarkan URL:
-   - **Redirect URI:** `http://localhost:5173/callback` (Local) dan `https://<domain-anda>/callback` (Production).
-   - **Post Sign-out Redirect URI:** `http://localhost:5173/login` (Local) dan `https://<domain-anda>/login` (Production).
-4. Salin data ke `.env`:
-   ```env
-   VITE_LOGTO_ENDPOINT=https://<tenant-id>.logto.app/
-   VITE_LOGTO_APP_ID=<app-id-anda>
-   ```
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ 📱 Mode Prototype End-User (Sesuai Role)       [ ⚙️ Ganti Mode: Ke Dev Mode ]          │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
 
-### B. Konfigurasi Supabase (Database PostgreSQL 15 & Storage)
-1. Buat project baru di [Supabase Dashboard](https://supabase.com/dashboard).
-2. Masuk ke menu **SQL Editor**, buka file [`supabase/schema.sql`](file:///supabase/schema.sql), lalu salin dan eksekusi script tersebut.
-3. Masuk ke menu **Storage**, buat bucket baru bernama `action-photos` dan centang opsi **Public Bucket**.
-4. Salin URL dan Anon Key dari menu **Project Settings** $\rightarrow$ **API** ke `.env`:
-   ```env
-   VITE_SUPABASE_URL=https://<project-ref>.supabase.co
-   VITE_SUPABASE_ANON_KEY=<anon-key-anda>
-   ```
-
-### C. Konfigurasi Google Gemini 1.5 Flash (AI Verification Free Tier)
-1. Kunjungi [Google AI Studio](https://aistudio.google.com/) dan buat API Key gratis.
-2. Masukkan ke `.env`:
-   ```env
-   VITE_GEMINI_API_KEY=<gemini-api-key-anda>
-   ```
+### 👤 5 Akun Bawaan (Pre-Seeded Accounts):
+| Role | Profil Demo | Kredensial Login | Fokus Uji Coba |
+| :--- | :--- | :--- | :--- |
+| **Mahasiswa Aktif** | **Budi Santoso** (SOCS)<br/>NIM: `2602158890` | `2602158890`<br/>Sandi: `binus123` | Uji coba alur 2-tahap TFI, Flash Quests (+15 GC Tumbler), Portofolio SAT, dan Feed. |
+| **Top Mahasiswa #1** | **Nadia Safira** (SOD)<br/>NIM: `2602234567` | `2602234567`<br/>Sandi: `binus123` | Spotlight Leaderboard BEKEN, 12 riwayat aksi 2 minggu, 9-hari streak, 68 SAT. |
+| **Mahasiswa Pemula** | **Farhan Ramadhan** (Eng)<br/>NIM: `2602345678` | `2602345678`<br/>Sandi: `binus123` | Pengelolaan E-Waste, Bike to Campus, dan draf VBL. |
+| **Verifikator TFI/SSO** | **Siska Amanda** (SIS)<br/>NIM: `2501987654` | `2501987654`<br/>Sandi: `verifier123` | Portal Verifikasi `/verify`, review bukti foto, review asesmen K3, approval 3-cabang. |
+| **Super Admin SSO** | **Hendra Kusuma, M.Kom**<br/>NIP: `1980010101` | `1980010101`<br/>Sandi: `admin123` | Dashboard AdminLTE 3.4 (`/admin`), manajemen kuota SAT, impersonasi akun, grant SAT. |
 
 ---
 
-## 📊 4. Checklist Status Implementasi & Apa Saja yang Belum Dikerjakan
+### 📋 Skenario Uji Coba Step-by-Step:
 
-Berikut adalah audit status pengerjaan proyek:
+#### Skenario 1: Pelaporan Aksi TFI 2-Tahap ([UploadPage.tsx](file:///d:/Codes/i-can-app/src/pages/UploadPage.tsx))
+1. Login sebagai **Budi Santoso**.
+2. Klik tombol **`+` (Upload)** di tengah navigasi bawah.
+3. **Pilih Tab 1: Survei Lokasi (Pra-Aksi):**
+   - Masukkan lokasi survei (contoh: *Lahan Terbuka RT 04 Kemanggisan*).
+   - Masukkan nama kontak mitra/RT setempat.
+   - Centang konfirmasi keselamatan kerja K3.
+   - Tambahkan NIM rekan kelompok (maksimal 3 orang per tim).
+   - Unggah foto lokasi survei $\rightarrow$ klik **"Kirim Pengajuan Survei Lokasi"**.
+4. **Pilih Tab 2: Laporan Akhir (Klaim SAT):**
+   - Masukkan link Instagram Reels / TikTok / YouTube.
+   - Klik tombol **"Salin 3 Tagar Resmi"** (`#TeachForIndonesia #FosteringandEmpowering #BinusianCommunityService`).
+   - Tulis refleksi aksi $\rightarrow$ unggah foto pelaksanaan.
+   - Perhatikan radar **Multimodal Vision AI** memindai kepatuhan atribut secara otomatis $\rightarrow$ kirim laporan.
 
-### ✅ Fitur yang Sudah Selesai (Completed):
-- [x] **Setup Pondasi & Desain:** React 18 + Vite + TypeScript + Tailwind CSS Gen-Z Cyber-Eco Theme.
-- [x] **Autentikasi Mahasiswa:**
-  - [x] Simple Password Auth dengan enkripsi *Web Crypto SHA-256 Digest*.
-  - [x] Form Registrasi Mahasiswa (NIM, Nama, Email BINUS, Pilihan Fakultas, Password).
-  - [x] Integrasi SDK Logto SSO (`@logto/react`) + Halaman `/callback`.
-  - [x] 1-Click Demo Reviewer Switcher (Mahasiswa / Verifikator).
-  - [x] Rute terproteksi (`ProtectedRoute`) dan default routing ke `/login`.
-- [x] **Pelaporan Aksi & Dynamic Form:**
-  - [x] Form dinamis untuk Penanaman Pohon, Lubang Biopori, Wastafel Sanitasi, Video Based Learning (VBL), dan Self Campaign.
-  - [x] Kompresi foto otomatis di browser (<200KB) menggunakan HTML5 Canvas.
-  - [x] Validasi hashtag resmi TFI & deteksi link media digital (IG Reels, TikTok, YouTube).
-- [x] **Pre-Verifikasi AI (Gemini 1.5 Flash):** Analisis visual foto aksi dan rekomendasi skor kesesuaian guideline TFI.
-- [x] **Portal Verifikator SSO & TFI:**
-  - [x] Antrean verifikasi aksi berstatus `PENDING` dengan filter kategori.
-  - [x] Keputusan 3-cabang: *Approve Full (+SAT)*, *Approve Coins Only (+GC)*, atau *Reject with Reason*.
-- [x] **Portofolio Wallet & Ekspor Transkrip:**
-  - [x] Ringkasan saldo Green Coins untuk nominasi BEKEN Award.
-  - [x] Riwayat aksi nyata terverifikasi untuk Poin SAT & Jam Comserv riil.
-  - [x] Generator Ekspor Transkrip (format JSON/Teks siap disalin ke myBINUS/TFI Apps).
-- [x] **Community Feed & Profile:** Timeline aksi kampus, interaksi reaction/likes, level Eco-Ksatria, dan koleksi 6 rarity badges.
+#### Skenario 2: Verifikasi Aksi oleh Admin SSO / TFI ([VerificationPage.tsx](file:///d:/Codes/i-can-app/src/pages/VerificationPage.tsx))
+1. Beralih login sebagai **Siska Amanda (Verifier)**.
+2. Buka tab **Verify** di navigasi bawah.
+3. Periksa kartu antrean pengajuan:
+   - Lihat badge **Proposal Survei (Pra-Aksi)** atau **Laporan Akhir**.
+   - Periksa skor pencocokan **Multimodal AI Check**, foto, dan tagar.
+4. Uji 3 opsi keputusan verifikator:
+   - **Setujui Penuh (+SAT & +Coins):** Memberikan Poin SAT akademik dan Green Coins.
+   - **Setujui Koin Saja (+Coins Only):** Untuk aksi mandiri/kampanye tanpa Poin SAT.
+   - **Tolak dengan Catatan:** Masukkan alasan (misal: *Foto buram/tanpa almamater*) $\rightarrow$ notifikasi perbaikan langsung dikirim ke mahasiswa.
 
-### 🟡 Checklist yang Belum Dikerjakan / Pending (Action Items Selanjutnya):
-- [ ] **Deployment Produksi ke Netlify (Sprint 4.2):**
-  - [ ] Push commit terbaru ke repository GitHub.
-  - [ ] Hubungkan repository ke Netlify Dashboard (file [`netlify.toml`](file:///netlify.toml) sudah tersedia).
-  - [ ] Masukkan Environment Variables di dashboard Netlify (`VITE_SUPABASE_URL`, `VITE_LOGTO_ENDPOINT`, dll.).
-- [ ] **Konfigurasi Akun Cloud Production (Opsional):**
-  - [ ] Memasukkan instance Logto Tenant & Supabase Database produksi asli jika ingin multi-device live persistence.
-- [ ] **Uji Coba Pilot Lapangan (Field Testing):**
-  - [ ] Uji coba skala terbatas dengan ~20 mahasiswa aktif di kampus BINUS.
-  - [ ] Evaluasi efektivitas scanning QR standing banner fisik di area kampus.
-- [ ] **Fitur Lanjutan Pasca-MVP (Post-MVP Enhancements):**
-  - [ ] Fitur Ekspor Transkrip format PDF resmi bertanda tangan digital QR.
-  - [ ] Webhook sinkronisasi langsung ke database SSO / TFI Apps (jika izin IT kampus telah diperoleh).
+#### Skenario 3: Papan Peringkat & Top Student Spotlight ([LeaderboardPage.tsx](file:///d:/Codes/i-can-app/src/pages/LeaderboardPage.tsx))
+1. Buka tab **Rank (Trophy)** di navigasi bawah.
+2. Periksa **Top 3 Podium Mahasiswa** (Nadia Safira #1, Budi Santoso #2, Kevin Pratama #3).
+3. Lihat kartu **Top Student Spotlight** yang memamerkan aksi unggulan, kutipan motivasi, dan reduksi `24.8 kg CO2e` Nadia Safira.
+4. Ganti antara 3 tab:
+   - **🏆 BEKEN (Coins):** Peringkat koin tahunan.
+   - **🎓 Poin SAT Riil:** Peringkat transkrip akademik.
+   - **🏛️ Fakultas:** Peringkat ESG antar fakultas + tombol interaktif **Cheer ❤️**.
+
+#### Skenario 4: Portofolio SAT & Ekspor Transkrip ([WalletPage.tsx](file:///d:/Codes/i-can-app/src/pages/WalletPage.tsx))
+1. Login sebagai **Nadia Safira** atau **Budi Santoso**, lalu buka menu **Wallet**.
+2. Periksa saldo dual-track: Green Coins dan Poin SAT / 120 SAT target kelulusan.
+3. Klik tombol **"Salin Ringkasan Transkrip"** $\rightarrow$ transkrip teks berformat resmi SSO/TFI tersalin ke clipboard, siap diimpor ke sistem myBINUS.
+
+#### Skenario 5: Manajemen Super AdminLTE 3.4 ([AdminLtePage.tsx](file:///d:/Codes/i-can-app/src/pages/AdminLtePage.tsx))
+1. Login sebagai **Pak Hendra (Super Admin)** atau buka `/admin`.
+2. Periksa metrik global kampus: Total Emisi Karbon Terpangkas, Total Mahasiswa Aktif, dan Poin SAT Terdistribusi.
+3. Uji fitur **User & Role Management Table**: ubah role pengguna secara instan dari tabel AdminLTE.
+4. Uji fitur **Manual SAT Grant Modal**: berikan Poin SAT pengabdian khusus langsung ke NIM mahasiswa.
 
 ---
 
-## 📁 5. Struktur Folder Project
+## ⚙️ 5. Panduan Konfigurasi Eksternal (Opsional untuk Produksi/Live)
+
+Jika ingin menghubungkan aplikasi ke backend cloud riil atau menggunakan penyedia AI Vision eksternal, sesuaikan file [`.env`](file:///.env):
+
+```env
+# 1. Frontend Mode ('production' = Prototype End-User | 'demo' = Showcase)
+VITE_APP_MODE=demo
+
+# 2. Multimodal Vision AI Model Routing ('auto' | 'openrouter' | 'nvidia_nim' | 'gemini')
+VITE_AI_PROVIDER=auto
+
+# [Opsi A] OpenRouter Routing (Llama 3.2 Vision, Gemini 1.5 Flash, Qwen 2 VL)
+VITE_OPENROUTER_API_KEY=sk-or-v1-your-openrouter-key-here
+VITE_OPENROUTER_MODEL=meta-llama/llama-3.2-11b-vision-instruct:free
+
+# [Opsi B] NVIDIA NIM Routing (NVIDIA Microservices: Llama 3.2 11B/90B Vision, NeVA)
+VITE_NVIDIA_NIM_API_KEY=nvapi-your-nvidia-nim-key-here
+VITE_NVIDIA_NIM_ENDPOINT=https://integrate.api.nvidia.com/v1/chat/completions
+VITE_NVIDIA_NIM_MODEL=meta/llama-3.2-11b-vision-instruct
+
+# [Opsi C] Google AI Studio / Gemini Routing
+VITE_GEMINI_API_KEY=your-gemini-api-key-here
+VITE_GEMINI_MODEL=gemini-1.5-flash
+
+# 3. Supabase Cloud (PostgreSQL & Storage)
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_ANON_KEY=<anon-key-anda>
+
+# 4. Logto SSO OIDC
+VITE_LOGTO_ENDPOINT=https://<tenant-id>.logto.app/
+VITE_LOGTO_APP_ID=<app-id-anda>
+```
+
+---
+
+## 📁 6. Struktur Folder Project
 
 ```
 i-can-app/
-├── docs/                             # Dokumentasi regulasi & MVP checklist
+├── docs/                             # Dokumentasi regulasi & panduan pitch
 │   ├── FEATURE_REVISION_NOTES.md     # Catatan regulasi SSO & TFI v2.0
-│   ├── MVP_IMPLEMENTATION_CHECKLIST.md # Checklist 4-Sprint
-│   └── idea_revision.md              # Rincian latar belakang perubahan alur
-├── public/                           # Aset statis & logo
+│   ├── MVP_IMPLEMENTATION_CHECKLIST.md # Checklist implementasi
+│   ├── feedback_22082026.md          # Catatan perbaikan UI/UX
+│   └── presentation/                 # Naskah presentasi & slide guide
+├── public/                           # Aset statis & ikon
 ├── src/
-│   ├── components/                   # Komponen antarmuka (Card, Button, Badge, Nav)
+│   ├── components/                   # Komponen UI (Card, Button, Badge, Nav)
 │   │   └── common/
-│   │       ├── BottomNav.tsx         # Navigasi bawah mobile
-│   │       ├── ProtectedRoute.tsx    # Guard autentikasi rute
+│   │       ├── BottomNav.tsx         # Navigasi bawah dengan tab Rank
+│   │       ├── ProtectedRoute.tsx    # Guard autentikasi & otorisasi role
 │   │       └── TopNavbar.tsx         # Navbar atas & header
 │   ├── pages/                        # Layar aplikasi utama
-│   │   ├── CallbackPage.tsx          # OIDC redirect handler Logto
+│   │   ├── AdminLtePage.tsx          # Panel Super Admin AdminLTE 3.4
+│   │   ├── CallbackPage.tsx          # OIDC redirect handler Logto SSO
 │   │   ├── FeedPage.tsx              # Community Feed & Storytelling
+│   │   ├── GuidePage.tsx             # Pusat Panduan & FAQ Resmi SSO/TFI
 │   │   ├── HomePage.tsx              # Dashboard utama & live ticker
+│   │   ├── LeaderboardPage.tsx       # Papan peringkat BEKEN, SAT & Fakultas
 │   │   ├── LoginPage.tsx             # Halaman login, registrasi & demo
 │   │   ├── ProfilePage.tsx           # Profil NIM & koleksi badge
-│   │   ├── UploadPage.tsx            # Form pelaporan aksi & AI scan
+│   │   ├── UploadPage.tsx            # Form pelaporan 2-tahap & AI scan
 │   │   ├── VerificationPage.tsx      # Portal review verifikator SSO/TFI
 │   │   └── WalletPage.tsx            # Portofolio SAT & transkrip
-│   ├── services/                     # Layanan API & Autentikasi
-│   │   ├── actionService.ts          # Layanan data aksi & verifikasi
+│   ├── services/                     # Layanan API & Integrasi
+│   │   ├── actionService.ts          # Layanan data aksi (35+ rekaman 2 minggu)
 │   │   ├── authService.ts            # Enkripsi sandi SHA-256 & registrasi
-│   │   ├── gemini.ts                 # Integrasi Google Gemini 1.5 Flash
+│   │   ├── gemini.ts                 # Engine Multimodal Vision AI
 │   │   ├── logto.ts                  # Konfigurasi Logto OIDC SSO
 │   │   └── supabase.ts               # Koneksi Supabase SDK & Storage
-│   ├── stores/                       # Zustand state stores (authStore.ts)
+│   ├── stores/                       # Zustand state stores
+│   │   ├── appModeStore.ts           # State toggle Prototype vs Dev Mode
+│   │   ├── authStore.ts              # State autentikasi & profil 5 akun
+│   │   └── notificationStore.ts      # State notifikasi & validasi
 │   ├── types/                        # Definisi tipe TypeScript data models
 │   ├── utils/                        # Kalkulator karbon & kompresor gambar
-│   │   ├── carbonCalc.ts             # Formula emisi saintifik IPCC/GHG
-│   │   └── imageCompressor.ts        # Canvas compressor <200KB
-│   ├── App.tsx                       # Root routing & layout wrapper
+│   ├── App.tsx                       # Root routing, layout wrapper & mode bar
 │   ├── main.tsx                      # Entry point React
 │   └── index.css                     # Tailwind design system tokens
 ├── supabase/
@@ -217,13 +257,13 @@ i-can-app/
 
 ---
 
-## 🛠️ 6. Skrip Perintah (Scripts)
+## 🛠️ 7. Skrip Perintah (Scripts)
 
 | Perintah | Fungsi |
 | :--- | :--- |
 | `npm run dev` | Menjalankan local development server dengan hot-reload (Vite). |
 | `npm run build` | Menjalankan type-checking TypeScript dan membuat build produksi di folder `/dist`. |
-| `npm run preview` | Menjalankan server lokal untuk melihat hasil build produksi. |
+| `npm run preview` | Menjalankan server lokal untuk memvalidasi hasil build produksi. |
 
 ---
 

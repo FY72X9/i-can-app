@@ -59,7 +59,7 @@ const FAQ_LIST: FaqItem[] = [
   },
   {
     q: 'Berapa lama proses verifikasi aksi oleh Admin SSO / Verifikator?',
-    a: 'AI Gemini Flash melakukan pra-verifikasi instan dalam hitungan detik. Verifikasi manual oleh tim Verifikator SSO dan TFI diselesaikan maksimal 1x24 jam kerja.',
+    a: 'Mesin Multimodal AI melakukan pra-verifikasi instan dalam hitungan detik. Verifikasi akhir oleh tim Verifikator SSO dan TFI diselesaikan maksimal 1x24 jam kerja.',
     category: 'technical',
   },
   {

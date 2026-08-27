@@ -28,7 +28,9 @@ import {
 
 export const VerificationPage: React.FC = () => {
   const { user } = useAuthStore();
+  const [activeTab, setActiveTab] = useState<'PENDING_QUEUE' | 'VERIFIED_HISTORY'>('PENDING_QUEUE');
   const [queue, setQueue] = useState<GreenAction[]>([]);
+  const [history, setHistory] = useState<GreenAction[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<'ALL' | 'TFI' | 'VBL' | 'SELF'>('ALL');
   const [rejectModalId, setRejectModalId] = useState<string | null>(null);
@@ -61,53 +63,6 @@ export const VerificationPage: React.FC = () => {
       comservHoursEarned: 2.0,
       submittedAt: new Date(Date.now() - 15 * 60000).toISOString(),
     },
-    {
-      id: 'act-sample-102',
-      userId: 'usr-student-003',
-      userName: 'Clarissa Putri',
-      userFaculty: 'School of Design (SOD)',
-      categoryId: 'vbl',
-      categoryName: 'Video Based Learning (VBL)',
-      submissionType: 'VIDEO_BASED_LEARNING',
-      photoUrl: 'https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?w=600&auto=format&fit=crop&q=80',
-      campaignUrl: 'https://youtube.com/watch?v=sampleVBL_ZeroWaste',
-      story: 'Video edukasi 8 menit "Mengenal Prinsip Zero Waste di Lingkungan Kampus" untuk pelajar SMA. Almamater & APA Style terlampir.',
-      gpsLat: -6.2001,
-      gpsLng: 106.7845,
-      status: 'PENDING',
-      aiConfidence: 0.89,
-      aiGuidelineScore: 0.95,
-      aiCompletenessScore: 0.88,
-      aiAnalysisReason: 'Logo TFI di awal video terdeteksi, jaket almamater dikenakan, sitasi format APA Style ada di penutup.',
-      greenCoinsEarned: 25,
-      carbonImpactKg: 0.1,
-      satPointsEarned: 3,
-      comservHoursEarned: 1.5,
-      submittedAt: new Date(Date.now() - 45 * 60000).toISOString(),
-    },
-    {
-      id: 'act-sample-103',
-      userId: 'usr-student-001',
-      userName: 'Kevin Sanjaya',
-      userFaculty: 'Information Systems (SIS)',
-      categoryId: 'tumbler',
-      categoryName: 'Pakai Tumbler & Wadah',
-      submissionType: 'SELF_GREEN_CAMPAIGN',
-      photoUrl: 'https://images.unsplash.com/photo-1570554886111-e80fcca6a029?w=600&auto=format&fit=crop&q=80',
-      story: 'Bawa tumbler ke water station lantai 2 BINUS Anggrek.',
-      gpsLat: -6.2017,
-      gpsLng: 106.7822,
-      status: 'PENDING',
-      aiConfidence: 0.96,
-      aiGuidelineScore: 0.85,
-      aiCompletenessScore: 0.90,
-      aiAnalysisReason: 'Objek tumbler dan lokasi kampus terverifikasi akurat.',
-      greenCoinsEarned: 10,
-      carbonImpactKg: 0.05,
-      satPointsEarned: 0,
-      comservHoursEarned: 0.0,
-      submittedAt: new Date(Date.now() - 2 * 3600000).toISOString(),
-    },
   ];
 
   useEffect(() => {
@@ -115,7 +70,9 @@ export const VerificationPage: React.FC = () => {
       setLoading(true);
       const actions = await getActions();
       const pending = actions.filter((a) => a.status === 'PENDING');
+      const completed = actions.filter((a) => a.status === 'APPROVED' || a.status === 'REJECTED');
       setQueue(pending.length > 0 ? pending : defaultSampleQueue);
+      setHistory(completed);
       setLoading(false);
     }
     load();
@@ -227,27 +184,134 @@ export const VerificationPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 2. Filter Tabs */}
-      <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-        {[
-          { id: 'ALL', label: 'Semua Antrean' },
-          { id: 'TFI', label: 'Aksi Nyata TFI' },
-          { id: 'VBL', label: 'Video VBL' },
-          { id: 'SELF', label: 'Aksi Harian' },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setSelectedFilter(tab.id as any)}
-            className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all whitespace-nowrap ${
-              selectedFilter === tab.id
-                ? 'bg-eco-700 text-white shadow-sm'
-                : 'bg-white text-text-secondary border border-surface-border hover:bg-surface-subtle'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* 2. Mode Tab: Antrean vs Riwayat Selesai */}
+      <div className="flex bg-surface-subtle p-1 rounded-2xl border border-surface-border">
+        <button
+          onClick={() => setActiveTab('PENDING_QUEUE')}
+          className={`flex-1 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            activeTab === 'PENDING_QUEUE'
+              ? 'bg-eco-700 text-white shadow-xs'
+              : 'text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          <Clock className="w-3.5 h-3.5" />
+          <span>Antrean Menunggu ({queue.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('VERIFIED_HISTORY')}
+          className={`flex-1 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            activeTab === 'VERIFIED_HISTORY'
+              ? 'bg-eco-700 text-white shadow-xs'
+              : 'text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          <CheckCheck className="w-3.5 h-3.5" />
+          <span>Riwayat Selesai ({history.length})</span>
+        </button>
       </div>
+
+      {activeTab === 'VERIFIED_HISTORY' ? (
+        /* Completed Verification History Stream */
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-black text-text-primary uppercase tracking-wider">
+              Daftar Aksi Terverifikasi (14 Hari Terakhir)
+            </span>
+            <span className="text-[10px] font-bold text-text-muted">
+              {history.length} Aksi Selesai
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {history.map((item) => {
+              const isApprovedFull = item.decision === 'APPROVED_FULL';
+              const isCoinsOnly = item.decision === 'APPROVED_COINS_ONLY';
+              const isRejected = item.status === 'REJECTED';
+
+              return (
+                <Card key={item.id} className="p-4 bg-white border-surface-border shadow-xs space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="text-xs font-black text-text-primary">{item.userName}</h4>
+                      <p className="text-[10px] text-text-secondary font-mono">{item.userFaculty}</p>
+                    </div>
+                    <Badge
+                      variant={isApprovedFull ? 'success' : isCoinsOnly ? 'warning' : 'error'}
+                      size="sm"
+                    >
+                      {isApprovedFull ? 'Disetujui (+SAT & Coins)' : isCoinsOnly ? 'Disetujui (Coins Saja)' : 'Ditolak'}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    {item.photoUrl ? (
+                      <img
+                        src={item.photoUrl}
+                        alt={item.categoryName}
+                        className="w-16 h-16 rounded-xl object-cover ring-1 ring-surface-border shrink-0"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-xl bg-eco-neon/20 text-eco-900 flex items-center justify-center shrink-0 font-black text-xs">
+                        🌱
+                      </div>
+                    )}
+
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <h5 className="text-xs font-bold text-text-primary">{item.categoryName}</h5>
+                      <p className="text-[10px] text-text-secondary line-clamp-2 italic">
+                        "{item.story}"
+                      </p>
+                      <div className="flex items-center gap-2 text-[10px] font-bold">
+                        {item.satPointsEarned > 0 && (
+                          <span className="text-blue-700">+{item.satPointsEarned} SAT</span>
+                        )}
+                        <span className="text-amber-800">+{item.greenCoinsEarned} GC</span>
+                        {item.carbonImpactKg > 0 && (
+                          <span className="text-eco-800">-{item.carbonImpactKg} kg CO2e</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Verifier Signature & Note */}
+                  <div className="p-2.5 bg-surface-subtle rounded-xl border border-surface-border/60 flex items-center justify-between text-[10px]">
+                    <span className="text-slate-600">
+                      <strong>Verifikator:</strong> {item.verifiedBy || 'Siska Amanda (SSO)'}
+                    </span>
+                    <span className="font-mono text-slate-500">
+                      {new Date(item.verifiedAt || item.submittedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                    </span>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        /* Pending Queue Filter & List */
+        <>
+          {/* Filter Tabs */}
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+            {[
+              { id: 'ALL', label: 'Semua Antrean' },
+              { id: 'TFI', label: 'Aksi Nyata TFI' },
+              { id: 'VBL', label: 'Video VBL' },
+              { id: 'SELF', label: 'Aksi Harian' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setSelectedFilter(tab.id as any)}
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all whitespace-nowrap ${
+                  selectedFilter === tab.id
+                    ? 'bg-eco-700 text-white shadow-sm'
+                    : 'bg-white text-text-secondary border border-surface-border hover:bg-surface-subtle'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
       {/* 3. Review Queue Cards */}
       {loading ? (
@@ -347,12 +411,12 @@ export const VerificationPage: React.FC = () => {
                 </div>
               )}
 
-              {/* AI Gemini Verification Breakdown */}
+              {/* Multimodal AI Verification Breakdown */}
               <div className="bg-amber-50/80 p-2.5 rounded-xl border border-amber-200/80 space-y-1">
                 <div className="flex items-center justify-between text-[11px] font-bold text-amber-900">
                   <span className="flex items-center gap-1">
                     <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                    AI Gemini Check:
+                    Multimodal AI Check:
                   </span>
                   <span className="bg-emerald-100 text-emerald-800 px-2 py-0.2 rounded-full text-[10px]">
                     {Math.round((action.aiConfidence || 0.92) * 100)}% Match
@@ -407,6 +471,8 @@ export const VerificationPage: React.FC = () => {
             </Card>
           ))}
         </div>
+      )}
+      </>
       )}
 
       {/* 4. Rejection Modal with Preset Reasons */}

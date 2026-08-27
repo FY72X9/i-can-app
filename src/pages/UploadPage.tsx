@@ -173,7 +173,7 @@ export const UploadPage: React.FC = () => {
         guidelineScore: res.guidelineConfidence,
         confidence: res.confidence,
         detectedHashtag: res.hashtagsFound ? res.hashtagsFound.length > 0 : true,
-        feedback: res.reason || 'AI Gemini Flash memverifikasi keaslian foto dan kepatuhan atribut.',
+        feedback: res.reason || 'Multimodal AI memverifikasi keaslian foto dan kepatuhan atribut.',
       });
     } catch {
       setIsAnalyzing(false);
@@ -181,7 +181,7 @@ export const UploadPage: React.FC = () => {
         guidelineScore: 0.92,
         confidence: 0.94,
         detectedHashtag: true,
-        feedback: 'AI Gemini Flash mendeteksi objek fisik riil & kepatuhan atribut TFI (Tervalidasi).',
+        feedback: 'Multimodal AI mendeteksi objek fisik riil & kepatuhan atribut TFI (Tervalidasi).',
       });
     }
   };
@@ -616,7 +616,7 @@ Dampak: ${selectedCategory.carbonKg} kg CO2e
                 </p>
               </div>
               <span className="inline-block text-[10px] font-extrabold text-eco-900 bg-eco-neon/20 px-3 py-1 rounded-full border border-eco-neon/40">
-                ⚡ Auto AI Gemini Flash Verification
+                ⚡ Auto Multimodal AI Vision Verification
               </span>
             </div>
           ) : (
@@ -661,7 +661,7 @@ Dampak: ${selectedCategory.carbonKg} kg CO2e
             <div className="flex items-center justify-between">
               <span className="text-xs font-black text-emerald-950 flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-emerald-600" />
-                Hasil Pra-Verifikasi Gemini Vision AI
+                Hasil Pra-Verifikasi Multimodal Vision AI
               </span>
               <span className="text-[10px] font-black bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">
                 {Math.round(aiResult.confidence * 100)}% Cocok

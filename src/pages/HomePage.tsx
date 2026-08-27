@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
+import { getActions } from '@/services/actionService';
+import { GreenAction } from '@/types';
 import { 
   TreePine, 
   Droplets, 
@@ -21,17 +23,29 @@ import {
   Heart,
   BookOpen,
   ArrowRight,
-  Trophy
+  Trophy,
+  History,
+  ShieldCheck
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const { user } = useAuthStore();
+  const [recentActivities, setRecentActivities] = useState<GreenAction[]>([]);
   const [cheers, setCheers] = useState<Record<string, number>>({
     socs: 148,
     sis: 112,
     sod: 95
   });
   const [hasCheered, setHasCheered] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    async function loadRecent() {
+      const actions = await getActions();
+      const approved = actions.filter((a) => a.status === 'APPROVED').slice(0, 5);
+      setRecentActivities(approved);
+    }
+    loadRecent();
+  }, []);
 
   const handleCheer = (facultyId: string) => {
     setHasCheered((prev) => ({ ...prev, [facultyId]: !prev[facultyId] }));
@@ -316,6 +330,60 @@ export const HomePage: React.FC = () => {
               </Link>
             );
           })}
+        </div>
+      </div>
+
+      {/* 4.5. Live Recent Activity Stream */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-xs font-black text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+            <History className="w-4 h-4 text-eco-700" />
+            Aktivitas Terkini Mahasiswa & Verifikator
+          </h2>
+          <Link to="/feed" className="text-[11px] font-black text-eco-800 hover:text-eco-950 flex items-center gap-0.5">
+            Feed Komunitas <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="space-y-2">
+          {recentActivities.map((act) => (
+            <Link key={act.id} to="/feed" className="block">
+              <Card className="p-3 bg-white border-surface-border hover:border-eco-400 transition-all shadow-xs flex items-center gap-3">
+                <img
+                  src={act.userAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+                  alt={act.userName}
+                  className="w-10 h-10 rounded-2xl object-cover ring-1 ring-surface-border shrink-0"
+                />
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-1">
+                    <h4 className="text-xs font-black text-text-primary truncate">
+                      {act.userName}
+                    </h4>
+                    <span className="text-[9px] font-bold text-slate-500 font-mono">
+                      {new Date(act.submittedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                    </span>
+                  </div>
+
+                  <p className="text-[10px] text-eco-900 font-bold truncate">
+                    {act.categoryName}
+                  </p>
+
+                  <div className="flex items-center gap-2 text-[9px] text-text-muted mt-0.5">
+                    {act.satPointsEarned > 0 && (
+                      <span className="text-blue-700 font-black">+{act.satPointsEarned} SAT</span>
+                    )}
+                    <span className="text-amber-800 font-black">+{act.greenCoinsEarned} GC</span>
+                    {act.verifiedBy && (
+                      <span className="text-slate-500 font-mono truncate">
+                        ✓ {act.verifiedBy.split(' ')[0]}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          ))}
         </div>
       </div>
 
