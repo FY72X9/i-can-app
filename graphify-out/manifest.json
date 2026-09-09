@@ -1,7 +1,50 @@
 {
-  "README.md": {
-    "mtime": 1787109669.5633035,
-    "ast_hash": "221389139b2f2d9b93629a3272e26345",
-    "semantic_hash": "221389139b2f2d9b93629a3272e26345"
+  "FEATURE_REVISION_NOTES.md": {
+    "mtime": 1787361571.1711435,
+    "seen": 1788947342.8546846,
+    "ast_hash": "9df19d108ee5ddf3e3e9b6ee23c997f5",
+    "semantic_hash": "9df19d108ee5ddf3e3e9b6ee23c997f5"
+  },
+  "MVP_IMPLEMENTATION_CHECKLIST.md": {
+    "mtime": 1787361571.1711435,
+    "seen": 1788947342.8546846,
+    "ast_hash": "6ec31e165c34de741420058adea4a8aa",
+    "semantic_hash": "6ec31e165c34de741420058adea4a8aa"
+  },
+  "feedback_22082026.md": {
+    "mtime": 1788945106.7976203,
+    "seen": 1788947342.8546846,
+    "ast_hash": "62c9d4719162e1a437660c79fe2b5d01",
+    "semantic_hash": "62c9d4719162e1a437660c79fe2b5d01"
+  },
+  "idea_revision.md": {
+    "mtime": 1787361571.1711435,
+    "seen": 1788947342.8546846,
+    "ast_hash": "31886e0ed38008d2bead016af91df6ec",
+    "semantic_hash": "31886e0ed38008d2bead016af91df6ec"
+  },
+  "presentation/presentation_5min_pitch.md": {
+    "mtime": 1788945106.8016257,
+    "seen": 1788947342.8546846,
+    "ast_hash": "c2f8c7f6dcd8a903e87f02bb200571f5",
+    "semantic_hash": "c2f8c7f6dcd8a903e87f02bb200571f5"
+  },
+  "presentation/presentation_guideline.md": {
+    "mtime": 1788945106.8016257,
+    "seen": 1788947342.8546846,
+    "ast_hash": "a6c6359173fefb52272e597440c77872",
+    "semantic_hash": "a6c6359173fefb52272e597440c77872"
+  },
+  "presentation/presentation_material.md": {
+    "mtime": 1788945106.8026245,
+    "seen": 1788947342.8546846,
+    "ast_hash": "4099410c426b873d00876bddeae9cde7",
+    "semantic_hash": "4099410c426b873d00876bddeae9cde7"
+  },
+  "presentation/image.png": {
+    "mtime": 1788945106.7996235,
+    "seen": 1788947342.8546846,
+    "ast_hash": "e35a6177cd24f423c362d0f60e0703f0",
+    "semantic_hash": "e35a6177cd24f423c362d0f60e0703f0"
   }
 }
