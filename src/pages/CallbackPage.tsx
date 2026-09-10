@@ -4,6 +4,7 @@ import { useHandleSignInCallback, useLogto } from '@logto/react';
 import { useAuthStore } from '@/stores/authStore';
 import { Leaf, Sparkles } from 'lucide-react';
 import { normalizeUserRole } from '@/services/authService';
+import { getRoleDefaultPath } from '@/components/common/ProtectedRoute';
 import { UserProfile } from '@/types';
 
 export const CallbackPage: React.FC = () => {
@@ -37,10 +38,10 @@ export const CallbackPage: React.FC = () => {
       };
 
       setUser(loggedUser);
-      navigate('/home');
+      navigate(getRoleDefaultPath(role));
     } catch (err) {
       console.error('Error extracting Logto user info:', err);
-      navigate('/home');
+      navigate('/login');
     }
   });
 

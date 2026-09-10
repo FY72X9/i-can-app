@@ -291,7 +291,7 @@ export const App: React.FC = () => {
           <Route
             path="/home"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['MAHASISWA']}>
                 <AppLayout>
                   <HomePage />
                 </AppLayout>
@@ -311,7 +311,7 @@ export const App: React.FC = () => {
           <Route
             path="/upload"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['MAHASISWA']}>
                 <AppLayout title="Pelaporan Aksi" subtitle="AI Scanning & Klaim SAT">
                   <UploadPage />
                 </AppLayout>
@@ -321,7 +321,7 @@ export const App: React.FC = () => {
           <Route
             path="/wallet"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['MAHASISWA']}>
                 <AppLayout title="Portofolio Rekognisi" subtitle="Transkrip SAT & BEKEN Track">
                   <WalletPage />
                 </AppLayout>

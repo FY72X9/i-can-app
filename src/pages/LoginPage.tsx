@@ -8,6 +8,7 @@ import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppModeStore } from '@/stores/appModeStore';
 import { isLogtoConfigured } from '@/services/logto';
+import { getRoleDefaultPath } from '@/components/common/ProtectedRoute';
 import { 
   Leaf, 
   GraduationCap, 
@@ -98,7 +99,8 @@ export const LoginPage: React.FC = () => {
 
     const success = await loginWithPassword(loginIdentifier, loginPassword);
     if (success) {
-      navigate('/home');
+      const activeUser = useAuthStore.getState().user;
+      navigate(getRoleDefaultPath(activeUser?.role));
     }
   };
 
@@ -127,7 +129,7 @@ export const LoginPage: React.FC = () => {
       email: regEmail,
       facultyName: regFaculty,
       password: regPassword,
-      role: 'STUDENT',
+      role: 'MAHASISWA',
     });
 
     if (success) {
@@ -137,7 +139,7 @@ export const LoginPage: React.FC = () => {
         origin: { y: 0.6 },
         colors: ['#2E8B57', '#00FF66', '#E5A93C'],
       });
-      navigate('/home');
+      navigate(getRoleDefaultPath('MAHASISWA'));
     }
   };
 
@@ -205,7 +207,7 @@ export const LoginPage: React.FC = () => {
               <div className="text-xs font-black truncate">{user.fullName} ({user.role})</div>
             </div>
             <button
-              onClick={() => navigate('/home')}
+              onClick={() => navigate(getRoleDefaultPath(user.role))}
               className="px-3 py-1.5 bg-eco-neon text-eco-950 font-black text-xs rounded-xl shrink-0 hover:bg-emerald-300 transition-all active:scale-95 shadow-sm"
             >
               Buka Dashboard →
@@ -512,7 +514,7 @@ export const LoginPage: React.FC = () => {
                         type="button"
                         onClick={async () => {
                           await loginAs(u.id);
-                          navigate(isOrganizer ? '/verify' : '/home');
+                          navigate(getRoleDefaultPath(u.role));
                         }}
                         className="p-2.5 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-2xs flex items-center gap-2 group active:scale-95"
                       >

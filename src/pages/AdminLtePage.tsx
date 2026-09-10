@@ -32,7 +32,8 @@ import {
   Trash2,
   CalendarPlus,
   Image,
-  ListOrdered
+  ListOrdered,
+  LogOut
 } from 'lucide-react';
 
 export const AdminLtePage: React.FC = () => {
@@ -42,7 +43,7 @@ export const AdminLtePage: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<'dashboard' | 'users' | 'actions' | 'grant' | 'sdg' | 'events'>('dashboard');
   const [actionsList, setActionsList] = useState<GreenAction[]>([]);
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
-  const [isWideView, setIsWideView] = useState(false);
+  const [isWideView, setIsWideView] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Manual Grant Modal
@@ -100,23 +101,9 @@ export const AdminLtePage: React.FC = () => {
     }
   };
 
-  const handleRoleChange = (userId: string, newRole: UserRole) => {
-    const updatedUsers = usersList.map((u) => (u.id === userId ? { ...u, role: newRole } : u));
-    setUsersList(updatedUsers);
-
-    // Save to localStorage accounts
-    const raw = localStorage.getItem('i_can_registered_accounts');
-    if (raw) {
-      try {
-        const stored = JSON.parse(raw);
-        const next = stored.map((acc: any) => (acc.id === userId ? { ...acc, role: newRole } : acc));
-        localStorage.setItem('i_can_registered_accounts', JSON.stringify(next));
-      } catch {}
-    }
-
-    if (user?.id === userId) {
-      useAuthStore.getState().setUser({ ...user, role: newRole });
-    }
+  const handleRoleChange = async (userId: string, newRole: UserRole) => {
+    await useAuthStore.getState().updateUserRole(userId, newRole);
+    await loadData();
     alert(`Role berhasil diperbarui menjadi ${newRole}`);
   };
 
@@ -315,24 +302,20 @@ export const AdminLtePage: React.FC = () => {
   return (
     <div className={`min-h-screen bg-[#f4f6f9] font-sans ${isWideView ? 'w-full' : 'max-w-[414px] mx-auto shadow-2xl relative'}`}>
       {/* 1. AdminLTE Inspired Header Navbar */}
-      <header className="bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between sticky top-0 z-50">
+      <header className="bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between sticky top-0 z-50 shadow-xs">
         <div className="flex items-center gap-3">
-          <Link
-            to="/app/dashboard"
-            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 transition-colors"
-            title="Kembali ke App Mahasiswa"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Kembali ke App</span>
-          </Link>
-
-          <div className="flex items-center gap-1.5 border-l border-slate-300 pl-3">
-            <div className="w-7 h-7 rounded-lg bg-[#007bff] text-white flex items-center justify-center font-black text-xs shadow-xs">
+          <div className="flex items-center gap-2">
+            <div className={`w-8 h-8 rounded-xl text-white flex items-center justify-center font-black text-xs shadow-xs ${user?.role === 'SUPERADMIN' ? 'bg-[#007bff]' : 'bg-amber-600'}`}>
               LTE
             </div>
-            <span className="text-xs sm:text-sm font-black text-slate-800 tracking-tight">
-              AdminLTE <b>3.4</b> • SSO Panel
-            </span>
+            <div>
+              <span className="text-xs sm:text-sm font-black text-slate-800 tracking-tight block">
+                BINUS I-CAN • {user?.role === 'SUPERADMIN' ? 'Super Admin SSO Platform' : 'Event Organizer Portal'}
+              </span>
+              <span className="text-[10px] text-slate-500 font-bold block">
+                {user?.fullName} ({user?.facultyName || 'BINUS University'})
+              </span>
+            </div>
           </div>
         </div>
 
@@ -355,6 +338,19 @@ export const AdminLtePage: React.FC = () => {
             <Download className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Export myBINUS</span>
           </button>
+
+          {/* Logout Button */}
+          <button
+            onClick={() => {
+              useAuthStore.getState().logout();
+              navigate('/login');
+            }}
+            className="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1 shadow-xs transition-colors"
+            title="Keluar dari sesi akun"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
         </div>
       </header>
 
@@ -365,15 +361,15 @@ export const AdminLtePage: React.FC = () => {
           {/* User Profile Bar */}
           <div className="flex items-center gap-2.5 pb-3 border-b border-[#4f5962]">
             <img
-              src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80"
-              alt="Hendra Admin"
-              className="w-9 h-9 rounded-full object-cover ring-2 ring-[#007bff]"
+              src={user?.avatarUrl || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80"}
+              alt={user?.fullName || "User"}
+              className={`w-9 h-9 rounded-full object-cover ring-2 ${user?.role === 'SUPERADMIN' ? 'ring-[#007bff]' : 'ring-amber-500'}`}
             />
-            <div className="min-w-0">
-              <h4 className="text-xs font-bold text-white truncate">Pak Hendra (SSO)</h4>
-              <p className="text-[10px] text-[#28a745] flex items-center gap-1 font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#28a745] animate-ping" />
-                Super Admin Online
+            <div className="min-w-0 flex-1">
+              <h4 className="text-xs font-bold text-white truncate">{user?.fullName || 'User Online'}</h4>
+              <p className={`text-[10px] flex items-center gap-1 font-bold ${user?.role === 'SUPERADMIN' ? 'text-[#28a745]' : 'text-amber-400'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full animate-ping ${user?.role === 'SUPERADMIN' ? 'bg-[#28a745]' : 'bg-amber-400'}`} />
+                {user?.role === 'SUPERADMIN' ? 'Super Admin Online' : 'Organizer Online'}
               </p>
             </div>
           </div>
@@ -454,6 +450,19 @@ export const AdminLtePage: React.FC = () => {
               <BarChart3 className="w-4 h-4" />
               <span>Analitik SDG Kampus</span>
             </button>
+
+            <div className="pt-4 mt-4 border-t border-[#4f5962]">
+              <button
+                onClick={() => {
+                  useAuthStore.getState().logout();
+                  navigate('/login');
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-400 hover:bg-rose-900/30 hover:text-rose-300 transition-colors text-left font-bold"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Keluar (Logout)</span>
+              </button>
+            </div>
           </nav>
         </aside>
 
@@ -475,7 +484,7 @@ export const AdminLtePage: React.FC = () => {
               </p>
             </div>
             <span className="text-xs font-mono font-bold bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl">
-              Session: Super Admin
+              Session: {user?.role === 'SUPERADMIN' ? 'Super Admin' : 'Organizer'}
             </span>
           </div>
 
@@ -1059,7 +1068,7 @@ export const AdminLtePage: React.FC = () => {
                           >
                             Edit
                           </button>
-                          {user?.role === 'ADMIN' && (
+                          {(user?.role === 'SUPERADMIN' || user?.id === evt.organizerId) && (
                             <button
                               onClick={() => handleDeleteEvent(evt.id)}
                               className="px-2.5 py-1.5 rounded-lg bg-rose-100 hover:bg-rose-500 hover:text-white text-rose-700 text-xs font-bold transition-colors"
