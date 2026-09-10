@@ -4,7 +4,7 @@
 - cluster-only mode — file stats not available
 
 ## Summary
-- 439 nodes · 835 edges · 39 communities (21 shown, 6 thin omitted)
+- 440 nodes · 838 edges · 38 communities (20 shown, 6 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 14 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
@@ -15,19 +15,18 @@
 
 ## Community Hubs (Navigation)
 - src/types/index.ts
+- src/App.tsx
 - package.json
 - i-can-app/src/pages/VerificationPage.tsx
-- eventService.ts
-- src/App.tsx
 - i-can-app/src/pages/AdminLtePage.tsx
-- src/stores/authStore.ts
+- eventService.ts
 - i-can-app/src/pages/UploadPage.tsx
 - i-can-app/src/pages/LoginPage.tsx
 - compilerOptions
 - i-can-app/src/components/common/TopNavbar.tsx
+- src/services/gemini.ts
 - useAuthStore
 - i-can-app/src/pages/GuidePage.tsx
-- src/services/gemini.ts
 - compilerOptions
 - i-can-app/src/pages/HomePage.tsx
 - i-can-app/src/components/common/BottomNav.tsx
@@ -51,67 +50,63 @@
 6. `compilerOptions` - 17 edges
 7. `Badge()` - 11 edges
 8. `Card()` - 11 edges
-9. `AdminLtePage()` - 11 edges
-10. `getStoredAccounts()` - 11 edges
+9. `getStoredAccounts()` - 11 edges
+10. `AdminLtePage()` - 11 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `load()` --calls--> `getActions()`  [EXTRACTED]
+  src/pages/FeedPage.tsx → src/services/actionService.ts
+- `loadRecent()` --calls--> `getActions()`  [EXTRACTED]
+  src/pages/HomePage.tsx → src/services/actionService.ts
+- `loadActivities()` --calls--> `getActions()`  [EXTRACTED]
+  src/pages/ProfilePage.tsx → src/services/actionService.ts
+- `load()` --calls--> `getActions()`  [EXTRACTED]
+  src/pages/WalletPage.tsx → src/services/actionService.ts
 - `handleAdminVerify()` --calls--> `updateActionVerification()`  [INFERRED]
   D:/Codes/i-can-app/src/pages/AdminLtePage.tsx → D:/Codes/i-can-app/src/services/actionService.ts
-- `confirmReject()` --calls--> `updateActionVerification()`  [INFERRED]
-  D:/Codes/i-can-app/src/pages/VerificationPage.tsx → D:/Codes/i-can-app/src/services/actionService.ts
-- `handleDecision()` --calls--> `updateActionVerification()`  [INFERRED]
-  D:/Codes/i-can-app/src/pages/VerificationPage.tsx → D:/Codes/i-can-app/src/services/actionService.ts
-- `loadData()` --calls--> `getActions()`  [INFERRED]
-  D:/Codes/i-can-app/src/pages/AdminLtePage.tsx → D:/Codes/i-can-app/src/services/actionService.ts
-- `load()` --calls--> `getActions()`  [INFERRED]
-  D:/Codes/i-can-app/src/pages/FeedPage.tsx → D:/Codes/i-can-app/src/services/actionService.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (39 total, 6 thin omitted)
+## Communities (38 total, 6 thin omitted)
 
 ### Community 0 - "src/types/index.ts"
-Cohesion: 0.13
-Nodes (31): clsx, lucide-react, react, react-router-dom, tailwind-merge, Badge(), BadgeProps, Button() (+23 more)
+Cohesion: 0.11
+Nodes (40): clsx, lucide-react, react, react-router-dom, tailwind-merge, Badge(), BadgeProps, Button() (+32 more)
 
-### Community 1 - "package.json"
+### Community 1 - "src/App.tsx"
+Cohesion: 0.10
+Nodes (43): @logto/react, App(), AppLayout(), BottomNav(), getRoleDefaultPath(), ProtectedRoute(), ProtectedRouteProps, TopNavbar() (+35 more)
+
+### Community 2 - "package.json"
 Cohesion: 0.05
-Nodes (42): dependencies, canvas-confetti, clsx, @logto/react, lucide-react, react, react-dom, react-router-dom (+34 more)
+Nodes (43): dependencies, canvas-confetti, clsx, @logto/react, lucide-react, react, react-dom, react-router-dom (+35 more)
 
-### Community 2 - "i-can-app/src/pages/VerificationPage.tsx"
+### Community 3 - "i-can-app/src/pages/VerificationPage.tsx"
 Cohesion: 0.06
 Nodes (33): getActions(), LOCAL_ACTIONS_KEY, SEEDED_INITIAL_ACTIONS, submitGreenAction(), updateActionVerification(), [activeTab, setActiveTab], defaultSamplePosts, filteredPosts (+25 more)
 
-### Community 3 - "eventService.ts"
-Cohesion: 0.13
-Nodes (32): QrScannerModal(), QrScannerModalProps, AdminLtePage(), EventDetailPage(), EventsPage(), load(), loadRecent(), LeaderboardPage() (+24 more)
-
-### Community 4 - "src/App.tsx"
-Cohesion: 0.15
-Nodes (24): @logto/react, App(), AppLayout(), BottomNav(), getRoleDefaultPath(), ProtectedRoute(), TopNavbar(), TopNavbarProps (+16 more)
-
-### Community 5 - "i-can-app/src/pages/AdminLtePage.tsx"
+### Community 4 - "i-can-app/src/pages/AdminLtePage.tsx"
 Cohesion: 0.08
 Nodes (24): [actionsList, setActionsList], [activeMenu, setActiveMenu], [grantCoinsAmount, setGrantCoinsAmount], [grantReason, setGrantReason], [grantSatAmount, setGrantSatAmount], [grantSuccessMsg, setGrantSuccessMsg], handleAdminVerify(), [isWideView, setIsWideView] (+16 more)
 
-### Community 6 - "src/stores/authStore.ts"
+### Community 5 - "eventService.ts"
 Cohesion: 0.16
-Nodes (24): @supabase/supabase-js, zustand, ProtectedRouteProps, createAccountByAdmin(), DEFAULT_SEEDED_ACCOUNTS, getAllUsersList(), getStoredAccounts(), hashPassword() (+16 more)
+Nodes (25): @supabase/supabase-js, QrScannerModal(), AdminLtePage(), EventDetailPage(), EventsPage(), LeaderboardPage(), computeEventLeaderboard(), createEvent() (+17 more)
 
-### Community 7 - "i-can-app/src/pages/UploadPage.tsx"
+### Community 6 - "i-can-app/src/pages/UploadPage.tsx"
 Cohesion: 0.08
 Nodes (19): [aiResult, setAiResult], [campaignUrl, setCampaignUrl], CATEGORIES, [copiedHashtags, setCopiedHashtags], [copiedStoryCard, setCopiedStoryCard], fileInputRef, [groupMembers, setGroupMembers], [groupNimInput, setGroupNimInput] (+11 more)
 
-### Community 8 - "i-can-app/src/pages/LoginPage.tsx"
+### Community 7 - "i-can-app/src/pages/LoginPage.tsx"
 Cohesion: 0.10
 Nodes (20): [activeTab, setActiveTab], FACULTIES, [formValidationMsg, setFormValidationMsg], handleDemoStudent(), handleDemoVerifier(), handleLoginSubmit(), handleRegisterSubmit(), [loginIdentifier, setLoginIdentifier] (+12 more)
 
-### Community 9 - "compilerOptions"
+### Community 8 - "compilerOptions"
 Cohesion: 0.10
 Nodes (19): compilerOptions, baseUrl, isolatedModules, jsx, lib, module, moduleResolution, noEmit (+11 more)
 
-### Community 10 - "i-can-app/src/components/common/TopNavbar.tsx"
+### Community 9 - "i-can-app/src/components/common/TopNavbar.tsx"
 Cohesion: 0.20
 Nodes (8): accountDropdownRef, dropdownRef, handleNotificationClick(), navigate, { 
     notifications, 
@@ -123,6 +118,10 @@ Nodes (8): accountDropdownRef, dropdownRef, handleNotificationClick(), navigate,
     simulateIncomingNotification 
   }, [showAccountSelector, setShowAccountSelector], [showNotifications, setShowNotifications], { user, loginAs }
 
+### Community 10 - "src/services/gemini.ts"
+Cohesion: 0.33
+Nodes (10): UploadPage(), AiVerificationResult, buildVerificationPrompt(), callGemini(), callNvidiaNim(), callOpenRouter(), mockSimulationAnalysis(), parseAiJsonResponse() (+2 more)
+
 ### Community 11 - "useAuthStore"
 Cohesion: 0.20
 Nodes (5): AppLayout(), DEMO_PROFILES, useAuthStore, CallbackPage(), ProtectedRoute()
@@ -131,40 +130,36 @@ Nodes (5): AppLayout(), DEMO_PROFILES, useAuthStore, CallbackPage(), ProtectedRo
 Cohesion: 0.20
 Nodes (8): [activeTab, setActiveTab], [copiedHashtags, setCopiedHashtags], FAQ_LIST, filteredFaqs, isOpen, officialHashtags, [openFaqIndex, setOpenFaqIndex], [searchQuery, setSearchQuery]
 
-### Community 13 - "src/services/gemini.ts"
-Cohesion: 0.44
-Nodes (8): AiVerificationResult, buildVerificationPrompt(), callGemini(), callNvidiaNim(), callOpenRouter(), mockSimulationAnalysis(), parseAiJsonResponse(), verifyActionWithMultimodalAI()
-
-### Community 14 - "compilerOptions"
+### Community 13 - "compilerOptions"
 Cohesion: 0.22
 Nodes (8): compilerOptions, allowSyntheticDefaultImports, composite, module, moduleResolution, skipLibCheck, strict, include
 
-### Community 15 - "i-can-app/src/pages/HomePage.tsx"
+### Community 14 - "i-can-app/src/pages/HomePage.tsx"
 Cohesion: 0.25
 Nodes (6): [cheers, setCheers], flashQuests, [hasCheered, setHasCheered], Icon, programs, { user }
 
-### Community 16 - "i-can-app/src/components/common/BottomNav.tsx"
+### Community 15 - "i-can-app/src/components/common/BottomNav.tsx"
 Cohesion: 0.40
 Nodes (4): Icon, isVerifier, navItems, { user }
 
-### Community 17 - "i-can-app/src/services/logto.ts"
+### Community 16 - "i-can-app/src/services/logto.ts"
 Cohesion: 0.40
 Nodes (4): isLogtoConfigured, logtoAppId, logtoConfig, logtoEndpoint
 
-### Community 18 - "i-can-app/src/services/supabase.ts"
+### Community 17 - "i-can-app/src/services/supabase.ts"
 Cohesion: 0.40
 Nodes (4): isConfigured, supabase, supabaseAnonKey, supabaseUrl
 
-### Community 19 - "i-can-app/src/components/common/Button.tsx"
+### Community 18 - "i-can-app/src/components/common/Button.tsx"
 Cohesion: 0.50
 Nodes (3): baseStyles, sizeStyles, variantStyles
 
-### Community 20 - "i-can-app/src/stores/notificationStore.ts"
+### Community 19 - "i-can-app/src/stores/notificationStore.ts"
 Cohesion: 0.50
 Nodes (3): INITIAL_NOTIFICATIONS, NOTIFICATIONS_STORAGE_KEY, useNotificationStore
 
 ## Knowledge Gaps
-- **210 isolated node(s):** `BadgeProps`, `ButtonProps`, `CardProps`, `FaqItem`, `LeaderboardUser` (+205 more)
+- **209 isolated node(s):** `BadgeProps`, `ButtonProps`, `CardProps`, `QrScannerModalProps`, `FaqItem` (+204 more)
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 251 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **6 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -173,15 +168,15 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `getActions()` connect `i-can-app/src/pages/VerificationPage.tsx` to `i-can-app/src/pages/AdminLtePage.tsx`?**
   _High betweenness centrality (0.031) - this node is a cross-community bridge._
-- **Why does `react` connect `src/types/index.ts` to `package.json`, `eventService.ts`, `src/App.tsx`?**
+- **Why does `react` connect `src/types/index.ts` to `src/App.tsx`, `package.json`, `eventService.ts`?**
   _High betweenness centrality (0.022) - this node is a cross-community bridge._
 - **What connects `BadgeProps`, `ButtonProps`, `CardProps` to the rest of the system?**
-  _210 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _209 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `src/types/index.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.1294685990338164 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10929281122150789 - nodes in this community are weakly interconnected._
+- **Should `src/App.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.10062893081761007 - nodes in this community are weakly interconnected._
 - **Should `package.json` be split into smaller, more focused modules?**
-  _Cohesion score 0.046511627906976744 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.045454545454545456 - nodes in this community are weakly interconnected._
 - **Should `i-can-app/src/pages/VerificationPage.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.05512820512820513 - nodes in this community are weakly interconnected._
-- **Should `eventService.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.12912912912912913 - nodes in this community are weakly interconnected._
