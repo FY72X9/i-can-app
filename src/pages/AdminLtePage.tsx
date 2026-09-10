@@ -39,7 +39,8 @@ import {
   Pencil,
   RotateCcw,
   UserX,
-  Shield
+  Shield,
+  Filter
 } from 'lucide-react';
 
 export const AdminLtePage: React.FC = () => {
@@ -51,6 +52,12 @@ export const AdminLtePage: React.FC = () => {
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
   const [isWideView, setIsWideView] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Actions Verification Log State
+  const [evidenceModal, setEvidenceModal] = useState<GreenAction | null>(null);
+  const [actionsCurrentPage, setActionsCurrentPage] = useState(1);
+  const [actionsCategoryFilter, setActionsCategoryFilter] = useState<string>('ALL');
+  const actionsItemsPerPage = 10;
 
   // Manual Grant Modal
   const [selectedUserForGrant, setSelectedUserForGrant] = useState<string>('usr-student-001');
@@ -136,6 +143,11 @@ export const AdminLtePage: React.FC = () => {
   };
 
   const handleAdminVerify = async (actionId: string, decision: 'APPROVED_FULL' | 'APPROVED_COINS_ONLY' | 'REJECTED') => {
+    const actionLabel = decision === 'REJECTED' ? 'menolak' : 'menyetujui';
+    if (!window.confirm(`Yakin ingin ${actionLabel} aksi ini?`)) {
+      return;
+    }
+
     await updateActionVerification(
       actionId, 
       decision, 
@@ -502,6 +514,17 @@ export const AdminLtePage: React.FC = () => {
 
   // Count active superadmins for guardrail logic
   const activeSuperadminsCount = usersList.filter((u) => u.role === 'SUPERADMIN' && !u.isDeleted).length;
+
+  // Filter and Paginate Actions List
+  const filteredActionsList = actionsList.filter((act) => {
+    if (actionsCategoryFilter === 'ALL') return true;
+    return act.submissionType === actionsCategoryFilter;
+  });
+  const actionsTotalPages = Math.ceil(filteredActionsList.length / actionsItemsPerPage);
+  const paginatedActionsList = filteredActionsList.slice(
+    (actionsCurrentPage - 1) * actionsItemsPerPage,
+    actionsCurrentPage * actionsItemsPerPage
+  );
 
   return (
     <div className={`min-h-screen bg-[#f4f6f9] font-sans ${isWideView ? 'w-full' : 'max-w-[414px] mx-auto shadow-2xl relative'}`}>
@@ -938,12 +961,34 @@ export const AdminLtePage: React.FC = () => {
           {/* 5. Tab Content: Table 2: Log Verifikasi Aksi */}
           {(activeMenu === 'dashboard' || activeMenu === 'actions') && (
             <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
                   <CheckSquare className="w-4 h-4 text-[#28a745]" />
-                  Log Pengajuan Aksi & Keputusan SSO
-                </h3>
-                <span className="text-xs text-slate-500 font-bold">{actionsList.length} Total Pengajuan</span>
+                  <h3 className="text-xs sm:text-sm font-black text-slate-800">
+                    Log Pengajuan Aksi & Keputusan SSO
+                  </h3>
+                  <span className="text-xs text-slate-500 font-bold ml-1">
+                    ({filteredActionsList.length} Pengajuan)
+                  </span>
+                </div>
+
+                {/* Filter Kategori Aksi */}
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-slate-400" />
+                  <select
+                    value={actionsCategoryFilter}
+                    onChange={(e) => {
+                      setActionsCategoryFilter(e.target.value);
+                      setActionsCurrentPage(1); // Reset page on filter change
+                    }}
+                    className="text-xs font-bold p-1.5 rounded-lg border border-slate-300 bg-slate-50 focus:outline-none focus:border-[#007bff]"
+                  >
+                    <option value="ALL">Semua Kategori</option>
+                    <option value="PENYULUHAN_AKSI_NYATA">Penyuluhan Aksi Nyata (TFI)</option>
+                    <option value="VIDEO_BASED_LEARNING">Video Based Learning</option>
+                    <option value="SELF_GREEN_CAMPAIGN">Self Green Campaign</option>
+                  </select>
+                </div>
               </div>
 
               <div className="overflow-x-auto">
@@ -953,6 +998,7 @@ export const AdminLtePage: React.FC = () => {
                       <th className="p-3 font-black">Mahasiswa</th>
                       <th className="p-3 font-black">Kategori Aksi</th>
                       <th className="p-3 font-black">Tipe Program</th>
+                      <th className="p-3 font-black">Bukti</th>
                       <th className="p-3 font-black">Potensi SAT</th>
                       <th className="p-3 font-black">AI Score</th>
                       <th className="p-3 font-black">Status</th>
@@ -960,18 +1006,27 @@ export const AdminLtePage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {actionsList.map((act) => (
+                    {paginatedActionsList.map((act) => (
                       <tr key={act.id} className="hover:bg-slate-50 transition-colors">
                         <td className="p-3 font-bold text-slate-900">{act.userName}</td>
                         <td className="p-3 text-slate-700 font-medium">{act.categoryName}</td>
                         <td className="p-3 text-xs text-slate-500 font-mono">{act.submissionType}</td>
+                        <td className="p-3">
+                          <button
+                            onClick={() => setEvidenceModal(act)}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold transition-colors"
+                          >
+                            <Image className="w-3.5 h-3.5" />
+                            Lihat Bukti
+                          </button>
+                        </td>
                         <td className="p-3 font-bold text-blue-700 font-mono text-xs">+{act.satPointsEarned} SAT</td>
                         <td className="p-3 font-bold text-emerald-700 font-mono text-xs">
                           {Math.round((act.aiConfidence || 0.9) * 100)}%
                         </td>
                         <td className="p-3">
                           <span
-                            className={`px-2.5 py-1 rounded-full text-xs font-black ${
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
                               act.status === 'APPROVED'
                                 ? 'bg-emerald-100 text-emerald-900'
                                 : act.status === 'REJECTED'
@@ -983,28 +1038,66 @@ export const AdminLtePage: React.FC = () => {
                           </span>
                         </td>
                         <td className="p-3">
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={() => handleAdminVerify(act.id, 'APPROVED_FULL')}
-                              className="px-2.5 py-1 bg-[#28a745] hover:bg-[#218838] text-white rounded-lg text-xs font-bold transition-colors"
-                              title="Approve Full SAT + Coins"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => handleAdminVerify(act.id, 'REJECTED')}
-                              className="px-2.5 py-1 bg-[#dc3545] hover:bg-[#c82333] text-white rounded-lg text-xs font-bold transition-colors"
-                              title="Tolak Aksi"
-                            >
-                              Reject
-                            </button>
-                          </div>
+                          {act.status === 'PENDING' ? (
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => handleAdminVerify(act.id, 'APPROVED_FULL')}
+                                className="px-2.5 py-1.5 bg-[#28a745] hover:bg-[#218838] text-white rounded-lg text-[10px] font-bold transition-colors"
+                                title="Approve Full SAT + Coins"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleAdminVerify(act.id, 'REJECTED')}
+                                className="px-2.5 py-1.5 bg-[#dc3545] hover:bg-[#c82333] text-white rounded-lg text-[10px] font-bold transition-colors"
+                                title="Tolak Aksi"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                              <Check className="w-3 h-3" /> Selesai
+                            </span>
+                          )}
                         </td>
                       </tr>
                     ))}
+                    {paginatedActionsList.length === 0 && (
+                      <tr>
+                        <td colSpan={8} className="p-6 text-center text-slate-500 font-bold">
+                          Tidak ada data yang sesuai filter.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {actionsTotalPages > 1 && (
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                  <span className="text-xs font-bold text-slate-500">
+                    Halaman {actionsCurrentPage} dari {actionsTotalPages}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setActionsCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={actionsCurrentPage === 1}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 disabled:opacity-50 transition-colors"
+                    >
+                      Prev
+                    </button>
+                    <button
+                      onClick={() => setActionsCurrentPage((p) => Math.min(actionsTotalPages, p + 1))}
+                      disabled={actionsCurrentPage === actionsTotalPages}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 disabled:opacity-50 transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1880,6 +1973,85 @@ export const AdminLtePage: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Evidence Modal */}
+      {evidenceModal && (
+        <div 
+          className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setEvidenceModal(null)}
+        >
+          <div 
+            className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh] space-y-4 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <h4 className="text-sm sm:text-base font-black text-slate-800 flex items-center gap-2">
+                <Image className="w-5 h-5 text-indigo-600" />
+                Bukti Aksi: {evidenceModal.userName}
+              </h4>
+              <button 
+                onClick={() => setEvidenceModal(null)}
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
+              <img 
+                src={evidenceModal.photoUrl} 
+                alt="Bukti Aksi" 
+                loading="lazy"
+                className="w-full h-auto object-contain max-h-[300px]"
+              />
+            </div>
+
+            {evidenceModal.story && (
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed italic">
+                  "{evidenceModal.story}"
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-slate-700">Kategori: <span className="font-medium text-slate-600">{evidenceModal.categoryName}</span></p>
+              <p className="text-xs font-bold text-slate-700">Program: <span className="font-medium text-slate-600">{evidenceModal.submissionType}</span></p>
+              
+              {evidenceModal.campaignUrl && (
+                <a 
+                  href={evidenceModal.campaignUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 mt-2"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Buka Tautan Kampanye/Sosmed
+                </a>
+              )}
+              {evidenceModal.videoUrl && (
+                <a 
+                  href={evidenceModal.videoUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs font-bold text-red-600 hover:text-red-800 mt-2"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Buka Tautan Video
+                </a>
+              )}
+            </div>
+
+            <div className="pt-2 flex gap-2">
+              <button
+                onClick={() => setEvidenceModal(null)}
+                className="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold transition-colors"
+              >
+                Tutup
+              </button>
+            </div>
           </div>
         </div>
       )}
