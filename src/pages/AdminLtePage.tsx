@@ -29,11 +29,17 @@ import {
   QrCode,
   Calendar,
   Eye,
+  EyeOff,
+  UserPlus,
   Trash2,
   CalendarPlus,
   Image,
   ListOrdered,
-  LogOut
+  LogOut,
+  Pencil,
+  RotateCcw,
+  UserX,
+  Shield
 } from 'lucide-react';
 
 export const AdminLtePage: React.FC = () => {
@@ -57,14 +63,36 @@ export const AdminLtePage: React.FC = () => {
   const [eventsList, setEventsList] = useState<CampusEvent[]>([]);
   const [showEventForm, setShowEventForm] = useState(false);
   const [showUserForm, setShowUserForm] = useState(false);
+  const [showUserPassword, setShowUserPassword] = useState(false);
+  const [userFormError, setUserFormError] = useState<string | null>(null);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [userFormData, setUserFormData] = useState({
     nim: '',
     fullName: '',
     email: '',
     password: '',
     role: 'MAHASISWA' as UserRole,
-    facultyName: ''
+    facultyName: 'School of Computer Science'
   });
+
+  // Edit User Modal State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    nim: '',
+    fullName: '',
+    email: '',
+    facultyName: '',
+    role: 'MAHASISWA' as UserRole,
+    newPassword: '',
+  });
+  const [editFormError, setEditFormError] = useState<string | null>(null);
+  const [isEditingUser, setIsEditingUser] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
+
+  // Status filter for user list
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+
   const [editingEvent, setEditingEvent] = useState<CampusEvent | null>(null);
   const [eventFormData, setEventFormData] = useState({
     title: '',
@@ -188,14 +216,169 @@ export const AdminLtePage: React.FC = () => {
 
   const handleUserFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await useAuthStore.getState().createUserAccount(userFormData);
-    if (result.error) {
-      alert(result.error);
+    setUserFormError(null);
+
+    const identifierLabel = userFormData.role === 'MAHASISWA' ? 'NIM' : 'Binus Number (BN)';
+
+    if (!userFormData.nim.trim()) {
+      setUserFormError(`${identifierLabel} wajib diisi.`);
+      return;
+    }
+
+    if (!userFormData.fullName.trim() || !userFormData.email.trim() || !userFormData.password) {
+      setUserFormError('Semua kolom formulir wajib diisi.');
+      return;
+    }
+
+    if (!userFormData.email.includes('@')) {
+      setUserFormError('Format alamat email tidak valid.');
+      return;
+    }
+
+    if (userFormData.password.length < 6) {
+      setUserFormError('Kata sandi awal minimal 6 karakter.');
+      return;
+    }
+
+    setIsCreatingUser(true);
+    try {
+      const result = await useAuthStore.getState().createUserAccount({
+        nim: userFormData.nim.trim(),
+        fullName: userFormData.fullName.trim(),
+        email: userFormData.email.trim(),
+        facultyName: userFormData.facultyName || 'School of Computer Science',
+        password: userFormData.password,
+        role: userFormData.role,
+      });
+
+      if (result.error) {
+        setUserFormError(result.error);
+        setIsCreatingUser(false);
+      } else {
+        alert(`Pengguna ${userFormData.fullName} (${userFormData.role}) dengan ${identifierLabel} ${userFormData.nim} berhasil ditambahkan!`);
+        setShowUserForm(false);
+        setUserFormData({
+          nim: '',
+          fullName: '',
+          email: '',
+          password: '',
+          role: 'MAHASISWA' as UserRole,
+          facultyName: 'School of Computer Science',
+        });
+        setUserFormError(null);
+        setIsCreatingUser(false);
+        await loadData();
+      }
+    } catch (err: any) {
+      setUserFormError(err?.message || 'Terjadi kesalahan sistem saat membuat akun');
+      setIsCreatingUser(false);
+    }
+  };
+
+  // Real-time NIM/BN input sanitizer
+  const sanitizeNimInput = (value: string, role: UserRole): string => {
+    if (role === 'MAHASISWA') {
+      // Only digits, max 10
+      return value.replace(/\D/g, '').slice(0, 10);
     } else {
-      alert('Pengguna berhasil ditambahkan!');
-      setShowUserForm(false);
-      setUserFormData({ nim: '', fullName: '', email: '', password: '', role: 'MAHASISWA' as UserRole, facultyName: '' });
-      loadData();
+      // Staff BN format: ensure BN prefix + digits only, max 11 total
+      let clean = value.toUpperCase();
+      if (!clean.startsWith('BN')) {
+        // Auto-prefix BN if user types digits directly
+        const digits = clean.replace(/\D/g, '');
+        clean = 'BN' + digits;
+      } else {
+        // Keep BN prefix, strip non-digits after it
+        const afterBN = clean.slice(2).replace(/\D/g, '');
+        clean = 'BN' + afterBN;
+      }
+      return clean.slice(0, 11); // BN + max 9 digits
+    }
+  };
+
+  // Open Edit Modal with pre-filled data
+  const handleOpenEditModal = (targetUser: UserProfile) => {
+    setEditingUser(targetUser);
+    setEditFormData({
+      nim: targetUser.nim || '',
+      fullName: targetUser.fullName || '',
+      email: targetUser.email || '',
+      facultyName: targetUser.facultyName || '',
+      role: targetUser.role,
+      newPassword: '',
+    });
+    setEditFormError(null);
+    setShowEditPassword(false);
+    setShowEditModal(true);
+  };
+
+  // Edit user form submit
+  const handleEditFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    setEditFormError(null);
+
+    if (!editFormData.fullName.trim() || !editFormData.nim.trim() || !editFormData.email.trim()) {
+      setEditFormError('Nama, NIM/BN, dan Email wajib diisi.');
+      return;
+    }
+
+    if (!editFormData.email.includes('@')) {
+      setEditFormError('Format alamat email tidak valid.');
+      return;
+    }
+
+    if (editFormData.newPassword && editFormData.newPassword.length < 6) {
+      setEditFormError('Kata sandi baru minimal 6 karakter.');
+      return;
+    }
+
+    setIsEditingUser(true);
+    try {
+      const result = await useAuthStore.getState().editUserAccount(editingUser.id, {
+        fullName: editFormData.fullName.trim(),
+        nim: editFormData.nim.trim(),
+        email: editFormData.email.trim(),
+        facultyName: editFormData.facultyName,
+        role: editFormData.role,
+        newPassword: editFormData.newPassword || undefined,
+      });
+
+      if (result.error) {
+        setEditFormError(result.error);
+      } else {
+        alert(`Data pengguna ${editFormData.fullName} berhasil diperbarui.`);
+        setShowEditModal(false);
+        setEditingUser(null);
+        await loadData();
+      }
+    } catch (err: any) {
+      setEditFormError(err?.message || 'Terjadi kesalahan saat memperbarui akun');
+    }
+    setIsEditingUser(false);
+  };
+
+  // Soft delete (deactivate) user
+  const handleSoftDelete = async (targetUser: UserProfile) => {
+    if (!confirm(`Yakin ingin menonaktifkan akun "${targetUser.fullName}"?\n\nAkun yang dinonaktifkan tidak dapat login, namun datanya tetap tersimpan.`)) return;
+    const result = await useAuthStore.getState().softDeleteUserAccount(targetUser.id);
+    if (result.error) {
+      alert(`Gagal: ${result.error}`);
+    } else {
+      alert(`Akun "${targetUser.fullName}" berhasil dinonaktifkan.`);
+      await loadData();
+    }
+  };
+
+  // Restore (reactivate) user
+  const handleRestore = async (targetUser: UserProfile) => {
+    if (!confirm(`Yakin ingin mengaktifkan kembali akun "${targetUser.fullName}"?`)) return;
+    const result = await useAuthStore.getState().restoreUserAccount(targetUser.id);
+    if (result.error) {
+      alert(`Gagal: ${result.error}`);
+    } else {
+      alert(`Akun "${targetUser.fullName}" berhasil dipulihkan dan aktif kembali.`);
+      await loadData();
     }
   };
 
@@ -298,6 +481,27 @@ export const AdminLtePage: React.FC = () => {
     }
     return acc;
   }, 0).toFixed(1);
+
+  // Filtered Users List based on Search Term and Status Filter
+  const filteredUsersList = usersList.filter((u) => {
+    // Status filter
+    if (statusFilter === 'active' && u.isDeleted) return false;
+    if (statusFilter === 'inactive' && !u.isDeleted) return false;
+
+    // Search filter
+    if (!searchTerm.trim()) return true;
+    const s = searchTerm.toLowerCase();
+    return (
+      u.fullName?.toLowerCase().includes(s) ||
+      u.nim?.toLowerCase().includes(s) ||
+      u.email?.toLowerCase().includes(s) ||
+      u.facultyName?.toLowerCase().includes(s) ||
+      u.role?.toLowerCase().includes(s)
+    );
+  });
+
+  // Count active superadmins for guardrail logic
+  const activeSuperadminsCount = usersList.filter((u) => u.role === 'SUPERADMIN' && !u.isDeleted).length;
 
   return (
     <div className={`min-h-screen bg-[#f4f6f9] font-sans ${isWideView ? 'w-full' : 'max-w-[414px] mx-auto shadow-2xl relative'}`}>
@@ -530,80 +734,201 @@ export const AdminLtePage: React.FC = () => {
           {/* 4. Tab Content: Dashboard & Table 1: Manajemen Akun */}
           {(activeMenu === 'users' || (activeMenu === 'dashboard' && user?.role === 'SUPERADMIN')) && (
             <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-[#007bff]" />
-                  Daftar Akun & Manajemen Hak Akses (Role)
-                </h3>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-slate-500 font-bold hidden sm:inline">{usersList.length} Akun Terdaftar</span>
+                  <h3 className="text-xs sm:text-sm font-black text-slate-800">
+                    Daftar Akun & Manajemen Hak Akses (Role)
+                  </h3>
+                  <span className="text-xs text-slate-500 font-bold hidden sm:inline ml-1">
+                    ({filteredUsersList.length} Akun)
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Cari nama, NIM/BN, email..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="text-xs pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] w-48 sm:w-60"
+                    />
+                  </div>
                   {user?.role === 'SUPERADMIN' && (
                     <button
-                      onClick={() => setShowUserForm(true)}
-                      className="px-2.5 py-1.5 rounded-lg bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold transition-colors"
+                      onClick={() => {
+                        setShowUserForm(true);
+                        setUserFormError(null);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs shrink-0"
                       title="Tambah Pengguna Baru (Khusus Superadmin)"
                     >
-                      + Tambah Pengguna
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>Tambah Pengguna</span>
                     </button>
                   )}
-                </div>
+              </div>
+              </div>
+
+              {/* Status Filter Tabs */}
+              <div className="flex items-center gap-1.5">
+                {([
+                  { key: 'all' as const, label: 'Semua', count: usersList.length },
+                  { key: 'active' as const, label: 'Aktif', count: usersList.filter(u => !u.isDeleted).length },
+                  { key: 'inactive' as const, label: 'Nonaktif', count: usersList.filter(u => u.isDeleted).length },
+                ]).map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setStatusFilter(tab.key)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      statusFilter === tab.key
+                        ? tab.key === 'inactive'
+                          ? 'bg-rose-600 text-white shadow-xs'
+                          : tab.key === 'active'
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'bg-[#007bff] text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {tab.label} ({tab.count})
+                  </button>
+                ))}
               </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-slate-100 text-slate-700 border-b border-slate-200">
-                      <th className="p-3 font-black">NIM / ID</th>
+                      <th className="p-3 font-black">NIM / BN</th>
                       <th className="p-3 font-black">Nama Lengkap</th>
-                      <th className="p-3 font-black">Fakultas</th>
+                      <th className="p-3 font-black">Fakultas / Unit</th>
                       <th className="p-3 font-black">Green Coins</th>
                       <th className="p-3 font-black">Poin SAT</th>
-                      <th className="p-3 font-black">Role / Hak Akses</th>
-                      <th className="p-3 font-black">Aksi Cepat</th>
+                      <th className="p-3 font-black">Role</th>
+                      <th className="p-3 font-black">Status</th>
+                      <th className="p-3 font-black">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {usersList.map((u) => (
-                      <tr key={u.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="p-3 font-mono text-xs text-slate-600">{u.nim}</td>
-                        <td className="p-3 font-bold text-slate-900 flex items-center gap-2.5">
-                          <img src={u.avatarUrl} alt={u.fullName} className="w-7 h-7 rounded-full object-cover" />
-                          <span>{u.fullName}</span>
-                        </td>
-                        <td className="p-3 text-slate-600 text-xs">{u.facultyName}</td>
-                        <td className="p-3 font-bold text-amber-700 font-mono text-xs">{u.totalGreenCoins || 0} GC</td>
-                        <td className="p-3 font-bold text-blue-700 font-mono text-xs">{u.totalSatPoints || 0} SAT</td>
-                        <td className="p-3">
-                          <select
-                            value={u.role}
-                            onChange={(e) => handleRoleChange(u.id, e.target.value as UserRole)}
-                            disabled={user?.role !== 'SUPERADMIN'}
-                            className={`text-xs font-bold py-1.5 px-2.5 rounded-xl border cursor-pointer ${
-                              u.role === 'SUPERADMIN'
-                                ? 'bg-purple-100 text-purple-900 border-purple-300'
-                                : u.role === 'ORGANIZER'
-                                ? 'bg-amber-100 text-amber-900 border-amber-300'
-                                : 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                            }`}
-                          >
-                            <option value="MAHASISWA">MAHASISWA</option>
-                            <option value="ORGANIZER">ORGANIZER</option>
-                            <option value="SUPERADMIN">SUPERADMIN</option>
-                          </select>
-                        </td>
-                        <td className="p-3">
-                          <button
-                            onClick={async () => {
-                              await loginAs(u.id);
-                              alert(`Beralih simulasi login sebagai ${u.fullName}`);
-                            }}
-                            className="px-2.5 py-1.5 rounded-xl bg-slate-200 hover:bg-[#007bff] hover:text-white text-xs font-bold transition-colors"
-                          >
-                            Login As
-                          </button>
+                    {filteredUsersList.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="p-8 text-center text-slate-400">
+                          <Users className="w-8 h-8 text-slate-300 mx-auto mb-1.5" />
+                          <p className="text-xs font-bold text-slate-500">Tidak ada akun yang sesuai dengan filter</p>
+                          {searchTerm && <p className="text-[11px] text-slate-400 mt-0.5">Kata kunci: "{searchTerm}"</p>}
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      filteredUsersList.map((u) => {
+                        const isDeactivated = u.isDeleted === true;
+                        const isSelf = user?.id === u.id;
+                        const isLastSuperadmin = u.role === 'SUPERADMIN' && activeSuperadminsCount <= 1;
+                        const canDeactivate = user?.role === 'SUPERADMIN' && !isSelf && !isLastSuperadmin && !isDeactivated;
+                        const canRestore = user?.role === 'SUPERADMIN' && isDeactivated;
+
+                        return (
+                          <tr key={u.id} className={`hover:bg-slate-50 transition-colors ${isDeactivated ? 'opacity-60' : ''}`}>
+                            <td className="p-3 font-mono text-xs text-slate-600 font-semibold">{u.nim}</td>
+                            <td className="p-3 font-bold text-slate-900">
+                              <div className="flex items-center gap-2.5">
+                                <img src={u.avatarUrl} alt={u.fullName} className="w-7 h-7 rounded-full object-cover" />
+                                <div>
+                                  <span className="block">{u.fullName}</span>
+                                  <span className="block text-[10px] font-medium text-slate-400">{u.email}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-3 text-slate-600 text-xs">{u.facultyName}</td>
+                            <td className="p-3 font-bold text-amber-700 font-mono text-xs">{u.totalGreenCoins || 0} GC</td>
+                            <td className="p-3 font-bold text-blue-700 font-mono text-xs">{u.totalSatPoints || 0} SAT</td>
+                            <td className="p-3">
+                              <span className={`text-xs font-bold py-1 px-2.5 rounded-xl ${
+                                u.role === 'SUPERADMIN'
+                                  ? 'bg-purple-100 text-purple-900'
+                                  : u.role === 'ORGANIZER'
+                                  ? 'bg-amber-100 text-amber-900'
+                                  : 'bg-emerald-100 text-emerald-900'
+                              }`}>
+                                {u.role}
+                              </span>
+                            </td>
+                            <td className="p-3">
+                              {isDeactivated ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold py-1 px-2.5 rounded-xl bg-rose-100 text-rose-700">
+                                  <UserX className="w-3 h-3" /> Nonaktif
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold py-1 px-2.5 rounded-xl bg-emerald-100 text-emerald-700">
+                                  <Shield className="w-3 h-3" /> Aktif
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              <div className="flex items-center gap-1.5">
+                                {user?.role === 'SUPERADMIN' && (
+                                  <>
+                                    {/* Edit Button */}
+                                    <button
+                                      onClick={() => handleOpenEditModal(u)}
+                                      className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
+                                      title="Edit Pengguna"
+                                    >
+                                      <Pencil className="w-3.5 h-3.5" />
+                                    </button>
+
+                                    {/* Deactivate / Restore Button */}
+                                    {isDeactivated ? (
+                                      <button
+                                        onClick={() => handleRestore(u)}
+                                        className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 transition-colors"
+                                        title="Pulihkan / Aktifkan Kembali"
+                                      >
+                                        <RotateCcw className="w-3.5 h-3.5" />
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={() => handleSoftDelete(u)}
+                                        disabled={!canDeactivate}
+                                        className={`p-1.5 rounded-lg transition-colors ${
+                                          canDeactivate
+                                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-600'
+                                            : 'bg-slate-50 text-slate-300 cursor-not-allowed'
+                                        }`}
+                                        title={
+                                          isSelf
+                                            ? 'Tidak dapat menonaktifkan akun sendiri'
+                                            : isLastSuperadmin
+                                            ? 'Tidak dapat menonaktifkan Superadmin terakhir'
+                                            : 'Nonaktifkan Akun'
+                                        }
+                                      >
+                                        <UserX className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                  </>
+                                )}
+                                {/* Login As Button */}
+                                <button
+                                  onClick={async () => {
+                                    await loginAs(u.id);
+                                    alert(`Beralih simulasi login sebagai ${u.fullName}`);
+                                  }}
+                                  disabled={isDeactivated}
+                                  className={`px-2 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${
+                                    isDeactivated
+                                      ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
+                                      : 'bg-slate-200 hover:bg-[#007bff] hover:text-white'
+                                  }`}
+                                >
+                                  Login As
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -1137,6 +1462,427 @@ export const AdminLtePage: React.FC = () => {
           )}
         </main>
       </div>
+
+      {/* User Creation Modal (Superadmin) */}
+      {showUserForm && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => !isCreatingUser && setShowUserForm(false)}
+        >
+          <div
+            className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl relative my-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-xs">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-800">Tambah Pengguna Baru</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">Platform SSO & I-CAN BINUS University</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isCreatingUser) {
+                    setShowUserForm(false);
+                    setUserFormError(null);
+                  }
+                }}
+                disabled={isCreatingUser}
+                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {userFormError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-bold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{userFormError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleUserFormSubmit} className="space-y-3.5">
+              {/* Role Selection */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                  Role / Hak Akses Akun
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['MAHASISWA', 'ORGANIZER', 'SUPERADMIN'] as UserRole[]).map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() =>
+                        setUserFormData((prev) => ({
+                          ...prev,
+                          role: r,
+                          facultyName:
+                            r === 'SUPERADMIN'
+                              ? 'Student Service Office (SSO)'
+                              : r === 'ORGANIZER'
+                              ? 'Teach For Indonesia (TFI)'
+                              : prev.facultyName || 'School of Computer Science',
+                        }))
+                      }
+                      className={`py-2 px-2 rounded-xl text-xs font-black border transition-all text-center ${
+                        userFormData.role === r
+                          ? r === 'SUPERADMIN'
+                            ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                            : r === 'ORGANIZER'
+                            ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                            : 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1">
+                  {userFormData.role === 'MAHASISWA' && 'Mahasiswa aktif BINUS: submit aksi hijau, kumpulkan SAT & GC.'}
+                  {userFormData.role === 'ORGANIZER' && 'Penyelenggara Event: membuat kegiatan kampus & pos QR reward.'}
+                  {userFormData.role === 'SUPERADMIN' && 'Super Admin SSO: verifikasi aksi, kelola akun, manual SAT grant.'}
+                </p>
+              </div>
+
+              {/* Dynamic Identifier: NIM for Mahasiswa, Binus Number (BN) for Staff */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 flex items-center justify-between mb-1.5">
+                  <span>
+                    {userFormData.role === 'MAHASISWA' ? 'NIM (Nomor Induk Mahasiswa)' : 'Binus Number (BN) / ID Pegawai'}
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    {userFormData.role === 'MAHASISWA' ? '10 Digit NIM' : 'Format BN / NIP'}
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  value={userFormData.nim}
+                  onChange={(e) => setUserFormData((prev) => ({ ...prev, nim: sanitizeNimInput(e.target.value, prev.role) }))}
+                  placeholder={
+                    userFormData.role === 'MAHASISWA' ? 'Contoh: 2602158890' : 'Contoh: BN00123456 / 1980010101'
+                  }
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] font-mono"
+                  required
+                />
+              </div>
+
+              {/* Full Name */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Nama Lengkap</label>
+                <input
+                  type="text"
+                  value={userFormData.fullName}
+                  onChange={(e) => setUserFormData((prev) => ({ ...prev, fullName: e.target.value }))}
+                  placeholder="Contoh: Siti Rahmawati, S.Kom"
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Email Resmi</label>
+                <input
+                  type="email"
+                  value={userFormData.email}
+                  onChange={(e) => setUserFormData((prev) => ({ ...prev, email: e.target.value }))}
+                  placeholder={
+                    userFormData.role === 'MAHASISWA' ? 'siti.rahmawati@binus.ac.id' : 'siti.rahmawati@binus.edu'
+                  }
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                />
+              </div>
+
+              {/* Faculty / Unit */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Fakultas / Unit Kerja</label>
+                <select
+                  value={userFormData.facultyName}
+                  onChange={(e) => setUserFormData((prev) => ({ ...prev, facultyName: e.target.value }))}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                >
+                  <option value="School of Computer Science">School of Computer Science</option>
+                  <option value="School of Information Systems">School of Information Systems</option>
+                  <option value="School of Design">School of Design</option>
+                  <option value="BINUS Business School">BINUS Business School</option>
+                  <option value="Faculty of Engineering">Faculty of Engineering</option>
+                  <option value="Faculty of Humanities">Faculty of Humanities</option>
+                  <option value="Faculty of Digital Communication & Hotel & Tourism">Faculty of Digital Communication & Hotel & Tourism</option>
+                  <option value="Student Service Office (SSO)">Student Service Office (SSO)</option>
+                  <option value="Teach For Indonesia (TFI)">Teach For Indonesia (TFI)</option>
+                </select>
+              </div>
+
+              {/* Password */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 flex items-center justify-between mb-1.5">
+                  <span>Kata Sandi Awal</span>
+                  <span className="text-[10px] text-slate-400">Minimal 6 karakter</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showUserPassword ? 'text' : 'password'}
+                    value={userFormData.password}
+                    onChange={(e) => setUserFormData((prev) => ({ ...prev, password: e.target.value }))}
+                    placeholder="Masukkan kata sandi awal pengguna"
+                    className="w-full text-xs p-2.5 pr-10 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowUserPassword(!showUserPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                  >
+                    {showUserPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex gap-2 pt-3">
+                <button
+                  type="submit"
+                  disabled={isCreatingUser}
+                  className="flex-1 py-3 bg-[#28a745] hover:bg-[#218838] text-white rounded-2xl text-xs font-black shadow-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+                >
+                  {isCreatingUser ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Menyimpan Akun...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Simpan Pengguna</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUserForm(false);
+                    setUserFormError(null);
+                  }}
+                  disabled={isCreatingUser}
+                  className="px-5 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-2xl text-xs font-bold transition-colors"
+                >
+                  Batal
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal (Superadmin) */}
+      {showEditModal && editingUser && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => !isEditingUser && setShowEditModal(false)}
+        >
+          <div
+            className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl relative my-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center shadow-xs">
+                  <Pencil className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-800">Edit Data Pengguna</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">Perbarui profil atau role pengguna</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isEditingUser) setShowEditModal(false);
+                }}
+                disabled={isEditingUser}
+                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {editFormError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-bold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{editFormError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleEditFormSubmit} className="space-y-3.5">
+              {/* Role Selection */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Role / Hak Akses Akun</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['MAHASISWA', 'ORGANIZER', 'SUPERADMIN'] as UserRole[]).map((r) => {
+                    // Guardrails UI logic
+                    let isDisabled = false;
+                    let disabledReason = '';
+                    if (editingUser?.role === 'SUPERADMIN' && r !== 'SUPERADMIN') {
+                      if (user?.id === editingUser.id) {
+                        isDisabled = true;
+                        disabledReason = 'Tidak dapat menurunkan role akun sendiri';
+                      } else if (activeSuperadminsCount <= 1) {
+                        isDisabled = true;
+                        disabledReason = 'Tidak dapat menurunkan role Superadmin terakhir';
+                      }
+                    }
+
+                    return (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => {
+                          if (!isDisabled) setEditFormData((prev) => ({ ...prev, role: r }));
+                        }}
+                        disabled={isDisabled}
+                        title={isDisabled ? disabledReason : undefined}
+                        className={`py-2 px-2 rounded-xl text-xs font-black border transition-all text-center ${
+                          isDisabled
+                            ? 'bg-slate-100 text-slate-300 border-slate-100 cursor-not-allowed'
+                            : editFormData.role === r
+                            ? r === 'SUPERADMIN'
+                              ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                              : r === 'ORGANIZER'
+                              ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                              : 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        {r}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Dynamic Identifier: NIM for Mahasiswa, Binus Number (BN) for Staff */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 flex items-center justify-between mb-1.5">
+                  <span>{editFormData.role === 'MAHASISWA' ? 'NIM (Nomor Induk Mahasiswa)' : 'Binus Number (BN) / ID Pegawai'}</span>
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.nim}
+                  onChange={(e) => setEditFormData((prev) => ({ ...prev, nim: sanitizeNimInput(e.target.value, prev.role) }))}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] font-mono"
+                  required
+                />
+              </div>
+
+              {/* Full Name */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Nama Lengkap</label>
+                <input
+                  type="text"
+                  value={editFormData.fullName}
+                  onChange={(e) => setEditFormData((prev) => ({ ...prev, fullName: e.target.value }))}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Email Resmi</label>
+                <input
+                  type="email"
+                  value={editFormData.email}
+                  onChange={(e) => setEditFormData((prev) => ({ ...prev, email: e.target.value }))}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                />
+              </div>
+
+              {/* Faculty / Unit */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Fakultas / Unit Kerja</label>
+                <select
+                  value={editFormData.facultyName}
+                  onChange={(e) => setEditFormData((prev) => ({ ...prev, facultyName: e.target.value }))}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                >
+                  <option value="School of Computer Science">School of Computer Science</option>
+                  <option value="School of Information Systems">School of Information Systems</option>
+                  <option value="School of Design">School of Design</option>
+                  <option value="BINUS Business School">BINUS Business School</option>
+                  <option value="Faculty of Engineering">Faculty of Engineering</option>
+                  <option value="Faculty of Humanities">Faculty of Humanities</option>
+                  <option value="Faculty of Digital Communication & Hotel & Tourism">Faculty of Digital Communication & Hotel & Tourism</option>
+                  <option value="Student Service Office (SSO)">Student Service Office (SSO)</option>
+                  <option value="Teach For Indonesia (TFI)">Teach For Indonesia (TFI)</option>
+                </select>
+              </div>
+
+              {/* Optional Password Reset */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 flex items-center justify-between mb-1.5">
+                  <span>Reset Kata Sandi (Opsional)</span>
+                  <span className="text-[10px] text-slate-400">Kosongkan jika tidak diubah</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showEditPassword ? 'text' : 'password'}
+                    value={editFormData.newPassword}
+                    onChange={(e) => setEditFormData((prev) => ({ ...prev, newPassword: e.target.value }))}
+                    placeholder="Masukkan kata sandi baru..."
+                    className="w-full text-xs p-2.5 pr-10 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowEditPassword(!showEditPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                  >
+                    {showEditPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex gap-2 pt-3">
+                <button
+                  type="submit"
+                  disabled={isEditingUser}
+                  className="flex-1 py-3 bg-[#007bff] hover:bg-[#0069d9] text-white rounded-2xl text-xs font-black shadow-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+                >
+                  {isEditingUser ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Simpan Perubahan</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  disabled={isEditingUser}
+                  className="px-5 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-2xl text-xs font-bold transition-colors"
+                >
+                  Batal
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -19,6 +19,8 @@ export interface UserProfile {
   streakDays: number;
   lastActionAt?: string;
   createdAt: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
 }
 
 export type ActionType = 

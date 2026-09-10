@@ -36,6 +36,8 @@ export interface StoredAuthAccount {
   totalCarbonSaved: number;
   streakDays: number;
   createdAt: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
 }
 
 const STORAGE_ACCOUNTS_KEY = 'i_can_registered_accounts_v2';
@@ -50,6 +52,34 @@ export async function hashPassword(password: string): Promise<string> {
   const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Validates user identifier based on role:
+ * - MAHASISWA: NIM must be exactly 10 digits (^\d{10}$)
+ * - ORGANIZER/SUPERADMIN: Binus Number must start with BN followed by 1-9 digits (^BN\d{1,9}$)
+ */
+export function validateUserIdentifier(identifier: string, role: UserRole): { valid: boolean; error?: string } {
+  if (role === 'MAHASISWA') {
+    if (!/^\d{10}$/.test(identifier)) {
+      return { valid: false, error: 'NIM harus tepat 10 digit angka (contoh: 2602158890)' };
+    }
+  } else {
+    // ORGANIZER or SUPERADMIN → Binus Number (BN)
+    if (!/^BN\d{1,9}$/i.test(identifier)) {
+      return { valid: false, error: 'Binus Number harus diawali "BN" diikuti maksimal 9 digit angka (contoh: BN123456789)' };
+    }
+  }
+  return { valid: true };
+}
+
+export interface EditUserParams {
+  fullName?: string;
+  nim?: string;
+  email?: string;
+  facultyName?: string;
+  role?: UserRole;
+  newPassword?: string;
 }
 
 /**
@@ -122,12 +152,23 @@ export async function createAccountByAdmin(params: RegisterParams): Promise<{ us
     return { error: 'Semua kolom wajib diisi' };
   }
 
+  if (password.length < 6) {
+    return { error: 'Kata sandi minimal 6 karakter' };
+  }
+
   const cleanEmail = email.trim().toLowerCase();
-  const cleanNim = nim.trim();
+  const cleanNim = role === 'MAHASISWA' ? nim.trim() : nim.trim().toUpperCase();
+
+  // Validate identifier format (NIM or BN)
+  const identifierCheck = validateUserIdentifier(cleanNim, normalizeUserRole(role));
+  if (!identifierCheck.valid) {
+    return { error: identifierCheck.error };
+  }
+
   const accounts = await getStoredAccounts();
 
   if (accounts.find((a) => a.nim.toLowerCase() === cleanNim.toLowerCase() || a.email.toLowerCase() === cleanEmail)) {
-    return { error: 'NIM atau Email sudah terdaftar dalam sistem' };
+    return { error: 'NIM/BN atau Email sudah terdaftar dalam sistem' };
   }
 
   const passwordHash = await hashPassword(password);
@@ -310,6 +351,11 @@ export async function loginWithCredentials(
     return { error: 'Kata sandi tidak sesuai. Silakan periksa kembali.' };
   }
 
+  // Reject login for deactivated (soft-deleted) accounts
+  if (matchedAccount.isDeleted) {
+    return { error: 'Akun Anda telah dinonaktifkan oleh Superadmin. Hubungi SSO untuk informasi lebih lanjut.' };
+  }
+
   const { passwordHash: _, ...userProfile } = matchedAccount;
   return { user: userProfile };
 }
@@ -343,3 +389,89 @@ export async function updateStoredUserAccount(
   return profile;
 }
 
+/**
+ * Edit user account by Admin — validates NIM/BN format, checks for duplicates
+ */
+export async function editAccountByAdmin(
+  userId: string,
+  data: EditUserParams
+): Promise<{ user?: UserProfile; error?: string }> {
+  const accounts = await getStoredAccounts();
+  const index = accounts.findIndex((a) => a.id === userId);
+  if (index === -1) return { error: 'Akun tidak ditemukan' };
+
+  const account = accounts[index];
+  const targetRole = data.role ? normalizeUserRole(data.role) : account.role;
+
+  // Validate NIM/BN if changed
+  if (data.nim && data.nim.trim() !== account.nim) {
+    const cleanNim = targetRole === 'MAHASISWA' ? data.nim.trim() : data.nim.trim().toUpperCase();
+    const identifierCheck = validateUserIdentifier(cleanNim, targetRole);
+    if (!identifierCheck.valid) {
+      return { error: identifierCheck.error };
+    }
+    // Check for duplicate NIM/BN (excluding current account)
+    if (accounts.find((a) => a.id !== userId && a.nim.toLowerCase() === cleanNim.toLowerCase())) {
+      return { error: 'NIM/BN sudah digunakan oleh akun lain' };
+    }
+    account.nim = cleanNim;
+  }
+
+  // Validate email if changed
+  if (data.email && data.email.trim().toLowerCase() !== account.email) {
+    const cleanEmail = data.email.trim().toLowerCase();
+    if (!cleanEmail.includes('@')) {
+      return { error: 'Format alamat email tidak valid' };
+    }
+    if (accounts.find((a) => a.id !== userId && a.email.toLowerCase() === cleanEmail)) {
+      return { error: 'Email sudah digunakan oleh akun lain' };
+    }
+    account.email = cleanEmail;
+  }
+
+  // Update other fields
+  if (data.fullName) account.fullName = data.fullName.trim();
+  if (data.facultyName) account.facultyName = data.facultyName;
+  if (data.role) account.role = targetRole;
+
+  // Optional password reset
+  if (data.newPassword) {
+    if (data.newPassword.length < 6) {
+      return { error: 'Kata sandi baru minimal 6 karakter' };
+    }
+    account.passwordHash = await hashPassword(data.newPassword);
+  }
+
+  accounts[index] = account;
+  localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+  const { passwordHash: _, ...userProfile } = account;
+  return { user: userProfile };
+}
+
+/**
+ * Soft delete (deactivate) user account
+ */
+export async function softDeleteAccountByAdmin(userId: string): Promise<{ success?: boolean; error?: string }> {
+  const accounts = await getStoredAccounts();
+  const index = accounts.findIndex((a) => a.id === userId);
+  if (index === -1) return { error: 'Akun tidak ditemukan' };
+
+  accounts[index].isDeleted = true;
+  accounts[index].deletedAt = new Date().toISOString();
+  localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+  return { success: true };
+}
+
+/**
+ * Restore (reactivate) a soft-deleted user account
+ */
+export async function restoreAccountByAdmin(userId: string): Promise<{ success?: boolean; error?: string }> {
+  const accounts = await getStoredAccounts();
+  const index = accounts.findIndex((a) => a.id === userId);
+  if (index === -1) return { error: 'Akun tidak ditemukan' };
+
+  accounts[index].isDeleted = false;
+  accounts[index].deletedAt = undefined;
+  localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+  return { success: true };
+}

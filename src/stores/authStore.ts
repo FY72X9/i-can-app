@@ -7,7 +7,12 @@ import {
   getAllUsersList, 
   updateStoredUserAccount,
   createAccountByAdmin,
-  normalizeUserRole
+  editAccountByAdmin,
+  softDeleteAccountByAdmin,
+  restoreAccountByAdmin,
+  normalizeUserRole,
+  EditUserParams,
+  validateUserIdentifier
 } from '@/services/authService';
 
 // Default initial seeded profiles
@@ -45,6 +50,9 @@ interface AuthState {
   updateUserStats: (stats: { greenCoins?: number; satPoints?: number; carbonSaved?: number; streakDays?: number }) => void;
   updateUserRole: (userId: string, newRole: UserRole) => Promise<void>;
   createUserAccount: (params: RegisterParams) => Promise<{ user?: UserProfile; error?: string }>;
+  editUserAccount: (userId: string, data: EditUserParams) => Promise<{ user?: UserProfile; error?: string }>;
+  softDeleteUserAccount: (userId: string) => Promise<{ success?: boolean; error?: string }>;
+  restoreUserAccount: (userId: string) => Promise<{ success?: boolean; error?: string }>;
   setUser: (user: UserProfile | null) => void;
 }
 
@@ -216,6 +224,97 @@ export const useAuthStore = create<AuthState>((set, get) => {
       } catch (err: any) {
         set({ isLoading: false });
         return { error: err.message || 'Gagal membuat akun' };
+      }
+    },
+
+    editUserAccount: async (userId: string, data: EditUserParams) => {
+      const currentUser = get().user;
+      if (currentUser?.role !== 'SUPERADMIN') return { error: 'Akses ditolak. Hanya Superadmin.' };
+
+      // Guardrails for Role Downgrade
+      if (data.role && data.role !== 'SUPERADMIN') {
+        const list = get().usersList;
+        const targetUser = list.find((u) => u.id === userId);
+
+        if (targetUser?.role === 'SUPERADMIN') {
+          // 1. Prevent self-downgrade
+          if (currentUser.id === userId) {
+            return { error: 'Anda tidak dapat menurunkan role Superadmin Anda sendiri.' };
+          }
+
+          // 2. Prevent downgrading the last active Superadmin
+          const activeSuperadmins = list.filter((u) => u.role === 'SUPERADMIN' && !u.isDeleted).length;
+          if (activeSuperadmins <= 1) {
+            return { error: 'Tidak dapat menurunkan role Superadmin terakhir. Minimal 1 Superadmin aktif harus tersisa.' };
+          }
+        }
+      }
+
+      set({ isLoading: true });
+      try {
+        const result = await editAccountByAdmin(userId, data);
+        if (result.user) {
+          await get().loadUsersList();
+          // Sync session if editing own account
+          if (currentUser?.id === userId) {
+            localStorage.setItem('i_can_user', JSON.stringify(result.user));
+            set({ user: result.user });
+          }
+        }
+        set({ isLoading: false });
+        return result;
+      } catch (err: any) {
+        set({ isLoading: false });
+        return { error: err.message || 'Gagal memperbarui akun' };
+      }
+    },
+
+    softDeleteUserAccount: async (userId: string) => {
+      const currentUser = get().user;
+      if (currentUser?.role !== 'SUPERADMIN') return { error: 'Akses ditolak. Hanya Superadmin.' };
+
+      // Guardrail: No self-deactivation
+      if (currentUser.id === userId) {
+        return { error: 'Anda tidak dapat menonaktifkan akun Anda sendiri yang sedang login.' };
+      }
+
+      // Guardrail: Minimum 1 active superadmin
+      const list = get().usersList;
+      const targetUser = list.find((u) => u.id === userId);
+      if (targetUser?.role === 'SUPERADMIN') {
+        const activeSuperadmins = list.filter((u) => u.role === 'SUPERADMIN' && !u.isDeleted).length;
+        if (activeSuperadmins <= 1) {
+          return { error: 'Tidak dapat menonaktifkan Superadmin terakhir. Minimal 1 Superadmin aktif harus tersisa.' };
+        }
+      }
+
+      set({ isLoading: true });
+      try {
+        const result = await softDeleteAccountByAdmin(userId);
+        if (result.success) {
+          await get().loadUsersList();
+        }
+        set({ isLoading: false });
+        return result;
+      } catch (err: any) {
+        set({ isLoading: false });
+        return { error: err.message || 'Gagal menonaktifkan akun' };
+      }
+    },
+
+    restoreUserAccount: async (userId: string) => {
+      if (get().user?.role !== 'SUPERADMIN') return { error: 'Akses ditolak. Hanya Superadmin.' };
+      set({ isLoading: true });
+      try {
+        const result = await restoreAccountByAdmin(userId);
+        if (result.success) {
+          await get().loadUsersList();
+        }
+        set({ isLoading: false });
+        return result;
+      } catch (err: any) {
+        set({ isLoading: false });
+        return { error: err.message || 'Gagal memulihkan akun' };
       }
     },
 
