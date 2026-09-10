@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useHandleSignInCallback, useLogto } from '@logto/react';
 import { useAuthStore } from '@/stores/authStore';
 import { Leaf, Sparkles } from 'lucide-react';
+import { normalizeUserRole } from '@/services/authService';
 import { UserProfile } from '@/types';
 
 export const CallbackPage: React.FC = () => {
@@ -18,7 +19,7 @@ export const CallbackPage: React.FC = () => {
       const email = userInfo?.email || claims?.email || 'student@binus.ac.id';
       const fullName = userInfo?.name || (claims as any)?.name || 'Mahasiswa BINUS';
       const nim = (userInfo?.custom_data as any)?.nim || (claims as any)?.nim || email.split('@')[0];
-      const role = ((claims as any)?.roles?.[0] === 'organizer' ? 'ORGANIZER' : 'STUDENT') as 'STUDENT' | 'ORGANIZER';
+      const role = normalizeUserRole((claims as any)?.roles?.[0] || 'MAHASISWA');
       const facultyName = (userInfo?.custom_data as any)?.faculty || 'School of Computer Science';
 
       const loggedUser: UserProfile = {

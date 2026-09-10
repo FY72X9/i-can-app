@@ -55,6 +55,15 @@ export const AdminLtePage: React.FC = () => {
   // Event Management State
   const [eventsList, setEventsList] = useState<CampusEvent[]>([]);
   const [showEventForm, setShowEventForm] = useState(false);
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [userFormData, setUserFormData] = useState({
+    nim: '',
+    fullName: '',
+    email: '',
+    password: '',
+    role: 'MAHASISWA' as UserRole,
+    facultyName: ''
+  });
   const [editingEvent, setEditingEvent] = useState<CampusEvent | null>(null);
   const [eventFormData, setEventFormData] = useState({
     title: '',
@@ -82,7 +91,7 @@ export const AdminLtePage: React.FC = () => {
     }
 
     // Load events (RBAC filtered)
-    if (user?.role === 'ADMIN') {
+    if (user?.role === 'SUPERADMIN') {
       const allEvents = await getEvents();
       setEventsList(allEvents);
     } else if (user?.role === 'ORGANIZER' && user?.id) {
@@ -190,6 +199,19 @@ export const AdminLtePage: React.FC = () => {
     downloadAnchor.remove();
   };
 
+  const handleUserFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const result = await useAuthStore.getState().createUserAccount(userFormData);
+    if (result.error) {
+      alert(result.error);
+    } else {
+      alert('Pengguna berhasil ditambahkan!');
+      setShowUserForm(false);
+      setUserFormData({ nim: '', fullName: '', email: '', password: '', role: 'MAHASISWA' as UserRole, facultyName: '' });
+      loadData();
+    }
+  };
+
   const handleEventFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const eventPayload = {
@@ -291,12 +313,12 @@ export const AdminLtePage: React.FC = () => {
   }, 0).toFixed(1);
 
   return (
-    <div className={`min-h-screen bg-[#f4f6f9] text-[#212529] font-sans transition-all ${isWideView ? 'fixed inset-0 z-50 overflow-y-auto' : 'rounded-3xl border border-slate-300 shadow-xl overflow-hidden'}`}>
-      {/* 1. AdminLTE Classic Top Navbar */}
-      <header className="bg-white border-b border-[#dee2e6] px-4 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+    <div className={`min-h-screen bg-[#f4f6f9] font-sans ${isWideView ? 'w-full' : 'max-w-[414px] mx-auto shadow-2xl relative'}`}>
+      {/* 1. AdminLTE Inspired Header Navbar */}
+      <header className="bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <Link
-            to="/home"
+            to="/app/dashboard"
             className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 transition-colors"
             title="Kembali ke App Mahasiswa"
           >
@@ -368,7 +390,7 @@ export const AdminLtePage: React.FC = () => {
               <span>Dashboard Utama</span>
             </button>
 
-            {user?.role === 'ADMIN' && (
+            {user?.role === 'SUPERADMIN' && (
               <button
                 onClick={() => setActiveMenu('users')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
@@ -398,7 +420,7 @@ export const AdminLtePage: React.FC = () => {
               </span>
             </button>
 
-            {user?.role === 'ADMIN' && (
+            {user?.role === 'SUPERADMIN' && (
               <button
                 onClick={() => setActiveMenu('grant')}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left ${
@@ -497,14 +519,25 @@ export const AdminLtePage: React.FC = () => {
           </div>
 
           {/* 4. Tab Content: Dashboard & Table 1: Manajemen Akun */}
-          {(activeMenu === 'dashboard' || activeMenu === 'users') && (
+          {(activeMenu === 'users' || (activeMenu === 'dashboard' && user?.role === 'SUPERADMIN')) && (
             <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-2">
                   <Users className="w-4 h-4 text-[#007bff]" />
                   Daftar Akun & Manajemen Hak Akses (Role)
                 </h3>
-                <span className="text-xs text-slate-500 font-bold">{usersList.length} Akun Terdaftar</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-slate-500 font-bold hidden sm:inline">{usersList.length} Akun Terdaftar</span>
+                  {user?.role === 'SUPERADMIN' && (
+                    <button
+                      onClick={() => setShowUserForm(true)}
+                      className="px-2.5 py-1.5 rounded-lg bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold transition-colors"
+                      title="Tambah Pengguna Baru (Khusus Superadmin)"
+                    >
+                      + Tambah Pengguna
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="overflow-x-auto">
@@ -535,17 +568,18 @@ export const AdminLtePage: React.FC = () => {
                           <select
                             value={u.role}
                             onChange={(e) => handleRoleChange(u.id, e.target.value as UserRole)}
+                            disabled={user?.role !== 'SUPERADMIN'}
                             className={`text-xs font-bold py-1.5 px-2.5 rounded-xl border cursor-pointer ${
-                              u.role === 'ADMIN'
+                              u.role === 'SUPERADMIN'
                                 ? 'bg-purple-100 text-purple-900 border-purple-300'
                                 : u.role === 'ORGANIZER'
                                 ? 'bg-amber-100 text-amber-900 border-amber-300'
                                 : 'bg-emerald-100 text-emerald-900 border-emerald-300'
                             }`}
                           >
-                            <option value="STUDENT">STUDENT</option>
+                            <option value="MAHASISWA">MAHASISWA</option>
                             <option value="ORGANIZER">ORGANIZER</option>
-                            <option value="ADMIN">ADMIN</option>
+                            <option value="SUPERADMIN">SUPERADMIN</option>
                           </select>
                         </td>
                         <td className="p-3">
@@ -801,7 +835,59 @@ export const AdminLtePage: React.FC = () => {
                 </button>
               </div>
 
-              {/* Event Form Modal */}
+              {showUserForm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+              <h3 className="font-black text-slate-800 flex items-center gap-2">
+                <Users className="w-5 h-5 text-emerald-600" />
+                Tambah Pengguna Baru
+              </h3>
+              <button onClick={() => setShowUserForm(false)} className="p-1.5 rounded-full hover:bg-slate-200 text-slate-500">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 sm:p-5 overflow-y-auto">
+              <form id="userForm" onSubmit={handleUserFormSubmit} className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">NIM / NIP / ID</label>
+                  <input type="text" required value={userFormData.nim} onChange={e => setUserFormData({...userFormData, nim: e.target.value})} className="w-full p-2.5 rounded-xl border border-slate-300 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Nama Lengkap</label>
+                  <input type="text" required value={userFormData.fullName} onChange={e => setUserFormData({...userFormData, fullName: e.target.value})} className="w-full p-2.5 rounded-xl border border-slate-300 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Email</label>
+                  <input type="email" required value={userFormData.email} onChange={e => setUserFormData({...userFormData, email: e.target.value})} className="w-full p-2.5 rounded-xl border border-slate-300 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Password</label>
+                  <input type="password" required minLength={6} value={userFormData.password} onChange={e => setUserFormData({...userFormData, password: e.target.value})} className="w-full p-2.5 rounded-xl border border-slate-300 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Fakultas / Departemen</label>
+                  <input type="text" required value={userFormData.facultyName} onChange={e => setUserFormData({...userFormData, facultyName: e.target.value})} className="w-full p-2.5 rounded-xl border border-slate-300 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Role / Hak Akses</label>
+                  <select value={userFormData.role} onChange={e => setUserFormData({...userFormData, role: e.target.value as UserRole})} className="w-full p-2.5 rounded-xl border border-slate-300 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-bold">
+                    <option value="MAHASISWA">MAHASISWA</option>
+                    <option value="ORGANIZER">ORGANIZER (Penyelenggara)</option>
+                    <option value="SUPERADMIN">SUPERADMIN (SSO)</option>
+                  </select>
+                </div>
+              </form>
+            </div>
+            <div className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+              <button onClick={() => setShowUserForm(false)} className="px-4 py-2 rounded-xl text-slate-600 font-bold text-sm hover:bg-slate-200 transition-colors">Batal</button>
+              <button form="userForm" type="submit" className="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-colors">Buat Akun</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Event Form */}
               {showEventForm && (
                 <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 space-y-4">
                   <h4 className="text-sm font-black text-slate-800">

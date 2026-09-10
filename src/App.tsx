@@ -52,7 +52,7 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
     loadUsersList();
   }, []);
 
-  const canSwitchAccounts = isDemoMode() || user?.role === 'ADMIN';
+  const canSwitchAccounts = isDemoMode() || user?.role === 'SUPERADMIN';
 
   return (
     <div className="min-h-screen eco-gradient-mesh selection:bg-eco-neon/30 selection:text-eco-900 relative overflow-x-hidden flex flex-col items-center">
@@ -119,7 +119,7 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
             <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-4 border border-surface-border shadow-eco-soft space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-black text-text-muted uppercase tracking-wider">
-                  Simulasi Akun ({usersList.length} Akun • {user?.role === 'ADMIN' ? 'Admin Mode' : 'Dev Mode'})
+                  Simulasi Akun ({usersList.length} Akun • {user?.role === 'SUPERADMIN' ? 'Admin Mode' : 'Dev Mode'})
                 </span>
                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-eco-neon/20 text-eco-900 border border-eco-neon/40">
                   1-Klik
@@ -130,7 +130,7 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
                 {usersList.map((u) => {
                   const isActive = user?.id === u.id;
                   const isOrganizer = u.role === 'ORGANIZER';
-                  const isAdmin = u.role === 'ADMIN';
+                  const isAdmin = u.role === 'SUPERADMIN';
 
                   return (
                     <button
@@ -182,7 +182,7 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
 
           {/* Quick Navigation Links */}
           <div className="grid grid-cols-2 gap-2.5">
-            {(canSwitchAccounts || user?.role === 'ADMIN') && (
+            {(canSwitchAccounts || user?.role === 'SUPERADMIN') && (
               <Link
                 to="/admin"
                 className="p-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-left transition-all shadow-xs space-y-1 block"
@@ -199,7 +199,7 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
             <Link
               to="/guide"
               className={`p-3 rounded-2xl bg-white hover:bg-eco-50/80 border border-surface-border text-left transition-all shadow-xs space-y-1 block ${
-                !canSwitchAccounts && user?.role !== 'ADMIN' ? 'col-span-2' : ''
+                !canSwitchAccounts && user?.role !== 'SUPERADMIN' ? 'col-span-2' : ''
               }`}
             >
               <div className="flex items-center justify-between">
@@ -341,7 +341,7 @@ export const App: React.FC = () => {
           <Route
             path="/verify"
             element={
-              <ProtectedRoute allowedRoles={['ORGANIZER', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['ORGANIZER', 'SUPERADMIN']}>
                 <AppLayout title="Portal Verifikasi" subtitle="Validasi Admin SSO & TFI">
                   <VerificationPage />
                 </AppLayout>
@@ -391,7 +391,7 @@ export const App: React.FC = () => {
           <Route
             path="/admin"
             element={
-              <ProtectedRoute allowedRoles={['ORGANIZER', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['ORGANIZER', 'SUPERADMIN']}>
                 <AdminLtePage />
               </ProtectedRoute>
             }

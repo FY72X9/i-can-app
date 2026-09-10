@@ -501,7 +501,7 @@ export const LoginPage: React.FC = () => {
               {/* Dynamic Students & Verifiers Grid */}
               <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
                 {usersList
-                  .filter((u) => u.role !== 'ADMIN')
+                  .filter((u) => u.role !== 'SUPERADMIN')
                   .map((u) => {
                     const isOrganizer = u.role === 'ORGANIZER';
                     const isTopStudent = u.id === 'usr-student-003' || (u.totalSatPoints && u.totalSatPoints >= 60);
@@ -543,7 +543,7 @@ export const LoginPage: React.FC = () => {
 
               {/* Dynamic Super Admin Buttons */}
               {usersList
-                .filter((u) => u.role === 'ADMIN')
+                .filter((u) => u.role === 'SUPERADMIN')
                 .map((adminUser) => (
                   <button
                     key={adminUser.id}

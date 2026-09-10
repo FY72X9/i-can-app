@@ -74,9 +74,9 @@ export async function getActions(): Promise<GreenAction[]> {
 
   // Check version to ensure latest records are populated
   const savedVersion = localStorage.getItem(SEED_VERSION_KEY);
-  if (savedVersion !== 'v2.3_empty') {
+  if (savedVersion !== 'v2.4_empty') {
     localStorage.setItem(LOCAL_ACTIONS_KEY, JSON.stringify(SEEDED_INITIAL_ACTIONS));
-    localStorage.setItem(SEED_VERSION_KEY, 'v2.3_empty');
+    localStorage.setItem(SEED_VERSION_KEY, 'v2.4_empty');
     return SEEDED_INITIAL_ACTIONS;
   }
 

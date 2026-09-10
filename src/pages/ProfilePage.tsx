@@ -37,7 +37,7 @@ export const ProfilePage: React.FC = () => {
   const [userActivities, setUserActivities] = useState<GreenAction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const canAccessAdmin = isDemoMode() || user?.role === 'ADMIN';
+  const canAccessAdmin = isDemoMode() || user?.role === 'SUPERADMIN';
 
   useEffect(() => {
     async function loadActivities() {

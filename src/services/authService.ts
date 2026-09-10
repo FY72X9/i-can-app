@@ -6,6 +6,13 @@
 import { supabase, isConfigured } from '@/services/supabase';
 import { UserProfile, UserRole } from '@/types';
 
+export function normalizeUserRole(role: string): UserRole {
+  const r = role?.toUpperCase();
+  if (r === 'ADMIN' || r === 'SUPERADMIN') return 'SUPERADMIN';
+  if (r === 'ORGANIZER') return 'ORGANIZER';
+  return 'MAHASISWA';
+}
+
 export interface RegisterParams {
   nim: string;
   fullName: string;
@@ -31,7 +38,7 @@ export interface StoredAuthAccount {
   createdAt: string;
 }
 
-const STORAGE_ACCOUNTS_KEY = 'i_can_registered_accounts';
+const STORAGE_ACCOUNTS_KEY = 'i_can_registered_accounts_v2';
 
 /**
  * Computes SHA-256 hash using the native browser Web Crypto API
@@ -50,68 +57,12 @@ export async function hashPassword(password: string): Promise<string> {
  */
 const DEFAULT_SEEDED_ACCOUNTS: Omit<StoredAuthAccount, 'passwordHash'>[] = [
   {
-    id: 'usr-student-001',
-    nim: '2602158890',
-    email: 'budi.santoso@binus.ac.id',
-    fullName: 'Budi Santoso',
-    facultyName: 'School of Computer Science',
-    role: 'STUDENT',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    totalGreenCoins: 450,
-    totalSatPoints: 45,
-    totalCarbonSaved: 12.50,
-    streakDays: 5,
-    createdAt: '2026-08-01T00:00:00Z',
-  },
-  {
-    id: 'usr-verifier-002',
-    nim: '2501987654',
-    email: 'siska.amanda@binus.ac.id',
-    fullName: 'Siska Amanda',
-    facultyName: 'School of Information Systems',
-    role: 'ORGANIZER',
-    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-    totalGreenCoins: 1250,
-    totalSatPoints: 85,
-    totalCarbonSaved: 34.20,
-    streakDays: 14,
-    createdAt: '2026-07-15T00:00:00Z',
-  },
-  {
-    id: 'usr-student-003',
-    nim: '2602234567',
-    email: 'nadia.safira@binus.ac.id',
-    fullName: 'Nadia Safira',
-    facultyName: 'School of Design',
-    role: 'STUDENT',
-    avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
-    totalGreenCoins: 890,
-    totalSatPoints: 68,
-    totalCarbonSaved: 24.80,
-    streakDays: 9,
-    createdAt: '2026-07-28T00:00:00Z',
-  },
-  {
-    id: 'usr-student-004',
-    nim: '2602345678',
-    email: 'farhan.ramadhan@binus.ac.id',
-    fullName: 'Farhan Ramadhan',
-    facultyName: 'Faculty of Engineering',
-    role: 'STUDENT',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    totalGreenCoins: 110,
-    totalSatPoints: 8,
-    totalCarbonSaved: 3.20,
-    streakDays: 2,
-    createdAt: '2026-08-10T00:00:00Z',
-  },
-  {
     id: 'usr-admin-005',
     nim: '1980010101',
     email: 'hendra.sso@binus.ac.id',
     fullName: 'Hendra Kusuma, M.Kom (Super Admin)',
     facultyName: 'Student Service Office (SSO)',
-    role: 'ADMIN',
+    role: 'SUPERADMIN',
     avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
     totalGreenCoins: 2400,
     totalSatPoints: 120,
@@ -129,8 +80,20 @@ export async function getStoredAccounts(): Promise<StoredAuthAccount[]> {
   if (raw) {
     try {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length >= 5) {
-        return parsed;
+      if (Array.isArray(parsed) && parsed.length >= 1) {
+        // Auto-migrate legacy roles on read
+        let modified = false;
+        parsed.forEach((acc: any) => {
+          const norm = normalizeUserRole(acc.role);
+          if (acc.role !== norm) {
+            acc.role = norm;
+            modified = true;
+          }
+        });
+        if (modified) {
+          localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(parsed));
+        }
+        return parsed as StoredAuthAccount[];
       }
     } catch {
       // fallback
@@ -138,26 +101,65 @@ export async function getStoredAccounts(): Promise<StoredAuthAccount[]> {
   }
 
   // Pre-seed default accounts with hashed passwords (Default passwords: 'binus123' & 'admin123')
-  const defaultUserHash = await hashPassword('binus123');
   const defaultAdminHash = await hashPassword('admin123');
 
   const seeded: StoredAuthAccount[] = [
-    { ...DEFAULT_SEEDED_ACCOUNTS[0], passwordHash: defaultUserHash },
-    { ...DEFAULT_SEEDED_ACCOUNTS[1], passwordHash: defaultUserHash },
-    { ...DEFAULT_SEEDED_ACCOUNTS[2], passwordHash: defaultUserHash },
-    { ...DEFAULT_SEEDED_ACCOUNTS[3], passwordHash: defaultUserHash },
-    { ...DEFAULT_SEEDED_ACCOUNTS[4], passwordHash: defaultAdminHash },
+    { ...DEFAULT_SEEDED_ACCOUNTS[0], passwordHash: defaultAdminHash },
   ];
 
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(seeded));
   return seeded;
 }
 
+export async function resetLegacyAccounts(): Promise<void> {
+  localStorage.removeItem(STORAGE_ACCOUNTS_KEY);
+  await getStoredAccounts();
+}
+
+export async function createAccountByAdmin(params: RegisterParams): Promise<{ user?: UserProfile; error?: string }> {
+  const { nim, fullName, email, facultyName, password, role } = params;
+  if (!nim || !fullName || !email || !password || !role) {
+    return { error: 'Semua kolom wajib diisi' };
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanNim = nim.trim();
+  const accounts = await getStoredAccounts();
+
+  if (accounts.find((a) => a.nim.toLowerCase() === cleanNim.toLowerCase() || a.email.toLowerCase() === cleanEmail)) {
+    return { error: 'NIM atau Email sudah terdaftar dalam sistem' };
+  }
+
+  const passwordHash = await hashPassword(password);
+  const newAccount: StoredAuthAccount = {
+    id: `usr-${Date.now()}`,
+    nim: cleanNim,
+    email: cleanEmail,
+    fullName: fullName.trim(),
+    facultyName: facultyName || 'Universitas',
+    role: normalizeUserRole(role),
+    passwordHash,
+    avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+    totalGreenCoins: 50,
+    totalSatPoints: 0,
+    totalCarbonSaved: 0.0,
+    streakDays: 1,
+    createdAt: new Date().toISOString(),
+  };
+
+  accounts.push(newAccount);
+  localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+
+  const { passwordHash: _, ...userProfile } = newAccount;
+  return { user: userProfile };
+}
+
 /**
  * Register a new student or user
  */
 export async function registerUser(params: RegisterParams): Promise<{ user?: UserProfile; error?: string }> {
-  const { nim, fullName, email, facultyName, password, role = 'STUDENT' } = params;
+  let { nim, fullName, email, facultyName, password, role = 'MAHASISWA' } = params;
+  role = normalizeUserRole(role);
 
   if (!nim || !fullName || !email || !password) {
     return { error: 'Semua kolom wajib diisi' };
@@ -275,7 +277,7 @@ export async function loginWithCredentials(
           nim: metadata.nim || '2602158890',
           email: data.user.email || cleanIdentifier,
           fullName: metadata.full_name || 'Mahasiswa BINUS',
-          role: metadata.role || 'STUDENT',
+          role: normalizeUserRole(metadata.role),
           facultyName: metadata.faculty_name || 'School of Computer Science',
           totalGreenCoins: 50,
           totalSatPoints: 0,

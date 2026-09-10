@@ -2,7 +2,7 @@
 // I-CAN PLATFORM — CORE TYPES & DATA MODELS
 // ==============================================================================
 
-export type UserRole = 'STUDENT' | 'ORGANIZER' | 'ADMIN';
+export type UserRole = 'MAHASISWA' | 'ORGANIZER' | 'SUPERADMIN';
 
 export interface UserProfile {
   id: string;

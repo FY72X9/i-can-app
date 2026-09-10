@@ -48,7 +48,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const accountDropdownRef = useRef<HTMLDivElement>(null);
 
-  const canSwitchRoles = isDemoMode() || user?.role === 'ADMIN';
+  const canSwitchRoles = isDemoMode() || user?.role === 'SUPERADMIN';
 
   // Load real dynamic users list on mount
   useEffect(() => {
@@ -118,7 +118,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
             )}
             <span
               className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white shadow-xs ${
-                user?.role === 'ADMIN'
+                user?.role === 'SUPERADMIN'
                   ? 'bg-purple-500 ring-1 ring-purple-300'
                   : user?.role === 'ORGANIZER'
                   ? 'bg-amber-500 ring-1 ring-amber-300'
@@ -136,14 +136,14 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
                 </h1>
                 <p className="text-[10px] text-text-secondary font-semibold flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-eco-neon animate-ping inline-block" />
-                  {subtitle || (user?.role === 'ADMIN' ? 'Super Admin SSO' : user?.role === 'ORGANIZER' ? 'Portal Penyelenggara Event' : 'BINUS Eco-Campus')}
+                  {subtitle || (user?.role === 'SUPERADMIN' ? 'Super Admin SSO' : user?.role === 'ORGANIZER' ? 'Portal Penyelenggara Event' : 'BINUS Eco-Campus')}
                 </p>
               </div>
             ) : (
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-md bg-eco-neon/20 text-eco-900 border border-eco-neon/40">
-                    {user?.role === 'ADMIN' ? 'SSO Super Admin' : user?.role === 'ORGANIZER' ? 'Penyelenggara' : 'Lv. 3 Eco-Ksatria'}
+                    {user?.role === 'SUPERADMIN' ? 'SSO Super Admin' : user?.role === 'ORGANIZER' ? 'Penyelenggara' : 'Lv. 3 Eco-Ksatria'}
                   </span>
                 </div>
                 <h1 className="text-xs sm:text-sm font-black text-text-primary leading-tight truncate max-w-[130px] sm:max-w-[160px] mt-0.5">
@@ -162,7 +162,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
               <button
                 onClick={() => setShowAccountSelector(!showAccountSelector)}
                 className={`flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full border transition-all active:scale-95 shadow-xs ${
-                  user?.role === 'ADMIN'
+                  user?.role === 'SUPERADMIN'
                     ? 'bg-purple-100 text-purple-950 border-purple-300 hover:bg-purple-200'
                     : user?.role === 'ORGANIZER'
                     ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200'
@@ -170,7 +170,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
                 }`}
                 title="Pilih akun simulasi (Role Switcher)"
               >
-                {user?.role === 'ADMIN' ? (
+                {user?.role === 'SUPERADMIN' ? (
                   <>
                     <Shield className="w-3.5 h-3.5 text-purple-700" />
                     <span>Admin</span>
@@ -193,7 +193,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
               {showAccountSelector && (
                 <div className="absolute right-0 top-12 w-72 sm:w-80 bg-white rounded-3xl shadow-eco-card border border-surface-border p-3.5 sm:p-4 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-2">
                   <div className="text-xs font-black text-text-muted uppercase tracking-wider px-2 py-1 flex items-center justify-between">
-                    <span>Simulasi Akun ({usersList.length} Akun • {user?.role === 'ADMIN' ? 'Admin Mode' : 'Dev Mode'})</span>
+                    <span>Simulasi Akun ({usersList.length} Akun • {user?.role === 'SUPERADMIN' ? 'Admin Mode' : 'Dev Mode'})</span>
                     <span className="bg-eco-neon/20 text-eco-900 px-2 py-0.5 rounded text-[10px]">1-Klik</span>
                   </div>
 
