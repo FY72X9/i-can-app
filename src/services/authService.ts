@@ -69,7 +69,7 @@ const DEFAULT_SEEDED_ACCOUNTS: Omit<StoredAuthAccount, 'passwordHash'>[] = [
     email: 'siska.amanda@binus.ac.id',
     fullName: 'Siska Amanda',
     facultyName: 'School of Information Systems',
-    role: 'VERIFIER',
+    role: 'ORGANIZER',
     avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
     totalGreenCoins: 1250,
     totalSatPoints: 85,

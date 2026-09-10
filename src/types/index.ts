@@ -2,7 +2,7 @@
 // I-CAN PLATFORM — CORE TYPES & DATA MODELS
 // ==============================================================================
 
-export type UserRole = 'STUDENT' | 'VERIFIER' | 'ADMIN';
+export type UserRole = 'STUDENT' | 'ORGANIZER' | 'ADMIN';
 
 export interface UserProfile {
   id: string;
@@ -84,6 +84,41 @@ export interface GreenAction {
   verifiedAt?: string;
   verifiedBy?: string;
   rejectionReason?: string;
+  // Event-linked submission fields
+  eventId?: string;           // Set if this action is part of a Campus Event
+  eventActivityId?: string;   // ID of the specific event activity/station completed
+  eventOrganizerId?: string;  // Organizer user ID for filtering approval queues
+}
+// ==============================================================================
+// EVENT-DRIVEN ARCHITECTURE — Campus Event & Activity Models
+// ==============================================================================
+
+export type EventStatus = 'DRAFT' | 'ACTIVE' | 'COMPLETED';
+
+export interface EventActivity {
+  id: string;
+  eventId: string;
+  name: string;             // e.g. "Tong 1 - Pemilahan Kertas/Kardus" or "Activity 1 - Bawa Kotak Makan"
+  description: string;
+  qrCodeValue: string;      // Unique QR token, e.g. "ican-evt01-act01"
+  coinsReward: number;      // Green Coins reward for completing this activity
+  satPointsReward?: number; // Optional: SAT Points if applicable
+  order: number;            // Display order within the event
+}
+
+export interface CampusEvent {
+  id: string;
+  organizerId: string;      // User ID of the organizer (SSO / ASD unit account)
+  organizerName: string;    // e.g. "Student Service Office (SSO)"
+  title: string;            // e.g. "Waste for Change", "Breakfest"
+  description: string;
+  bannerUrl: string;        // Event poster / banner image URL
+  mediaUrls?: string[];     // Additional event media (photos, videos)
+  startDate: string;        // ISO Date string
+  endDate: string;          // ISO Date string
+  status: EventStatus;
+  activities: EventActivity[];
+  createdAt: string;
 }
 
 export interface SatRecognition {

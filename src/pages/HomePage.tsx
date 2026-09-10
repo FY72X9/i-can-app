@@ -4,7 +4,8 @@ import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
 import { getActions } from '@/services/actionService';
-import { GreenAction } from '@/types';
+import { getActiveEvents } from '@/services/eventService';
+import { GreenAction, CampusEvent } from '@/types';
 import { 
   TreePine, 
   Droplets, 
@@ -26,12 +27,14 @@ import {
   Trophy,
   History,
   ShieldCheck,
-  Globe2
+  Globe2,
+  Calendar
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const { user } = useAuthStore();
   const [recentActivities, setRecentActivities] = useState<GreenAction[]>([]);
+  const [activeEvents, setActiveEvents] = useState<CampusEvent[]>([]);
   const [cheers, setCheers] = useState<Record<string, number>>({
     socs: 148,
     sis: 112,
@@ -46,6 +49,10 @@ export const HomePage: React.FC = () => {
       setRecentActivities(approved);
     }
     loadRecent();
+  }, []);
+
+  useEffect(() => {
+    getActiveEvents().then(setActiveEvents);
   }, []);
 
   const handleCheer = (facultyId: string) => {
@@ -206,6 +213,50 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
       </Card>
+
+      {/* Event Kampus Aktif Carousel */}
+      {activeEvents.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-sm font-black text-text-primary flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-eco-neon" />
+              Event Kampus Aktif
+            </h3>
+            <Link to="/events" className="text-xs font-bold text-eco-700 hover:underline flex items-center gap-0.5">
+              Lihat Semua <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 no-scrollbar">
+            {activeEvents.slice(0, 5).map((evt) => (
+              <Link
+                key={evt.id}
+                to={`/events/${evt.id}`}
+                className="shrink-0 w-64 bg-white rounded-2xl border border-surface-border shadow-eco-soft overflow-hidden hover:shadow-eco-card transition-all active:scale-[0.97] group"
+              >
+                {evt.bannerUrl && (
+                  <div className="h-28 overflow-hidden">
+                    <img
+                      src={evt.bannerUrl}
+                      alt={evt.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                )}
+                <div className="p-3 space-y-1">
+                  <h4 className="text-xs font-black text-text-primary truncate group-hover:text-eco-700 transition-colors">
+                    {evt.title}
+                  </h4>
+                  <p className="text-[10px] text-text-muted truncate">{evt.organizerName}</p>
+                  <div className="flex items-center gap-1.5 text-[10px] text-eco-700 font-bold">
+                    <Calendar className="w-3 h-3" />
+                    <span>{evt.activities.length} Pos Aktivitas</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 2. Quick Guide & SDG Banners */}
       <div className="grid grid-cols-1 gap-3">

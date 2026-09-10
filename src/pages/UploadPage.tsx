@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
@@ -8,6 +8,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { submitGreenAction } from '@/services/actionService';
 import { verifyActionWithGemini } from '@/services/gemini';
+import { getEventById } from '@/services/eventService';
+import { CampusEvent, EventActivity } from '@/types';
 import { 
   Camera, 
   Upload, 
@@ -34,7 +36,8 @@ import {
   Eye,
   Globe2,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  QrCode
 } from 'lucide-react';
 
 interface CategoryOption {
@@ -124,6 +127,27 @@ export const UploadPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Event-linked submission support (from QR scan or event page)
+  const [searchParams] = useSearchParams();
+  const [linkedEvent, setLinkedEvent] = useState<CampusEvent | null>(null);
+  const [linkedActivity, setLinkedActivity] = useState<EventActivity | null>(null);
+
+  useEffect(() => {
+    const eventId = searchParams.get('eventId');
+    const activityId = searchParams.get('activityId');
+    if (eventId) {
+      getEventById(eventId).then((evt) => {
+        if (evt) {
+          setLinkedEvent(evt);
+          if (activityId) {
+            const act = evt.activities.find((a) => a.id === activityId);
+            if (act) setLinkedActivity(act);
+          }
+        }
+      });
+    }
+  }, [searchParams]);
 
   // Mode Selector: One-Shot Final Report vs Pre-Survey
   const [activeTab, setActiveTab] = useState<'FINAL_REPORT' | 'SURVEY_PROPOSAL'>('FINAL_REPORT');
@@ -266,6 +290,9 @@ export const UploadPage: React.FC = () => {
         userId: user?.id || 'usr-student-001',
         userName: user?.fullName || 'Budi Santoso',
         userFaculty: user?.facultyName || 'School of Computer Science',
+        eventId: linkedEvent?.id,
+        eventActivityId: linkedActivity?.id,
+        eventOrganizerId: linkedEvent?.organizerId,
         categoryId: selectedCategory.id,
         categoryName: isSurvey ? `Survei: ${selectedCategory.name}` : selectedCategory.name,
         submissionType: selectedCategory.categoryType,
@@ -446,6 +473,17 @@ Dampak: ${selectedCategory.carbonKg} kg CO2e
 
   return (
     <div className="space-y-6 sm:space-y-7 pb-10">
+      {linkedEvent && (
+        <div className="bg-eco-50 border border-eco-200 rounded-2xl p-4 space-y-1.5">
+          <div className="flex items-center gap-2">
+            <QrCode className="w-4 h-4 text-eco-700" />
+            <span className="text-xs font-black text-eco-900">Aksi Event: {linkedEvent.title}</span>
+          </div>
+          {linkedActivity && (
+            <p className="text-xs text-eco-700 font-bold">📍 Pos: {linkedActivity.name} • +{linkedActivity.coinsReward} GC</p>
+          )}
+        </div>
+      )}
       {/* 1. Header Post Studio Title & Quick Mode Toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
         <div>

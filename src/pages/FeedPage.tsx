@@ -68,31 +68,10 @@ export const FeedPage: React.FC = () => {
         sdgBadge: a.submissionType === 'PENYULUHAN_AKSI_NYATA' ? 'SDG 15 & 13' : a.submissionType === 'VIDEO_BASED_LEARNING' ? 'SDG 4 Quality Edu' : 'SDG 12 Consumption',
       }));
 
-      setPostsList(mapped.length > 0 ? mapped : defaultSamplePosts);
+      setPostsList(mapped);
     }
     load();
   }, []);
-
-  const defaultSamplePosts = [
-    {
-      id: '1',
-      author: 'Ahmad Fauzi & Tim',
-      faculty: 'School of Computer Science (SOCS)',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      actionTitle: 'Penanaman 5 Bibit Pohon Tabebuya di Taman Kota',
-      category: 'Penyuluhan & Aksi Nyata TFI',
-      type: 'TFI',
-      photo: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&auto=format&fit=crop&q=80',
-      campaignUrl: 'https://www.instagram.com/reel/C_samplePohon123',
-      story: 'Bersama tim kami melakukan penyuluhan pentingnya penghijauan kota di IG Reels dan menanam 5 bibit pohon keras bersama pengelola taman setempat. #TeachForIndonesia #FosteringandEmpowering #BinusianCommunityService 🌿🌳',
-      carbonSaved: '5.0 kg CO2e',
-      coinsEarned: '+25 GC',
-      satEarned: '+4 SAT (2.0 Jam Comserv)',
-      location: 'Taman Kota Jakarta Barat',
-      time: '2 jam yang lalu',
-      sdgBadge: 'SDG 15 & 13',
-    },
-  ];
 
   const getPostReactions = (postId: string, type: string) => {
     if (reactions[postId]) return reactions[postId];

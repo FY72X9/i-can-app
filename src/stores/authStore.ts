@@ -26,12 +26,12 @@ export const DEMO_PROFILES: Record<string, UserProfile> = {
     lastActionAt: new Date().toISOString(),
     createdAt: '2026-08-01T00:00:00Z',
   },
-  verifier: {
-    id: 'usr-verifier-002',
+  organizer: {
+    id: 'usr-organizer-002',
     nim: '2501987654',
     email: 'siska.amanda@binus.ac.id',
-    fullName: 'Siska Amanda',
-    role: 'VERIFIER',
+    fullName: 'Siska Amanda (Penyelenggara SSO)',
+    role: 'ORGANIZER',
     facultyId: 'fac-sis',
     facultyName: 'School of Information Systems',
     avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
@@ -162,8 +162,8 @@ export const useAuthStore = create<AuthState>((set, get) => {
       if (!matched) {
         if (cleanTarget === 'student') {
           matched = list.find((u) => u.id === 'usr-student-001') || list.find((u) => u.role === 'STUDENT');
-        } else if (cleanTarget === 'verifier') {
-          matched = list.find((u) => u.role === 'VERIFIER');
+        } else if (cleanTarget === 'organizer' || cleanTarget === 'verifier') {
+          matched = list.find((u) => u.role === 'ORGANIZER');
         } else if (cleanTarget === 'admin') {
           matched = list.find((u) => u.role === 'ADMIN');
         } else if (cleanTarget === 'nadia') {

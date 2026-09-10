@@ -5,11 +5,11 @@ import { useAuthStore } from '@/stores/authStore';
 
 export const BottomNav: React.FC = () => {
   const { user } = useAuthStore();
-  const isVerifier = user?.role === 'VERIFIER';
+  const isOrganizer = user?.role === 'ORGANIZER';
 
   const navItems = [
     { name: 'Home', path: '/home', icon: Home },
-    { name: isVerifier ? 'Verify' : 'Feed', path: isVerifier ? '/verify' : '/feed', icon: isVerifier ? CheckSquare : Rss },
+    { name: isOrganizer ? 'Verify' : 'Feed', path: isOrganizer ? '/verify' : '/feed', icon: isOrganizer ? CheckSquare : Rss },
     { name: 'Post', path: '/upload', icon: Plus, isAction: true },
     { name: 'Rank', path: '/leaderboard', icon: Trophy },
     { name: 'Profile', path: '/profile', icon: User },

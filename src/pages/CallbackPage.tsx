@@ -18,7 +18,7 @@ export const CallbackPage: React.FC = () => {
       const email = userInfo?.email || claims?.email || 'student@binus.ac.id';
       const fullName = userInfo?.name || (claims as any)?.name || 'Mahasiswa BINUS';
       const nim = (userInfo?.custom_data as any)?.nim || (claims as any)?.nim || email.split('@')[0];
-      const role = ((claims as any)?.roles?.[0] === 'verifier' ? 'VERIFIER' : 'STUDENT') as 'STUDENT' | 'VERIFIER';
+      const role = ((claims as any)?.roles?.[0] === 'organizer' ? 'ORGANIZER' : 'STUDENT') as 'STUDENT' | 'ORGANIZER';
       const facultyName = (userInfo?.custom_data as any)?.faculty || 'School of Computer Science';
 
       const loggedUser: UserProfile = {

@@ -71,7 +71,7 @@ export const VerificationPage: React.FC = () => {
       const actions = await getActions();
       const pending = actions.filter((a) => a.status === 'PENDING');
       const completed = actions.filter((a) => a.status === 'APPROVED' || a.status === 'REJECTED');
-      setQueue(pending.length > 0 ? pending : defaultSampleQueue);
+      setQueue(pending);
       setHistory(completed);
       setLoading(false);
     }
@@ -98,38 +98,28 @@ export const VerificationPage: React.FC = () => {
       alert('Aksi Disetujui Penuh! Notifikasi Poin SAT & Jam Comserv telah dikirim ke mahasiswa.');
     } else if (decision === 'APPROVED_COINS_ONLY') {
       useNotificationStore.getState().addNotification({
-        title: 'Aksi Disetujui untuk Green Coins! ⚡',
-        desc: `Postingan "${target?.categoryName || 'Aksi Hijau'}" disetujui untuk reputasi BEKEN Award (+${target?.greenCoinsEarned || 10} GC).`,
+        title: 'Aksi Harian Disetujui! 🪙',
+        desc: `Bukti aksi harian "${target?.categoryName}" diverifikasi. +${target?.greenCoinsEarned || 10} GC ditambahkan ke wallet kamu.`,
         type: 'quest',
-        actionUrl: '/home',
+        actionUrl: '/wallet',
       });
-      alert('Postingan Disetujui untuk Green Coins (BEKEN Track). Notifikasi telah dikirim.');
+      alert('Aksi Disetujui (Coins Only)! Notifikasi dikirim ke mahasiswa.');
     }
   };
 
-  const confirmReject = async () => {
-    if (!rejectModalId) return;
-    const target = queue.find((a) => a.id === rejectModalId);
-    const reason = rejectionReason.trim() || 'Bukti belum memenuhi kelengkapan regulasi TFI.';
-    await updateActionVerification(
-      rejectModalId, 
-      'REJECTED', 
-      user?.id || 'usr-verifier-002', 
-      user?.fullName || 'Siska Amanda (SSO)', 
-      reason
-    );
-    
-    useNotificationStore.getState().addNotification({
-      title: 'Laporan Aksi Perlu Perbaikan ⚠️',
-      desc: `Catatan Verifikator SSO untuk "${target?.categoryName || 'Aksi TFI'}": ${reason}`,
-      type: 'rejection',
-      actionUrl: '/upload',
-    });
-
+  const submitRejection = async () => {
+    if (!rejectModalId || !rejectionReason.trim()) return;
+    await updateActionVerification(rejectModalId, 'REJECTED', rejectionReason);
     setQueue((prev) => prev.filter((a) => a.id !== rejectModalId));
     setRejectModalId(null);
     setRejectionReason('');
-    alert('Aksi Ditolak dan feedback perbaikan telah dikirim ke notifikasi mahasiswa.');
+    
+    useNotificationStore.getState().addNotification({
+      title: 'Aksi Ditolak ❌',
+      desc: `Mohon maaf, bukti aksi kamu ditolak karena: ${rejectionReason}`,
+      type: 'system',
+    });
+    alert('Aksi telah ditolak dan mahasiswa telah diinfokan.');
   };
 
   const filteredQueue = queue.filter((item) => {
@@ -147,6 +137,26 @@ export const VerificationPage: React.FC = () => {
     'Foto bukti buram atau tidak menunjukkan aktivitas nyata',
   ];
 
+  // Calculate dynamic stats
+  const tfiQueueCount = queue.filter(a => a.submissionType === 'PENYULUHAN_AKSI_NYATA').length;
+  
+  // Calculate today's approved users
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const approvedTodayCount = history.filter(a => {
+    if (a.status !== 'APPROVED' || !a.verifiedAt) return false;
+    const verifiedDate = new Date(a.verifiedAt);
+    return verifiedDate >= today;
+  }).length;
+  
+  // Calculate total SAT points given
+  const totalSatGiven = history.reduce((total, action) => {
+    if (action.status === 'APPROVED' && action.decision === 'APPROVED_FULL' && action.satPointsEarned) {
+      return total + action.satPointsEarned;
+    }
+    return total;
+  }, 0);
+
   return (
     <div className="space-y-6 sm:space-y-7 pb-8">
       {/* 1. Verifier Portal KPI Header */}
@@ -157,8 +167,8 @@ export const VerificationPage: React.FC = () => {
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-sm sm:text-base font-black text-white">Portal Verifikator SSO & TFI</h2>
-              <p className="text-xs text-eco-100 mt-0.5">Validasi Dual-Track (SAT Point & BEKEN Coins)</p>
+              <h2 className="text-sm sm:text-base font-black text-white">Portal Penyelenggara Event</h2>
+              <p className="text-xs text-eco-100 mt-0.5">Validasi Aksi Nyata & Approval</p>
             </div>
           </div>
 
@@ -171,15 +181,15 @@ export const VerificationPage: React.FC = () => {
         <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-white/15 text-center">
           <div className="bg-white/10 rounded-2xl p-3">
             <span className="text-xs text-eco-100 block mb-0.5">Antrean TFI</span>
-            <span className="text-base font-black text-white">2 Aksi</span>
+            <span className="text-base font-black text-white">{tfiQueueCount} Aksi</span>
           </div>
           <div className="bg-white/10 rounded-2xl p-3">
             <span className="text-xs text-eco-100 block mb-0.5">Disetujui Hari Ini</span>
-            <span className="text-base font-black text-gold-300">14 Mahasiswa</span>
+            <span className="text-base font-black text-gold-300">{approvedTodayCount} Aksi</span>
           </div>
           <div className="bg-white/10 rounded-2xl p-3">
             <span className="text-xs text-eco-100 block mb-0.5">SAT Diberikan</span>
-            <span className="text-base font-black text-white">48 SAT</span>
+            <span className="text-base font-black text-white">{totalSatGiven} SAT</span>
           </div>
         </div>
       </Card>
@@ -526,7 +536,7 @@ export const VerificationPage: React.FC = () => {
                 variant="danger"
                 size="sm"
                 className="flex-1 text-xs font-bold py-2.5 rounded-xl"
-                onClick={confirmReject}
+                onClick={submitRejection}
               >
                 Konfirmasi Tolak
               </Button>

@@ -17,6 +17,8 @@ import { GuidePage } from '@/pages/GuidePage';
 import { SdgGuidelinePage } from '@/pages/SdgGuidelinePage';
 import { AdminLtePage } from '@/pages/AdminLtePage';
 import { LeaderboardPage } from '@/pages/LeaderboardPage';
+import { EventsPage } from '@/pages/EventsPage';
+import { EventDetailPage } from '@/pages/EventDetailPage';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppModeStore } from '@/stores/appModeStore';
 import { 
@@ -127,7 +129,7 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
               <div className="space-y-1.5 max-h-72 overflow-y-auto pr-0.5 no-scrollbar">
                 {usersList.map((u) => {
                   const isActive = user?.id === u.id;
-                  const isVerifier = u.role === 'VERIFIER';
+                  const isOrganizer = u.role === 'ORGANIZER';
                   const isAdmin = u.role === 'ADMIN';
 
                   return (
@@ -138,7 +140,7 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
                         isActive
                           ? isAdmin
                             ? 'bg-purple-700 text-white border-purple-700 shadow-xs'
-                            : isVerifier
+                            : isOrganizer
                             ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
                             : 'bg-eco-700 text-white border-eco-700 shadow-xs'
                           : 'bg-surface-subtle text-text-secondary hover:bg-white border-surface-border/60 hover:border-slate-300'
@@ -339,7 +341,7 @@ export const App: React.FC = () => {
           <Route
             path="/verify"
             element={
-              <ProtectedRoute allowedRoles={['VERIFIER', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['ORGANIZER', 'ADMIN']}>
                 <AppLayout title="Portal Verifikasi" subtitle="Validasi Admin SSO & TFI">
                   <VerificationPage />
                 </AppLayout>
@@ -389,8 +391,28 @@ export const App: React.FC = () => {
           <Route
             path="/admin"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ORGANIZER', 'ADMIN']}>
                 <AdminLtePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/events"
+            element={
+              <ProtectedRoute>
+                <AppLayout title="Event Kampus" subtitle="Jelajahi Kampanye Hijau Kampus">
+                  <EventsPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/events/:id"
+            element={
+              <ProtectedRoute>
+                <AppLayout title="Detail Event" subtitle="Pos Aktivitas & Leaderboard">
+                  <EventDetailPage />
+                </AppLayout>
               </ProtectedRoute>
             }
           />

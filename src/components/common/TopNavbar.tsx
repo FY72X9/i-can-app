@@ -120,7 +120,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
               className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white shadow-xs ${
                 user?.role === 'ADMIN'
                   ? 'bg-purple-500 ring-1 ring-purple-300'
-                  : user?.role === 'VERIFIER'
+                  : user?.role === 'ORGANIZER'
                   ? 'bg-amber-500 ring-1 ring-amber-300'
                   : 'bg-eco-neon ring-1 ring-emerald-300'
               }`}
@@ -136,14 +136,14 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
                 </h1>
                 <p className="text-[10px] text-text-secondary font-semibold flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-eco-neon animate-ping inline-block" />
-                  {subtitle || (user?.role === 'ADMIN' ? 'Super Admin SSO' : user?.role === 'VERIFIER' ? 'Portal Verifikator TFI' : 'BINUS Eco-Campus')}
+                  {subtitle || (user?.role === 'ADMIN' ? 'Super Admin SSO' : user?.role === 'ORGANIZER' ? 'Portal Penyelenggara Event' : 'BINUS Eco-Campus')}
                 </p>
               </div>
             ) : (
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-md bg-eco-neon/20 text-eco-900 border border-eco-neon/40">
-                    {user?.role === 'ADMIN' ? 'SSO Super Admin' : user?.role === 'VERIFIER' ? 'TFI Verifier' : 'Lv. 3 Eco-Ksatria'}
+                    {user?.role === 'ADMIN' ? 'SSO Super Admin' : user?.role === 'ORGANIZER' ? 'Penyelenggara' : 'Lv. 3 Eco-Ksatria'}
                   </span>
                 </div>
                 <h1 className="text-xs sm:text-sm font-black text-text-primary leading-tight truncate max-w-[130px] sm:max-w-[160px] mt-0.5">
@@ -164,7 +164,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
                 className={`flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full border transition-all active:scale-95 shadow-xs ${
                   user?.role === 'ADMIN'
                     ? 'bg-purple-100 text-purple-950 border-purple-300 hover:bg-purple-200'
-                    : user?.role === 'VERIFIER'
+                    : user?.role === 'ORGANIZER'
                     ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200'
                     : 'bg-white hover:bg-eco-50 text-eco-900 border-eco-200'
                 }`}
@@ -175,10 +175,10 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
                     <Shield className="w-3.5 h-3.5 text-purple-700" />
                     <span>Admin</span>
                   </>
-                ) : user?.role === 'VERIFIER' ? (
+                ) : user?.role === 'ORGANIZER' ? (
                   <>
                     <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
-                    <span>Verifier</span>
+                    <span>Organizer</span>
                   </>
                 ) : (
                   <>
@@ -246,10 +246,10 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
           ) : (
             /* Prototype Clean Mode Badge (Non-clickable for regular users) */
             <div className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-              {user?.role === 'VERIFIER' ? (
+              {user?.role === 'ORGANIZER' ? (
                 <>
                   <ShieldCheck className="w-4 h-4 text-amber-600" />
-                  <span>Verifier SSO</span>
+                  <span>Penyelenggara</span>
                 </>
               ) : (
                 <>

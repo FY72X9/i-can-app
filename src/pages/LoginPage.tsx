@@ -503,7 +503,7 @@ export const LoginPage: React.FC = () => {
                 {usersList
                   .filter((u) => u.role !== 'ADMIN')
                   .map((u) => {
-                    const isVerifier = u.role === 'VERIFIER';
+                    const isOrganizer = u.role === 'ORGANIZER';
                     const isTopStudent = u.id === 'usr-student-003' || (u.totalSatPoints && u.totalSatPoints >= 60);
 
                     return (
@@ -512,7 +512,7 @@ export const LoginPage: React.FC = () => {
                         type="button"
                         onClick={async () => {
                           await loginAs(u.id);
-                          navigate(isVerifier ? '/verify' : '/home');
+                          navigate(isOrganizer ? '/verify' : '/home');
                         }}
                         className="p-2.5 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-2xs flex items-center gap-2 group active:scale-95"
                       >
@@ -525,15 +525,15 @@ export const LoginPage: React.FC = () => {
                           <h4 className="text-[11px] font-black text-text-primary truncate flex items-center gap-1">
                             {u.fullName.split(' ')[0]}
                             <span className={`text-[8px] font-bold px-1 rounded ${
-                              isVerifier ? 'bg-amber-100 text-amber-900' :
+                              isOrganizer ? 'bg-amber-100 text-amber-900' :
                               isTopStudent ? 'bg-emerald-100 text-emerald-900' :
                               'bg-slate-100 text-slate-700'
                             }`}>
-                              {isVerifier ? 'Verifier' : isTopStudent ? 'Top' : 'Student'}
+                              {isOrganizer ? 'Organizer' : isTopStudent ? 'Top' : 'Student'}
                             </span>
                           </h4>
                           <p className="text-[9px] text-text-secondary truncate font-mono">
-                            {isVerifier ? 'SSO / TFI' : `${u.totalSatPoints || 0} SAT • ${u.totalGreenCoins || 0} GC`}
+                            {isOrganizer ? 'SSO / TFI' : `${u.totalSatPoints || 0} SAT • ${u.totalGreenCoins || 0} GC`}
                           </p>
                         </div>
                       </button>

@@ -43,7 +43,7 @@ export const ProfilePage: React.FC = () => {
     async function loadActivities() {
       setLoading(true);
       const allActions = await getActions();
-      if (user?.role === 'VERIFIER') {
+      if (user?.role === 'ORGANIZER') {
         // If verifier, show actions verified by verifier or all actions
         const verified = allActions.filter((a) => a.verifiedBy?.includes(user.fullName.split(' ')[0]) || a.status === 'APPROVED');
         setUserActivities(verified);
@@ -185,7 +185,7 @@ export const ProfilePage: React.FC = () => {
             </div>
             <div>
               <h3 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider">
-                {user?.role === 'VERIFIER' ? 'Log Riwayat Verifikasi Terkini' : 'Riwayat Aksi 2 Minggu Terakhir'}
+                {user?.role === 'ORGANIZER' ? 'Log Riwayat Verifikasi Terkini' : 'Riwayat Aksi 2 Minggu Terakhir'}
               </h3>
               <p className="text-xs text-text-secondary mt-0.5">
                 {userActivities.length} Kegiatan Terdata di Sistem
@@ -193,7 +193,7 @@ export const ProfilePage: React.FC = () => {
             </div>
           </div>
           <Link
-            to={user?.role === 'VERIFIER' ? '/verify' : '/wallet'}
+            to={user?.role === 'ORGANIZER' ? '/verify' : '/wallet'}
             className="text-xs font-black text-eco-800 hover:underline flex items-center gap-0.5"
           >
             Lihat Semua <ChevronRight className="w-3.5 h-3.5" />
