@@ -24,6 +24,7 @@ import {
   Check, 
   Copy, 
   Users, 
+  Plus,
   X, 
   Share2, 
   TreePine, 
@@ -79,6 +80,8 @@ export const UploadPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, updateUserStats } = useAuthStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const groupFileInputRef = useRef<HTMLInputElement>(null);
+  const additionalFileInputRef = useRef<HTMLInputElement>(null);
   const [searchParams] = useSearchParams();
 
   // 1. Core Pillar State: PROGRAM (TFI) vs QUEST (Daily Quest) vs EVENT (Campus Event)
@@ -97,10 +100,12 @@ export const UploadPage: React.FC = () => {
 
   // 3. Form Input States
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [groupPhotoPreview, setGroupPhotoPreview] = useState<string | null>(null);
+  const [additionalPhotoPreview, setAdditionalPhotoPreview] = useState<string | null>(null);
   const [story, setStory] = useState('');
   const [campaignUrl, setCampaignUrl] = useState('https://instagram.com/reel/C_binusEcoSample123');
   const [groupNimInput, setGroupNimInput] = useState('');
-  const [groupMembers, setGroupMembers] = useState<string[]>(['2602199841']);
+  const [groupMembers, setGroupMembers] = useState<string[]>([]);
 
   // 4. Multimodal AI Analysis State (Focused on Activity Match & Anti-Fraud)
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -322,6 +327,28 @@ export const UploadPage: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  // Group Photo Selection (For physical team presence verification)
+  const handleGroupPhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setGroupPhotoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Additional Photo Selection (Optional documentation / before-after)
+  const handleAdditionalPhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setAdditionalPhotoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   // AI Analysis Execution (Focused on Activity Match & Anti-Fraud)
   const runAiAnalysis = async (base64Img: string, contextTitle: string) => {
     if (!base64Img) return;
@@ -400,17 +427,38 @@ export const UploadPage: React.FC = () => {
     });
   };
 
+  // Dynamic maximum members allowed based on selected event / program
+  const maxAllowedMembers = React.useMemo(() => {
+    if (activePillar === 'EVENT') {
+      if (selectedEvent?.allowGroupMembers || (selectedEvent?.maxGroupMembers && selectedEvent.maxGroupMembers > 0)) {
+        return selectedEvent.maxGroupMembers || 3;
+      }
+      return 0;
+    }
+    if (activePillar === 'PROGRAM') {
+      return selectedProgram?.categoryType === 'PENYULUHAN_AKSI_NYATA' ? 2 : 0;
+    }
+    return 0;
+  }, [activePillar, selectedEvent, selectedProgram]);
+
   // Group Member Handlers
   const handleAddMember = () => {
     const trimmed = groupNimInput.trim();
-    if (trimmed && !groupMembers.includes(trimmed)) {
-      if (groupMembers.length >= 2) {
-        alert('Maksimal anggota tim adalah 3 orang (1 pelapor + 2 anggota)');
-        return;
-      }
-      setGroupMembers([...groupMembers, trimmed]);
-      setGroupNimInput('');
+    if (!trimmed) return;
+    if (user?.nim && trimmed === user.nim) {
+      alert('NIM Anda sendiri sebagai pelapor sudah otomatis tercatat dan tidak perlu dimasukkan.');
+      return;
     }
+    if (groupMembers.includes(trimmed)) {
+      alert(`NIM ${trimmed} sudah ada dalam daftar anggota tim.`);
+      return;
+    }
+    if (groupMembers.length >= maxAllowedMembers) {
+      alert(`Maksimal anggota tim yang dapat ditambahkan untuk aksi ini adalah ${maxAllowedMembers} orang.`);
+      return;
+    }
+    setGroupMembers([...groupMembers, trimmed]);
+    setGroupNimInput('');
   };
 
   const handleRemoveMember = (nim: string) => {
@@ -433,7 +481,12 @@ export const UploadPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!photoPreview) {
-      alert('Silakan pilih atau ambil foto bukti aksi terlebih dahulu.');
+      alert('Silakan pilih atau ambil foto bukti pelaksanaan aksi terlebih dahulu (Slot 1).');
+      return;
+    }
+
+    if (maxAllowedMembers > 0 && groupMembers.length > 0 && !groupPhotoPreview) {
+      alert('Aksi berkelompok wajib menyertakan Foto Bersama Seluruh Anggota Tim di Lokasi (Slot 2) untuk validasi kehadiran oleh panitia.');
       return;
     }
 
@@ -458,9 +511,11 @@ export const UploadPage: React.FC = () => {
           submissionType: selectedProgram.categoryType,
           actionSource: 'PROGRAM',
           photoUrl: photoPreview,
+          groupPhotoUrl: groupPhotoPreview || undefined,
+          additionalPhotos: additionalPhotoPreview ? [additionalPhotoPreview] : undefined,
           story: story || selectedProgram.suggestedPrompt || 'Laporan program aksi nyata keberlanjutan kampus BINUS',
           campaignUrl: campaignUrl || undefined,
-          groupMembers: selectedProgram.categoryType === 'PENYULUHAN_AKSI_NYATA' && groupMembers.length > 0 ? groupMembers : undefined,
+          groupMembers: groupMembers.length > 0 ? groupMembers : undefined,
           greenCoinsEarned: selectedProgram.coins,
           carbonImpactKg: co2Value,
           satPointsEarned: selectedProgram.satPoints,
@@ -567,7 +622,11 @@ export const UploadPage: React.FC = () => {
           submissionType: 'BINA_LINGKUNGAN',
           actionSource: 'EVENT',
           photoUrl: photoPreview,
+          groupPhotoUrl: groupPhotoPreview || undefined,
+          additionalPhotos: additionalPhotoPreview ? [additionalPhotoPreview] : undefined,
           story: story || `Aksi pada event ${selectedEvent.title}`,
+          campaignUrl: campaignUrl || undefined,
+          groupMembers: (maxAllowedMembers > 0 && groupMembers.length > 0) ? groupMembers : undefined,
           greenCoinsEarned: earnedCoins,
           carbonImpactKg: 0.5,
           satPointsEarned: earnedSat,
@@ -1359,6 +1418,123 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
               </p>
             </Card>
           )}
+
+          {/* SLOT 2: FOTO BERSAMA ANGGOTA TIM DI LOKASI (KHUSUS AKSI BERKELOMPOK) */}
+          {maxAllowedMembers > 0 && (
+            <div className="pt-2 space-y-2">
+              <div className="flex items-center justify-between px-1">
+                <label className="text-xs sm:text-sm font-black text-purple-950 uppercase tracking-wider flex items-center gap-2">
+                  <Users className="w-4 h-4 text-purple-700" />
+                  Foto Bersama Seluruh Anggota Tim di Lokasi
+                </label>
+                <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
+                  groupMembers.length > 0
+                    ? 'bg-rose-100 text-rose-800 border-rose-300 animate-pulse'
+                    : 'bg-purple-100 text-purple-800 border-purple-200'
+                }`}>
+                  {groupMembers.length > 0 ? '🔴 Wajib (Aksi Berkelompok)' : '📸 Opsional (Jika Berkelompok)'}
+                </span>
+              </div>
+
+              <input
+                type="file"
+                ref={groupFileInputRef}
+                onChange={handleGroupPhotoSelect}
+                accept="image/*"
+                className="hidden"
+              />
+
+              <div className="relative rounded-3xl overflow-hidden aspect-[16/9] bg-slate-900 border-2 border-dashed border-purple-300 hover:border-purple-500 transition-all shadow-xs group">
+                {groupPhotoPreview ? (
+                  <>
+                    <img src={groupPhotoPreview} alt="Foto Bersama Anggota" className="w-full h-full object-cover" />
+                    <div className="absolute bottom-3 left-3 bg-purple-950/80 backdrop-blur-md text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                      <Users className="w-3.5 h-3.5 text-purple-300" />
+                      Validasi Wajah Kehadiran Anggota Tim
+                    </div>
+                    <div className="absolute top-3 right-3 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => groupFileInputRef.current?.click()}
+                        className="bg-black/70 hover:bg-black/90 text-white text-xs font-bold px-3 py-1.5 rounded-xl backdrop-blur-md transition-all flex items-center gap-1 shadow-sm"
+                      >
+                        <ImageIcon className="w-3.5 h-3.5" />
+                        Ganti
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setGroupPhotoPreview(null)}
+                        className="bg-rose-600/80 hover:bg-rose-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-xl backdrop-blur-md transition-all flex items-center gap-1 shadow-sm"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div
+                    onClick={() => groupFileInputRef.current?.click()}
+                    className="w-full h-full bg-purple-50/50 hover:bg-purple-50/80 p-5 text-center cursor-pointer transition-all flex flex-col items-center justify-center space-y-2"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mx-auto shadow-sm">
+                      <Users className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-xs sm:text-sm font-black text-purple-950">
+                        Unggah Foto Bersama / Welfie Anggota Tim di Lokasi
+                      </p>
+                      <p className="text-[11px] text-slate-500 mt-0.5 max-w-sm mx-auto">
+                        Pastikan seluruh anggota tim yang didaftarkan terlihat jelas di foto bersama untuk validasi kehadiran panitia.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* SLOT 3: FOTO DOKUMENTASI TAMBAHAN (OPSIONAL) */}
+          <div className="pt-1">
+            <input
+              type="file"
+              ref={additionalFileInputRef}
+              onChange={handleAdditionalPhotoSelect}
+              accept="image/*"
+              className="hidden"
+            />
+            {additionalPhotoPreview ? (
+              <div className="relative rounded-2xl overflow-hidden h-28 bg-slate-900 border border-slate-200">
+                <img src={additionalPhotoPreview} alt="Dokumentasi Tambahan" className="w-full h-full object-cover" />
+                <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => additionalFileInputRef.current?.click()}
+                    className="bg-black/70 hover:bg-black/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg backdrop-blur-md"
+                  >
+                    Ganti
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAdditionalPhotoPreview(null)}
+                    className="bg-rose-600/80 hover:bg-rose-700 text-white text-[10px] font-bold px-2 py-1 rounded-lg backdrop-blur-md"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+                <div className="absolute bottom-2 left-2 bg-black/75 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
+                  Foto Pendukung (Opsional)
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => additionalFileInputRef.current?.click()}
+                className="w-full py-2 px-3 rounded-2xl border border-dashed border-slate-300 hover:border-slate-400 bg-white/70 hover:bg-slate-50 text-[11px] font-bold text-slate-600 flex items-center justify-center gap-1.5 transition-all"
+              >
+                <Plus className="w-3.5 h-3.5 text-slate-400" />
+                Tambah Foto Pendukung / Hasil Kegiatan (Opsional)
+              </button>
+            )}
+          </div>
         </div>
 
         {/* ------------------------------------------------------------- */}
@@ -1484,14 +1660,14 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
         </div>
 
         {/* ------------------------------------------------------------- */}
-        {/* STEP 4: LINK MEDSOS & ANGGOTA KELOMPOK (PROGRAM AKSI NYATA)  */}
+        {/* STEP 4: LINK MEDSOS & ANGGOTA KELOMPOK                        */}
         {/* ------------------------------------------------------------- */}
-        {activePillar === 'PROGRAM' && (
+        {(activePillar === 'PROGRAM' || activePillar === 'EVENT' || maxAllowedMembers > 0) && (
           <div className="space-y-4">
             {/* Social media publication link */}
             <div>
               <label className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider block mb-1.5 px-1">
-                4. Link Publikasi Media Sosial (IG Reels / TikTok / YouTube)
+                4. Link Publikasi Media Sosial (Opsional: IG Reels / TikTok / YouTube)
               </label>
               <div className="relative">
                 <input
@@ -1507,39 +1683,79 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
               </div>
             </div>
 
-            {/* Team Members Input (if PENYULUHAN_AKSI_NYATA) */}
-            {selectedProgram?.categoryType === 'PENYULUHAN_AKSI_NYATA' && (
-              <div>
-                <label className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider block mb-1.5 px-1">
-                  5. NIM Anggota Tim (Maksimal 3 Orang: 1 Pelapor + 2 Anggota)
-                </label>
-                <div className="flex gap-2.5">
+            {/* Team Members Input (Available whenever maxAllowedMembers > 0) */}
+            {maxAllowedMembers > 0 && (
+              <div className="bg-purple-50/50 border border-purple-200/80 p-4 rounded-3xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs sm:text-sm font-black text-purple-950 uppercase tracking-wider flex items-center gap-1.5">
+                    <Users className="w-4 h-4 text-purple-700" />
+                    5. NIM Rekan Anggota Tim Mahasiswa
+                  </label>
+                  <span className="text-[11px] font-bold text-purple-800 bg-purple-100 border border-purple-200 px-2.5 py-0.5 rounded-full font-mono">
+                    {groupMembers.length} / {maxAllowedMembers} Rekan
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-600">
+                  Penyelenggara mengizinkan hingga <strong>{maxAllowedMembers} rekan mahasiswa</strong> untuk aksi ini. NIM Anda ({user?.nim || 'Pelapor'}) otomatis tercatat sebagai ketua tim.
+                </p>
+
+                <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Masukkan NIM anggota..."
+                    placeholder="Ketik NIM rekan anggota..."
                     value={groupNimInput}
                     onChange={(e) => setGroupNimInput(e.target.value)}
-                    className="flex-1 text-xs sm:text-sm p-3 rounded-2xl border border-surface-border bg-surface-subtle focus:bg-white focus:outline-none font-mono"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddMember();
+                      }
+                    }}
+                    disabled={groupMembers.length >= maxAllowedMembers}
+                    className="flex-1 text-xs sm:text-sm p-3 rounded-2xl border border-purple-200 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 font-mono disabled:bg-slate-100 disabled:cursor-not-allowed"
                   />
-                  <Button type="button" size="sm" variant="secondary" onClick={handleAddMember} className="font-bold px-4 rounded-2xl">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={handleAddMember}
+                    disabled={!groupNimInput.trim() || groupMembers.length >= maxAllowedMembers}
+                    className="font-bold px-4 rounded-2xl bg-purple-700 hover:bg-purple-800 text-white border-0 disabled:bg-slate-200 disabled:text-slate-400"
+                  >
                     Tambah
                   </Button>
                 </div>
 
-                {groupMembers.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2.5">
-                    {groupMembers.map((nim) => (
-                      <span
-                        key={nim}
-                        className="inline-flex items-center gap-1.5 text-xs font-mono font-bold bg-white text-eco-900 border border-eco-200 px-3 py-1.5 rounded-2xl shadow-xs"
-                      >
-                        <Users className="w-3.5 h-3.5 text-eco-700" />
-                        {nim}
-                        <button type="button" onClick={() => handleRemoveMember(nim)}>
-                          <X className="w-3.5 h-3.5 text-rose-500 hover:text-rose-700" />
-                        </button>
+                {groupMembers.length > 0 ? (
+                  <div className="space-y-2 pt-1">
+                    <div className="flex flex-wrap gap-2">
+                      {groupMembers.map((nim) => (
+                        <span
+                          key={nim}
+                          className="inline-flex items-center gap-1.5 text-xs font-mono font-bold bg-white text-purple-950 border border-purple-200 px-3 py-1.5 rounded-2xl shadow-2xs"
+                        >
+                          <Users className="w-3.5 h-3.5 text-purple-700" />
+                          {nim}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMember(nim)}
+                            className="p-0.5 rounded-full hover:bg-rose-50 transition-colors"
+                          >
+                            <X className="w-3.5 h-3.5 text-rose-500 hover:text-rose-700" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="text-[11px] text-purple-800 font-medium bg-purple-100/60 p-2.5 rounded-xl border border-purple-200 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-purple-700 shrink-0" />
+                      <span>
+                        Jangan lupa mengunggah <strong>Foto Bersama di Lokasi (Slot 2)</strong> di atas untuk memverifikasi kehadiran {groupMembers.length} rekan tim.
                       </span>
-                    ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-[11px] text-slate-500 italic bg-white/70 p-2.5 rounded-xl border border-purple-100">
+                    Belum ada anggota tim yang ditambahkan. Jika aksi ini dikerjakan secara berkelompok, masukkan NIM rekan Anda di atas.
                   </div>
                 )}
               </div>
@@ -1580,9 +1796,41 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
                 </Badge>
               </div>
 
-              {photoPreview && (
-                <div className="relative rounded-2xl overflow-hidden aspect-[16/10] bg-slate-900">
-                  <img src={photoPreview} alt="Live Preview" className="w-full h-full object-cover" />
+              {/* Photos in Live Preview */}
+              <div className="space-y-2">
+                {photoPreview && (
+                  <div className="relative rounded-2xl overflow-hidden aspect-[16/10] bg-slate-900">
+                    <img src={photoPreview} alt="Live Preview Aksi" className="w-full h-full object-cover" />
+                    <div className="absolute top-2 left-2 bg-black/70 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-lg">
+                      Foto Aksi Utama
+                    </div>
+                  </div>
+                )}
+                {groupPhotoPreview && (
+                  <div className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-slate-900 border border-purple-200">
+                    <img src={groupPhotoPreview} alt="Live Preview Tim" className="w-full h-full object-cover" />
+                    <div className="absolute top-2 left-2 bg-purple-900 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-lg flex items-center gap-1">
+                      <Users className="w-3 h-3 text-purple-300" />
+                      Foto Bersama Tim ({groupMembers.length + 1} Orang)
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Team Members in Live Preview */}
+              {groupMembers.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1 p-2 bg-purple-50 rounded-xl border border-purple-100 text-[11px] text-purple-900">
+                  <span className="font-bold flex items-center gap-1 mr-1">
+                    <Users className="w-3.5 h-3.5 text-purple-600" /> Tim:
+                  </span>
+                  <span className="font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-purple-200 text-purple-700">
+                    {user?.nim || 'Ketua'} (Ketua)
+                  </span>
+                  {groupMembers.map((nim) => (
+                    <span key={nim} className="font-mono bg-white px-1.5 py-0.5 rounded border border-purple-200">
+                      {nim}
+                    </span>
+                  ))}
                 </div>
               )}
 

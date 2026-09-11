@@ -29,6 +29,8 @@ export const DEFAULT_CAMPUS_EVENTS: CampusEvent[] = [
     location: 'Plaza Gedung Anggrek, Kampus BINUS',
     dressCode: 'Almamater / Kaos Hitam',
     status: 'ACTIVE',
+    allowGroupMembers: true,
+    maxGroupMembers: 5,
     activities: [
       {
         id: 'act-wfc-pos1',
@@ -413,6 +415,8 @@ const mapDbEventToModel = (row: any): CampusEvent => {
     location: row.location,
     dressCode: row.dress_code || row.dressCode,
     status: row.status || 'ACTIVE',
+    allowGroupMembers: row.allow_group_members ?? row.allowGroupMembers ?? false,
+    maxGroupMembers: Number(row.max_group_members ?? row.maxGroupMembers ?? 3),
     activities,
     hashtags: row.hashtags || ['#WasteForChange', '#CampusEcoFair', '#ZeroWasteBinus'],
     createdAt: row.created_at || row.createdAt || new Date().toISOString(),
@@ -433,6 +437,8 @@ const mapModelToDb = (event: CampusEvent): any => ({
   location: event.location,
   dress_code: event.dressCode,
   status: event.status,
+  allow_group_members: event.allowGroupMembers,
+  max_group_members: event.maxGroupMembers,
   activities: event.activities,
   hashtags: event.hashtags || [],
   created_at: event.createdAt,
@@ -452,6 +458,8 @@ const mapPatchToDb = (patch: Partial<Omit<CampusEvent, 'id' | 'createdAt'>>): an
   if (patch.location !== undefined) db.location = patch.location;
   if (patch.dressCode !== undefined) db.dress_code = patch.dressCode;
   if (patch.status !== undefined) db.status = patch.status;
+  if (patch.allowGroupMembers !== undefined) db.allow_group_members = patch.allowGroupMembers;
+  if (patch.maxGroupMembers !== undefined) db.max_group_members = patch.maxGroupMembers;
   if (patch.activities !== undefined) db.activities = patch.activities;
   if (patch.hashtags !== undefined) db.hashtags = patch.hashtags;
   return db;

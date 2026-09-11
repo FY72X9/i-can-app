@@ -16,6 +16,7 @@ import {
   X,
   ExternalLink,
   Shirt,
+  User,
 } from 'lucide-react';
 import { CampusEvent, GreenAction } from '@/types';
 import { getEventById, computeEventLeaderboard, EventLeaderboardEntry, getEventTimelineCategory } from '@/services/eventService';
@@ -157,6 +158,17 @@ export const EventDetailPage: React.FC = () => {
             <Users className="w-3.5 h-3.5 text-eco-700" />
             {event.organizerName}
           </span>
+          {event.allowGroupMembers || (event.maxGroupMembers && event.maxGroupMembers > 0) ? (
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-purple-100 text-purple-900 border border-purple-200">
+              <Users className="w-3.5 h-3.5 text-purple-700" />
+              Aksi Berkelompok (Maks. {event.maxGroupMembers || 3} Rekan Mahasiswa)
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 text-slate-600">
+              <User className="w-3.5 h-3.5 text-slate-500" />
+              Aksi Individu
+            </span>
+          )}
         </div>
 
         {/* Structured Event Metadata Chips */}

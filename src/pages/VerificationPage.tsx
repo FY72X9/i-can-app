@@ -17,6 +17,7 @@ import {
   Coins,
   GraduationCap,
   Users,
+  User,
   AlertCircle,
   FileCheck2,
   Filter,
@@ -372,17 +373,36 @@ export const VerificationPage: React.FC = () => {
                 </Badge>
               </div>
 
-              {/* Evidence Photo */}
-              <div className="relative rounded-3xl overflow-hidden aspect-[16/10] bg-slate-100 border border-slate-200">
-                <img
-                  src={action.photoUrl}
-                  alt={action.categoryName}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-md text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
-                  <MapPin className="w-3.5 h-3.5 text-eco-neon" />
-                  GPS Terverifikasi Kampus
+              {/* Evidence Photos (Action Photo + Group Presence Photo) */}
+              <div className="space-y-2.5">
+                <div className="relative rounded-3xl overflow-hidden aspect-[16/10] bg-slate-100 border border-slate-200">
+                  <img
+                    src={action.photoUrl}
+                    alt={action.categoryName}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-3 left-3 bg-black/75 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+                    🌱 Foto Aksi Utama
+                  </div>
+                  <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-md text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                    <MapPin className="w-3.5 h-3.5 text-eco-neon" />
+                    GPS Terverifikasi Kampus
+                  </div>
                 </div>
+
+                {action.groupPhotoUrl && (
+                  <div className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-purple-950/10 border border-purple-200">
+                    <img
+                      src={action.groupPhotoUrl}
+                      alt="Foto Bersama Anggota Kelompok"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2.5 left-2.5 bg-purple-950/85 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                      <Users className="w-3.5 h-3.5 text-purple-300" />
+                      Foto Bersama Seluruh Anggota di Lokasi ({action.groupMembers ? action.groupMembers.length + 1 : 1} Orang)
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Survey / Action Step Badge */}
@@ -417,9 +437,24 @@ export const VerificationPage: React.FC = () => {
 
               {/* Group Members Tag if available */}
               {action.groupMembers && action.groupMembers.length > 0 && (
-                <div className="flex items-center gap-2 text-xs text-text-secondary bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
-                  <Users className="w-4 h-4 text-eco-600 shrink-0" />
-                  <span>Anggota Tim: <strong>{action.groupMembers.join(', ')}</strong></span>
+                <div className="bg-purple-50/80 border border-purple-200/80 p-3 rounded-2xl space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-bold text-purple-900">
+                    <span className="flex items-center gap-1.5">
+                      <Users className="w-4 h-4 text-purple-700 shrink-0" />
+                      Anggota Tim ({action.groupMembers.length} Rekan Mahasiswa):
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-wider bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full">
+                      Aksi Berkelompok
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {action.groupMembers.map((nim) => (
+                      <span key={nim} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white border border-purple-200 text-purple-900 font-mono text-xs font-bold shadow-2xs">
+                        <User className="w-3 h-3 text-purple-600" />
+                        {nim}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
 

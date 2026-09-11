@@ -58,10 +58,12 @@ export interface GreenAction {
   categoryName?: string;
   categoryIcon?: string;
   submissionType?: ActionType;
-  photoUrl: string;
+  photoUrl: string; // Foto bukti aksi utama (dianalisis AI)
+  groupPhotoUrl?: string; // Foto bersama seluruh anggota tim di lokasi (validasi verifikator)
+  additionalPhotos?: string[]; // Foto dokumentasi tambahan (opsional)
   campaignUrl?: string; // Link postingan Instagram / TikTok
   videoUrl?: string; // Link Video YouTube / GDrive (VBL)
-  groupMembers?: string[]; // List NIM anggota (max 3 orang)
+  groupMembers?: string[]; // List NIM anggota kelompok (s.d. 20 orang)
   story?: string;
   gpsLat?: number;
   gpsLng?: number;
@@ -133,6 +135,8 @@ export interface CampusEvent {
   location?: string;        // e.g. "BINUS @Bekasi"
   dressCode?: string;       // e.g. "Kaos hitam & celana panjang"
   status: EventStatus;
+  allowGroupMembers?: boolean; // Izinkan aksi kelompok
+  maxGroupMembers?: number;    // Batas maksimal anggota mahasiswa (1 - 20 orang)
   activities: EventActivity[];
   hashtags?: string[];      // Organizer-provided hashtags for the event
   createdAt: string;

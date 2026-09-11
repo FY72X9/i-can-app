@@ -22,6 +22,7 @@ import {
 import { 
   LayoutDashboard, 
   Users, 
+  User,
   CheckSquare, 
   GraduationCap, 
   BarChart3, 
@@ -182,6 +183,8 @@ export const AdminLtePage: React.FC = () => {
     location: '',
     dressCode: '',
     hashtags: '#WasteForChange #CampusEcoFair #ZeroWasteBinus',
+    allowGroupMembers: false,
+    maxGroupMembers: 3,
     activities: [{ name: '', description: '', coinsReward: 10, satPointsReward: 0 }] as Array<{ name: string; description: string; coinsReward: number; satPointsReward?: number }>,
   });
   const [showRewardGuide, setShowRewardGuide] = useState(false);
@@ -741,6 +744,10 @@ export const AdminLtePage: React.FC = () => {
       location: eventFormData.location.trim() || undefined,
       dressCode: eventFormData.dressCode.trim() || undefined,
       status: 'ACTIVE' as EventStatus,
+      allowGroupMembers: eventFormData.allowGroupMembers,
+      maxGroupMembers: eventFormData.allowGroupMembers
+        ? Math.min(20, Math.max(1, Number(eventFormData.maxGroupMembers) || 1))
+        : 0,
       activities: validActivities,
       hashtags: (eventFormData.hashtags || '')
         .split(/[,\s]+/)
@@ -772,6 +779,8 @@ export const AdminLtePage: React.FC = () => {
       location: '',
       dressCode: '',
       hashtags: '#WasteForChange #CampusEcoFair #ZeroWasteBinus',
+      allowGroupMembers: false,
+      maxGroupMembers: 3,
       activities: [{ name: '', description: '', coinsReward: 10, satPointsReward: 0 }],
     });
     await loadData();
@@ -805,6 +814,8 @@ export const AdminLtePage: React.FC = () => {
       location: event.location || '',
       dressCode: event.dressCode || '',
       hashtags: event.hashtags && event.hashtags.length > 0 ? event.hashtags.join(' ') : '#WasteForChange #CampusEcoFair #ZeroWasteBinus',
+      allowGroupMembers: event.allowGroupMembers ?? (Boolean(event.maxGroupMembers && event.maxGroupMembers > 0)),
+      maxGroupMembers: event.maxGroupMembers && event.maxGroupMembers > 0 ? event.maxGroupMembers : 3,
       activities: (event.activities || []).map((a) => ({
         name: a.name,
         description: a.description,
@@ -1732,6 +1743,8 @@ export const AdminLtePage: React.FC = () => {
                       location: '',
                       dressCode: '',
                       hashtags: '#WasteForChange #CampusEcoFair #ZeroWasteBinus',
+                      allowGroupMembers: false,
+                      maxGroupMembers: 3,
                       activities: [{ name: '', description: '', coinsReward: 10, satPointsReward: 0 }],
                     });
                     setShowEventForm(true);
@@ -2129,6 +2142,89 @@ export const AdminLtePage: React.FC = () => {
                       </p>
                     </div>
 
+                    {/* Group Action Configuration (Aksi Berkelompok) */}
+                    <div className="rounded-2xl border border-purple-200/80 bg-purple-50/40 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                            <Users className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-slate-800 block cursor-pointer">
+                              Partisipasi Aksi Berkelompok (Group Action)
+                            </label>
+                            <p className="text-[11px] text-slate-500">
+                              Izinkan mahasiswa mengerjakan aksi event ini secara berkelompok
+                            </p>
+                          </div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={eventFormData.allowGroupMembers}
+                            onChange={(e) => setEventFormData((p) => ({ ...p, allowGroupMembers: e.target.checked }))}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                      </div>
+
+                      {eventFormData.allowGroupMembers && (
+                        <div className="pt-3 border-t border-purple-200/60 space-y-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                            <div>
+                              <label className="text-xs font-bold text-slate-700 block">
+                                Maksimal Mahasiswa yang Bisa Ditambahkan
+                              </label>
+                              <span className="text-[10px] text-slate-500">
+                                Batas rekan tim tambahan yang dapat didaftarkan pelapor (1 s.d. 20 orang)
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                min={1}
+                                max={20}
+                                value={eventFormData.maxGroupMembers}
+                                onChange={(e) => {
+                                  const val = Math.min(20, Math.max(1, parseInt(e.target.value) || 1));
+                                  setEventFormData((p) => ({ ...p, maxGroupMembers: val }));
+                                }}
+                                className="w-20 text-center font-bold text-sm p-2 rounded-xl border border-purple-300 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 font-mono"
+                              />
+                              <span className="text-xs font-bold text-slate-600">Orang</span>
+                            </div>
+                          </div>
+
+                          {/* Quick Preset Buttons */}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] text-slate-400 font-bold mr-1">Preset Cepat:</span>
+                            {[3, 5, 10, 15, 20].map((preset) => (
+                              <button
+                                key={preset}
+                                type="button"
+                                onClick={() => setEventFormData((p) => ({ ...p, maxGroupMembers: preset }))}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                                  eventFormData.maxGroupMembers === preset
+                                    ? 'bg-purple-600 text-white shadow-xs'
+                                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-purple-50 hover:text-purple-700'
+                                }`}
+                              >
+                                {preset} Orang
+                              </button>
+                            ))}
+                          </div>
+
+                          <div className="bg-white/80 border border-purple-200/80 rounded-xl p-2.5 text-[11px] text-purple-900 leading-relaxed flex items-start gap-2">
+                            <Sparkles className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                            <span>
+                              Pelapor (ketua tim) dapat mendaftarkan hingga <strong>{eventFormData.maxGroupMembers} rekan mahasiswa</strong>. Pada halaman Kirim Bukti Aksi, pelapor diwajibkan mengunggah <strong>Foto Bersama Seluruh Anggota di Lokasi (Slot 2)</strong> untuk validasi kehadiran oleh panitia.
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     {/* Activities */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -2440,6 +2536,15 @@ export const AdminLtePage: React.FC = () => {
                                 <span className="font-mono text-slate-400">
                                   • {(evt.activities?.length || 0) > 0 ? `${evt.activities.length} Pos` : 'Tanpa Pos'}
                                 </span>
+                                {evt.allowGroupMembers || (evt.maxGroupMembers && evt.maxGroupMembers > 0) ? (
+                                  <span className="flex items-center gap-1 text-purple-700 bg-purple-50 border border-purple-200/60 px-1.5 py-0.5 rounded-md font-semibold">
+                                    <Users className="w-2.5 h-2.5" /> Tim (Maks. {evt.maxGroupMembers || 3} Mhs)
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center gap-1 text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md font-semibold">
+                                    <User className="w-2.5 h-2.5" /> Individu
+                                  </span>
+                                )}
                               </div>
                             </div>
                         <div className="flex flex-col gap-1.5 shrink-0">
@@ -3770,14 +3875,67 @@ export const AdminLtePage: React.FC = () => {
               </button>
             </div>
 
-            <div className="rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
-              <img 
-                src={evidenceModal.photoUrl} 
-                alt="Bukti Aksi" 
-                loading="lazy"
-                className="w-full h-auto object-contain max-h-[300px]"
-              />
+            {/* Photos Display (Primary Action + Group Selfie Photo) */}
+            <div className="space-y-3">
+              <div className="rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 relative group">
+                <div className="p-2 bg-slate-800/90 text-white text-[10px] font-black flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                    Foto 1: Bukti Pelaksanaan Aksi (Dianalisis AI)
+                  </span>
+                  <span className="text-emerald-400 font-mono">
+                    Match: {Math.round((evidenceModal.aiConfidence || 0.95) * 100)}%
+                  </span>
+                </div>
+                <img 
+                  src={evidenceModal.photoUrl} 
+                  alt="Bukti Aksi Utama" 
+                  loading="lazy"
+                  className="w-full h-auto object-contain max-h-[260px] mx-auto bg-black/5"
+                />
+              </div>
+
+              {evidenceModal.groupPhotoUrl && (
+                <div className="rounded-2xl overflow-hidden bg-purple-50/50 border border-purple-200 relative group">
+                  <div className="p-2 bg-purple-900 text-white text-[10px] font-black flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-purple-300" />
+                      Foto 2: Foto Bersama Seluruh Anggota Tim di Lokasi (Verifikasi Fisik)
+                    </span>
+                    <span className="text-purple-300 font-bold">Welfie Kehadiran</span>
+                  </div>
+                  <img 
+                    src={evidenceModal.groupPhotoUrl} 
+                    alt="Foto Bersama Anggota" 
+                    loading="lazy"
+                    className="w-full h-auto object-contain max-h-[260px] mx-auto bg-black/5"
+                  />
+                </div>
+              )}
             </div>
+
+            {/* Group Members List if Present */}
+            {evidenceModal.groupMembers && evidenceModal.groupMembers.length > 0 && (
+              <div className="bg-purple-50/80 border border-purple-200/80 p-3.5 rounded-2xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
+                    <Users className="w-4 h-4 text-purple-700" />
+                    Anggota Tim Terdaftar ({evidenceModal.groupMembers.length} Orang)
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full">
+                    Aksi Berkelompok
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {evidenceModal.groupMembers.map((nim) => (
+                    <span key={nim} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white border border-purple-200 text-purple-900 font-mono text-xs font-bold shadow-2xs">
+                      <User className="w-3 h-3 text-purple-600" />
+                      {nim}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {evidenceModal.story && (
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
