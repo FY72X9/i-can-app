@@ -58,36 +58,38 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
       <div className="fixed top-1/3 -right-40 w-96 h-96 bg-gold-neon/20 rounded-full blur-3xl pointer-events-none" />
       <div className="fixed -bottom-40 left-1/3 w-96 h-96 bg-cyber-purple/15 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Global Environment & Mode Switcher Bar */}
-      <div className="w-full bg-slate-900 text-white text-xs py-1.5 px-4 z-50 flex items-center justify-between border-b border-slate-800 shadow-sm">
-        <div className="flex items-center gap-2 max-w-6xl mx-auto w-full justify-between">
-          <div className="flex items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-              isPrototypeMode() 
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
-                : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-            }`}>
-              <span className={`w-2 h-2 rounded-full ${isPrototypeMode() ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse`} />
-              {isPrototypeMode() ? '📱 Mode Prototype End-User (Sesuai Role)' : '🛠️ Mode Dev / Demo Showcase (1-Klik Switch)'}
-            </span>
-            <span className="hidden sm:inline text-[11px] text-slate-400">
-              {isPrototypeMode() 
-                ? 'Akses role dibatasi ketat (Hanya Super Admin yang dapat ubah role)' 
-                : 'Akses cepat 5 role demo & AdminLTE aktif untuk juri'}
-            </span>
-          </div>
+      {/* Global Environment & Mode Switcher Bar (Hidden in Production Mode) */}
+      {import.meta.env.VITE_APP_MODE !== 'production' && (
+        <div className="w-full bg-slate-900 text-white text-xs py-1.5 px-4 z-50 flex items-center justify-between border-b border-slate-800 shadow-sm">
+          <div className="flex items-center gap-2 max-w-6xl mx-auto w-full justify-between">
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                isPrototypeMode() 
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
+                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+              }`}>
+                <span className={`w-2 h-2 rounded-full ${isPrototypeMode() ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse`} />
+                {isPrototypeMode() ? '📱 Mode Prototype End-User (Sesuai Role)' : '🛠️ Mode Dev / Demo Showcase (1-Klik Switch)'}
+              </span>
+              <span className="hidden sm:inline text-[11px] text-slate-400">
+                {isPrototypeMode() 
+                  ? 'Akses role dibatasi ketat (Hanya Super Admin yang dapat ubah role)' 
+                  : 'Akses cepat 5 role demo & AdminLTE aktif untuk juri'}
+              </span>
+            </div>
 
-          <button
-            onClick={toggleMode}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold border border-slate-700 transition-all active:scale-95 text-slate-200"
-            title="Ganti antara Mode Prototype Murni & Mode Demo Juri"
-          >
-            <Sliders className="w-3.5 h-3.5 text-eco-neon" />
-            <span className="hidden xs:inline">Ganti Mode:</span>
-            <strong className="text-eco-neon">{isPrototypeMode() ? 'Ke Dev Mode' : 'Ke Prototype'}</strong>
-          </button>
+            <button
+              onClick={toggleMode}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold border border-slate-700 transition-all active:scale-95 text-slate-200"
+              title="Ganti antara Mode Prototype Murni & Mode Demo Juri"
+            >
+              <Sliders className="w-3.5 h-3.5 text-eco-neon" />
+              <span className="hidden xs:inline">Ganti Mode:</span>
+              <strong className="text-eco-neon">{isPrototypeMode() ? 'Ke Dev Mode' : 'Ke Prototype'}</strong>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Container */}
       <div className="w-full max-w-6xl mx-auto flex justify-center lg:gap-8 lg:py-6 lg:px-4 flex-1">
