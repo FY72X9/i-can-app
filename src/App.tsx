@@ -13,8 +13,6 @@ import { VerificationPage } from '@/pages/VerificationPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { LoginPage } from '@/pages/LoginPage';
 import { CallbackPage } from '@/pages/CallbackPage';
-import { GuidePage } from '@/pages/GuidePage';
-import { SdgGuidelinePage } from '@/pages/SdgGuidelinePage';
 import { AdminLtePage } from '@/pages/AdminLtePage';
 import { LeaderboardPage } from '@/pages/LeaderboardPage';
 import { EventsPage } from '@/pages/EventsPage';
@@ -30,7 +28,6 @@ import {
   Award,
   Zap,
   Radio,
-  BookOpen,
   LayoutDashboard,
   Shield,
   User,
@@ -181,8 +178,8 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
           )}
 
           {/* Quick Navigation Links */}
-          <div className="grid grid-cols-2 gap-2.5">
-            {(canSwitchAccounts || user?.role === 'SUPERADMIN') && (
+          {(canSwitchAccounts || user?.role === 'SUPERADMIN') && (
+            <div className="grid grid-cols-1 gap-2.5">
               <Link
                 to="/admin"
                 className="p-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-left transition-all shadow-xs space-y-1 block"
@@ -194,22 +191,8 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
                 <div className="text-xs font-black">Admin Panel</div>
                 <div className="text-[10px] text-slate-400">Web View SSO</div>
               </Link>
-            )}
-
-            <Link
-              to="/guide"
-              className={`p-3 rounded-2xl bg-white hover:bg-eco-50/80 border border-surface-border text-left transition-all shadow-xs space-y-1 block ${
-                !canSwitchAccounts && user?.role !== 'SUPERADMIN' ? 'col-span-2' : ''
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <BookOpen className="w-4 h-4 text-eco-700" />
-                <span className="text-[9px] font-black bg-eco-neon/20 text-eco-900 px-1.5 py-0.2 rounded">TFI</span>
-              </div>
-              <div className="text-xs font-black text-text-primary">Panduan & FAQ</div>
-              <div className="text-[10px] text-text-muted">Regulasi Resmi SSO</div>
-            </Link>
-          </div>
+            </div>
+          )}
         </aside>
 
         {/* Center Smartphone Screen Canvas */}
@@ -254,16 +237,13 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
             </Link>
           </div>
 
-          {/* Quick Regulatory Summary with Link to Guide & SDG */}
+          {/* Quick Regulatory Summary */}
           <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-5 border border-surface-border shadow-eco-soft space-y-2.5 text-left">
             <div className="flex items-center justify-between text-xs sm:text-sm font-black text-text-primary">
               <div className="flex items-center gap-1.5">
                 <Award className="w-4 h-4 text-amber-600" />
                 <span>Dual-Track & SDGs</span>
               </div>
-              <Link to="/sdg-guideline" className="text-xs text-eco-800 hover:underline font-bold">
-                Matriks SDG →
-              </Link>
             </div>
             <p className="text-xs text-text-secondary leading-relaxed">
               1. <b>BEKEN Award:</b> Gamifikasi koin hijau tahunan.<br />
@@ -354,36 +334,6 @@ export const App: React.FC = () => {
               <ProtectedRoute>
                 <AppLayout title="Profil Mahasiswa" subtitle="Rekam Jejak & Rarity Badges">
                   <ProfilePage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/guide"
-            element={
-              <ProtectedRoute>
-                <AppLayout title="Pusat Panduan & FAQ" subtitle="Regulasi TFI & Standar SSO">
-                  <GuidePage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/sdg-guideline"
-            element={
-              <ProtectedRoute>
-                <AppLayout title="Panduan Target SDG BINUS" subtitle="Pemetaan Aksi I-CAN & Standar Saintifik IPCC">
-                  <SdgGuidelinePage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/guidelines/sdg"
-            element={
-              <ProtectedRoute>
-                <AppLayout title="Panduan Target SDG BINUS" subtitle="Pemetaan Aksi I-CAN & Standar Saintifik IPCC">
-                  <SdgGuidelinePage />
                 </AppLayout>
               </ProtectedRoute>
             }

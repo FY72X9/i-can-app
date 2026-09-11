@@ -1662,17 +1662,11 @@ export const AdminLtePage: React.FC = () => {
           {/* 7. Tab Content: SDG Analytics */}
           {activeMenu === 'sdg' && (
             <div className="space-y-4">
-              <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5">
+              <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-slate-900">Monitoring Target UN SDG BINUS University</h3>
                   <p className="text-xs text-slate-500 mt-0.5">Agregasi capaian program keberlanjutan kampus semester aktif 2026</p>
                 </div>
-                <Link
-                  to="/sdg-guideline"
-                  className="px-4 py-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 text-xs font-black border border-emerald-300 transition-colors flex items-center gap-1.5 shrink-0"
-                >
-                  <span>Buka Panduan & Matriks SDG Lengkap →</span>
-                </Link>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">

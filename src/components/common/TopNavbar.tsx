@@ -16,7 +16,6 @@ import {
   ExternalLink,
   Shield,
   Layers,
-  BookOpen,
   GraduationCap
 } from 'lucide-react';
 import { useAuthStore, DEMO_PROFILES } from '@/stores/authStore';
@@ -221,24 +220,6 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
                         </div>
                       </button>
                     ))}
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-100 flex gap-2">
-                    <Link
-                      to="/sdg-guideline"
-                      onClick={() => setShowAccountSelector(false)}
-                      className="flex-1 py-2 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 text-xs font-bold rounded-xl text-center transition-colors flex items-center justify-center gap-1"
-                    >
-                      <span>🌍 Matriks SDG</span>
-                    </Link>
-                    <Link
-                      to="/guide"
-                      onClick={() => setShowAccountSelector(false)}
-                      className="flex-1 py-2 px-2.5 bg-eco-50 hover:bg-eco-100 text-eco-800 text-xs font-bold rounded-xl text-center transition-colors flex items-center justify-center gap-1"
-                    >
-                      <BookOpen className="w-3.5 h-3.5" />
-                      <span>Panduan</span>
-                    </Link>
                   </div>
                 </div>
               )}

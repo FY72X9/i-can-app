@@ -264,36 +264,7 @@ export const ProfilePage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 3. Quick Links & SDG Banner */}
-      <div className="grid grid-cols-1 gap-3">
-        <Link
-          to="/sdg-guideline"
-          className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 hover:border-emerald-400 transition-all text-left shadow-xs space-y-1 block"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-emerald-900 bg-emerald-100 px-2.5 py-0.5 rounded-md border border-emerald-300">
-              UN SDGs
-            </span>
-          </div>
-          <h4 className="text-xs sm:text-sm font-black text-emerald-950">Panduan Target SDG BINUS</h4>
-          <p className="text-xs text-text-secondary leading-relaxed">8 Target prioritas & formula kuantifikasi emisi IPCC</p>
-        </Link>
-
-        <Link
-          to="/guide"
-          className="p-4 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-xs space-y-1 block"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-eco-800 bg-eco-50 px-2.5 py-0.5 rounded-md border border-eco-200">
-              Regulasi SSO
-            </span>
-          </div>
-          <h4 className="text-xs sm:text-sm font-black text-text-primary">Panduan & FAQ TFI</h4>
-          <p className="text-xs text-text-secondary leading-relaxed">Standar poin SAT & jam pengabdian masyarakat</p>
-        </Link>
-      </div>
-
-      {/* 4. Eco-Volunteer Application Card */}
+      {/* 3. Eco-Volunteer Application Card */}
       <Card variant="subtle" className="p-5 sm:p-6 border-eco-200/80 bg-gradient-to-r from-eco-50 via-emerald-50/70 to-teal-50/50 shadow-xs space-y-3">
         <div className="flex items-start gap-3.5">
           <div className="w-11 h-11 rounded-2xl bg-eco-700 text-white flex items-center justify-center shrink-0 shadow-sm">
@@ -314,18 +285,15 @@ export const ProfilePage: React.FC = () => {
                 Uji Coba Portal Verifikator →
               </Button>
             ) : (
-              <Link
-                to="/guide"
-                className="inline-flex items-center gap-1 mt-3 text-xs font-black text-eco-800 hover:underline"
-              >
-                Pelajari Syarat & Pendaftaran Volunteer TFI →
-              </Link>
+              <p className="mt-3 text-xs font-medium text-eco-800">
+                Pendaftaran volunteer dibuka tiap awal semester melalui Teach For Indonesia (TFI).
+              </p>
             )}
           </div>
         </div>
       </Card>
 
-      {/* 5. Switch Account & Logout Action Buttons */}
+      {/* 4. Switch Account & Logout Action Buttons */}
       <div className="pt-2">
         <Button
           variant="danger"

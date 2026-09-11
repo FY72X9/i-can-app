@@ -223,7 +223,6 @@ i-can-app/
 │   │   ├── AdminLtePage.tsx          # Panel Super Admin AdminLTE 3.4
 │   │   ├── CallbackPage.tsx          # OIDC redirect handler Logto SSO
 │   │   ├── FeedPage.tsx              # Community Feed & Storytelling
-│   │   ├── GuidePage.tsx             # Pusat Panduan & FAQ Resmi SSO/TFI
 │   │   ├── HomePage.tsx              # Dashboard utama & live ticker
 │   │   ├── LeaderboardPage.tsx       # Papan peringkat BEKEN, SAT & Fakultas
 │   │   ├── LoginPage.tsx             # Halaman login, registrasi & demo

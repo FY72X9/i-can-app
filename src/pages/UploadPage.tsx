@@ -31,7 +31,6 @@ import {
   ChevronRight,
   ClipboardList,
   Building,
-  HelpCircle,
   Image as ImageIcon,
   Send,
   Eye,
@@ -598,37 +597,6 @@ Dampak: ${selectedCategory.carbonKg} kg CO2e
             <span>Pra-Survei K3</span>
           </button>
         </div>
-      </div>
-
-      {/* Guide & SDG Banners Helper */}
-      <div className="grid grid-cols-1 gap-2.5">
-        <Link
-          to="/sdg-guideline"
-          className="p-3 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-300/80 rounded-2xl flex items-center justify-between shadow-2xs hover:shadow-xs transition-all group"
-        >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="text-base shrink-0">🌍</span>
-            <span className="text-xs font-bold text-emerald-950 group-hover:text-emerald-800 transition-colors truncate">
-              Matriks Target SDG & Formula Emisi IPCC
-            </span>
-          </div>
-          <ChevronRight className="w-4 h-4 text-emerald-700 shrink-0 group-hover:translate-x-0.5 transition-transform" />
-        </Link>
-
-        <Link
-          to="/guide"
-          className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-2xl flex items-center justify-between shadow-2xs hover:shadow-xs transition-all group"
-        >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <HelpCircle className="w-4 h-4 text-blue-700 shrink-0" />
-            <span className="text-xs font-bold text-blue-950 group-hover:text-blue-800 transition-colors truncate">
-              {activeTab === 'SURVEY_PROPOSAL'
-                ? 'Panduan Survei K3 & Proposal TFI'
-                : 'Panduan Foto Pohon & Video VBL'}
-            </span>
-          </div>
-          <ChevronRight className="w-4 h-4 text-blue-700 shrink-0 group-hover:translate-x-0.5 transition-transform" />
-        </Link>
       </div>
 
       {/* 2. Main Form Formats */}

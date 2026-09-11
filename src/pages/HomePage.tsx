@@ -25,7 +25,6 @@ import {
   BookOpen,
   ArrowRight,
   ShieldCheck,
-  Globe2,
   Calendar,
   Trash2,
   Leaf
@@ -335,50 +334,7 @@ export const HomePage: React.FC = () => {
         );
       })()}
 
-      {/* 2. Quick Guide & SDG Banners */}
-      <div className="grid grid-cols-1 gap-3">
-        <Link
-          to="/sdg-guideline"
-          className="p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-300/80 rounded-2xl flex items-center justify-between shadow-2xs hover:shadow-xs transition-all group block"
-        >
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-emerald-700 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0">
-              <Globe2 className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <h4 className="text-xs sm:text-sm font-black text-emerald-950 group-hover:text-emerald-800 transition-colors truncate">
-                Panduan Target SDG BINUS
-              </h4>
-              <p className="text-xs text-text-secondary leading-relaxed mt-0.5 truncate">
-                8 Target prioritas & formula kuantifikasi emisi IPCC.
-              </p>
-            </div>
-          </div>
-          <ChevronRight className="w-4 h-4 text-emerald-700 shrink-0 group-hover:translate-x-1 transition-transform ml-2" />
-        </Link>
-
-        <Link
-          to="/guide"
-          className="p-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border border-blue-200/80 rounded-2xl flex items-center justify-between shadow-2xs hover:shadow-xs transition-all group block"
-        >
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-blue-700 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0">
-              <BookOpen className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <h4 className="text-xs sm:text-sm font-black text-blue-950 group-hover:text-blue-800 transition-colors truncate">
-                Pusat Panduan & FAQ TFI
-              </h4>
-              <p className="text-xs text-text-secondary leading-relaxed mt-0.5 truncate">
-                Regulasi resmi SSO, foto pohon & format sitasi video VBL.
-              </p>
-            </div>
-          </div>
-          <ChevronRight className="w-4 h-4 text-blue-700 shrink-0 group-hover:translate-x-1 transition-transform ml-2" />
-        </Link>
-      </div>
-
-      {/* 3. ⚡ Daily Quests Section */}
+      {/* 2. ⚡ Daily Quests Section */}
       <div className="space-y-3.5">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">

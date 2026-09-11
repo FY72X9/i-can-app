@@ -21,7 +21,6 @@ import {
   Award, 
   Flame, 
   Zap, 
-  BookOpen, 
   ChevronRight,
   User
 } from 'lucide-react';
@@ -131,20 +130,6 @@ export const FeedPage: React.FC = () => {
           {filteredPosts.length} Cerita Inspiratif
         </Badge>
       </div>
-
-      {/* Quick Guide Link Banner */}
-      <Link
-        to="/guide"
-        className="p-3 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border border-eco-200 rounded-2xl flex items-center justify-between shadow-2xs hover:shadow-xs transition-all group"
-      >
-        <div className="flex items-center gap-2.5">
-          <BookOpen className="w-4 h-4 text-eco-700" />
-          <span className="text-xs font-black text-text-primary group-hover:text-eco-800 transition-colors">
-            Ketentuan Storytelling & Format Sitasi APA Style →
-          </span>
-        </div>
-        <ChevronRight className="w-4 h-4 text-eco-700 shrink-0 group-hover:translate-x-0.5 transition-transform" />
-      </Link>
 
       {/* Feed Filter Pills */}
       <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5">
