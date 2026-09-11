@@ -328,6 +328,9 @@ const mapDbEventToModel = (row: any): CampusEvent => ({
   mediaUrls: row.media_urls || [],
   startDate: row.start_date,
   endDate: row.end_date,
+  timeRange: row.time_range || row.timeRange,
+  location: row.location,
+  dressCode: row.dress_code || row.dressCode,
   status: row.status,
   activities: row.activities || [],
   createdAt: row.created_at,
@@ -343,6 +346,9 @@ const mapModelToDb = (event: CampusEvent): any => ({
   media_urls: event.mediaUrls || [],
   start_date: event.startDate,
   end_date: event.endDate,
+  time_range: event.timeRange,
+  location: event.location,
+  dress_code: event.dressCode,
   status: event.status,
   activities: event.activities,
   created_at: event.createdAt,
@@ -358,7 +364,11 @@ const mapPatchToDb = (patch: Partial<Omit<CampusEvent, 'id' | 'createdAt'>>): an
   if (patch.mediaUrls !== undefined) db.media_urls = patch.mediaUrls;
   if (patch.startDate !== undefined) db.start_date = patch.startDate;
   if (patch.endDate !== undefined) db.end_date = patch.endDate;
+  if (patch.timeRange !== undefined) db.time_range = patch.timeRange;
+  if (patch.location !== undefined) db.location = patch.location;
+  if (patch.dressCode !== undefined) db.dress_code = patch.dressCode;
   if (patch.status !== undefined) db.status = patch.status;
   if (patch.activities !== undefined) db.activities = patch.activities;
   return db;
 };
+

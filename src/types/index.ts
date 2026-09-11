@@ -119,6 +119,9 @@ export interface CampusEvent {
   mediaUrls?: string[];     // Additional event media (photos, videos)
   startDate: string;        // ISO Date string
   endDate: string;          // ISO Date string
+  timeRange?: string;       // e.g. "07.00 - 10.00 WIB"
+  location?: string;        // e.g. "BINUS @Bekasi"
+  dressCode?: string;       // e.g. "Kaos hitam & celana panjang"
   status: EventStatus;
   activities: EventActivity[];
   createdAt: string;

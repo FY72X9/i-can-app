@@ -67,9 +67,12 @@ import {
   BookOpen,
   Clock,
   Tag,
-  Upload
+  Upload,
+  MapPin,
+  Shirt
 } from 'lucide-react';
 import { compressImage } from '@/utils/imageCompressor';
+import { FormattedText } from '@/components/common/FormattedText';
 
 const PROGRAM_ICONS_LIST = [
   { id: 'TreePine', label: 'Pohon', icon: TreePine },
@@ -168,12 +171,16 @@ export const AdminLtePage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
   const [editingEvent, setEditingEvent] = useState<CampusEvent | null>(null);
+  const [descPreviewMode, setDescPreviewMode] = useState<'write' | 'preview'>('write');
   const [eventFormData, setEventFormData] = useState({
     title: '',
     description: '',
     bannerUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=800&auto=format&fit=crop&q=80',
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+    timeRange: '',
+    location: '',
+    dressCode: '',
     activities: [{ name: '', description: '', coinsReward: 10 }] as Array<{ name: string; description: string; coinsReward: number }>,
   });
   const [bannerInputMode, setBannerInputMode] = useState<'upload' | 'url'>('upload');
@@ -727,6 +734,9 @@ export const AdminLtePage: React.FC = () => {
       endDate: eventFormData.endDate.includes('T')
         ? new Date(eventFormData.endDate).toISOString()
         : new Date(`${eventFormData.endDate}T23:59:59`).toISOString(),
+      timeRange: eventFormData.timeRange.trim() || undefined,
+      location: eventFormData.location.trim() || undefined,
+      dressCode: eventFormData.dressCode.trim() || undefined,
       status: 'ACTIVE' as EventStatus,
       activities: validActivities,
     };
@@ -743,12 +753,16 @@ export const AdminLtePage: React.FC = () => {
     setEditingEvent(null);
     setBannerUploadError(null);
     setBannerInputMode('upload');
+    setDescPreviewMode('write');
     setEventFormData({
       title: '',
       description: '',
       bannerUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=800&auto=format&fit=crop&q=80',
       startDate: new Date().toISOString().split('T')[0],
       endDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+      timeRange: '',
+      location: '',
+      dressCode: '',
       activities: [{ name: '', description: '', coinsReward: 10 }],
     });
     await loadData();
@@ -764,6 +778,7 @@ export const AdminLtePage: React.FC = () => {
   const handleEditEvent = (event: CampusEvent) => {
     setEditingEvent(event);
     setBannerUploadError(null);
+    setDescPreviewMode('write');
     if (event.bannerUrl && event.bannerUrl.startsWith('data:')) {
       setBannerInputMode('upload');
     } else if (event.bannerUrl && event.bannerUrl.startsWith('http')) {
@@ -777,6 +792,9 @@ export const AdminLtePage: React.FC = () => {
       bannerUrl: event.bannerUrl,
       startDate: event.startDate.split('T')[0],
       endDate: event.endDate.split('T')[0],
+      timeRange: event.timeRange || '',
+      location: event.location || '',
+      dressCode: event.dressCode || '',
       activities: (event.activities || []).map((a) => ({ name: a.name, description: a.description, coinsReward: a.coinsReward })),
     });
     setShowEventForm(true);
@@ -1685,13 +1703,16 @@ export const AdminLtePage: React.FC = () => {
                   onClick={() => {
                     setEditingEvent(null);
                     setBannerUploadError(null);
-                    setBannerInputMode('upload');
+                    setDescPreviewMode('write');
                     setEventFormData({
                       title: '',
                       description: '',
                       bannerUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=800&auto=format&fit=crop&q=80',
                       startDate: new Date().toISOString().split('T')[0],
                       endDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+                      timeRange: '',
+                      location: '',
+                      dressCode: '',
                       activities: [{ name: '', description: '', coinsReward: 10 }],
                     });
                     setShowEventForm(true);
@@ -1768,21 +1789,160 @@ export const AdminLtePage: React.FC = () => {
                         type="text"
                         value={eventFormData.title}
                         onChange={(e) => setEventFormData((p) => ({ ...p, title: e.target.value }))}
-                        placeholder="Contoh: Waste for Change BINUS"
+                        placeholder="Contoh: BreakSFest 2026 - BINUSIAN Lestari Bumi"
                         className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
                         required
                       />
                     </div>
+
+                    {/* Lokasi Event */}
                     <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1.5">Deskripsi</label>
-                      <textarea
-                        value={eventFormData.description}
-                        onChange={(e) => setEventFormData((p) => ({ ...p, description: e.target.value }))}
-                        placeholder="Deskripsi event kampanye hijau..."
-                        rows={3}
-                        className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none resize-none"
-                        required
+                      <label className="text-xs font-bold text-slate-700 block mb-1.5 flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                        Lokasi / Kampus Pelaksanaan
+                      </label>
+                      <input
+                        type="text"
+                        value={eventFormData.location}
+                        onChange={(e) => setEventFormData((p) => ({ ...p, location: e.target.value }))}
+                        placeholder="Contoh: BINUS @Bekasi (Plaza Kampus / Kolam Ikan)"
+                        className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
                       />
+                    </div>
+
+                    {/* Jam & Dresscode Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1.5 flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-blue-500" />
+                          Jam / Waktu Pelaksanaan
+                        </label>
+                        <input
+                          type="text"
+                          value={eventFormData.timeRange}
+                          onChange={(e) => setEventFormData((p) => ({ ...p, timeRange: e.target.value }))}
+                          placeholder="Contoh: 07.00 - 10.00 WIB"
+                          className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1.5 flex items-center gap-1.5">
+                          <Shirt className="w-3.5 h-3.5 text-indigo-500" />
+                          Dresscode / Ketentuan Pakaian
+                        </label>
+                        <input
+                          type="text"
+                          value={eventFormData.dressCode}
+                          onChange={(e) => setEventFormData((p) => ({ ...p, dressCode: e.target.value }))}
+                          placeholder="Contoh: Kaos hitam & celana panjang"
+                          className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Deskripsi dengan Formatting Toolbar & Live Preview */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-700">Deskripsi & Informasi Event</label>
+                        <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-[11px] font-bold">
+                          <button
+                            type="button"
+                            onClick={() => setDescPreviewMode('write')}
+                            className={`px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                              descPreviewMode === 'write'
+                                ? 'bg-white text-[#007bff] shadow-2xs font-black'
+                                : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            <Pencil className="w-3 h-3" /> Tulis Teks
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDescPreviewMode('preview')}
+                            className={`px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                              descPreviewMode === 'preview'
+                                ? 'bg-white text-[#007bff] shadow-2xs font-black'
+                                : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            <Eye className="w-3 h-3" /> Pratinjau Tampilan
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Quick Snippets Toolbar (hanya muncul di mode Tulis) */}
+                      {descPreviewMode === 'write' && (
+                        <div className="flex flex-wrap items-center gap-1.5 pb-1">
+                          <span className="text-[10px] text-slate-400 font-bold">Format Cepat:</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEventFormData((p) => ({
+                                ...p,
+                                description: p.description + (p.description ? '\n' : '') + '### Judul Bagian\n',
+                              }));
+                            }}
+                            className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors border border-slate-200"
+                          >
+                            + Judul
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEventFormData((p) => ({
+                                ...p,
+                                description: p.description + (p.description ? '\n' : '') + '- Poin kegiatan\n',
+                              }));
+                            }}
+                            className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors border border-slate-200"
+                          >
+                            + Poin List
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEventFormData((p) => ({
+                                ...p,
+                                description: p.description + (p.description ? '\n' : '') + 'Link Pendaftaran: bit.ly/LestariBumi26\n',
+                              }));
+                            }}
+                            className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors border border-blue-200"
+                          >
+                            + Tautan Link
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEventFormData((p) => ({
+                                ...p,
+                                description: p.description + (p.description ? '\n' : '') + 'Contact Person: 082125786440 (Ka Ashley)\n',
+                              }));
+                            }}
+                            className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition-colors border border-emerald-200"
+                          >
+                            + Kontak WhatsApp
+                          </button>
+                        </div>
+                      )}
+
+                      {descPreviewMode === 'write' ? (
+                        <textarea
+                          value={eventFormData.description}
+                          onChange={(e) => setEventFormData((p) => ({ ...p, description: e.target.value }))}
+                          placeholder="Tulis deskripsi event... Mendukung baris baru, format **teks tebal**, bullet list (- item), tautan link (bit.ly/...), dan nomor WA (08...)."
+                          rows={4}
+                          className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none resize-y leading-relaxed font-sans"
+                          required
+                        />
+                      ) : (
+                        <div className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 min-h-[105px]">
+                          {eventFormData.description.trim() ? (
+                            <FormattedText content={eventFormData.description} />
+                          ) : (
+                            <p className="text-xs text-slate-400 italic">Deskripsi masih kosong. Silakan ketik di tab 'Tulis Teks'.</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                     {/* Banner Image / URL */}
                     <div className="space-y-2">
@@ -2118,9 +2278,29 @@ export const AdminLtePage: React.FC = () => {
                                 </span>
                               </div>
                               <p className="text-xs text-slate-500 truncate">{evt.description}</p>
-                              <p className="text-[10px] text-slate-400 font-mono">
-                                {new Date(evt.startDate).toLocaleDateString('id-ID')} — {new Date(evt.endDate).toLocaleDateString('id-ID')} • {(evt.activities?.length || 0) > 0 ? `${evt.activities.length} Pos` : 'Tanpa Pos'}
-                              </p>
+                              <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-[10px] text-slate-500 font-medium">
+                                <span className="font-mono">
+                                  {new Date(evt.startDate).toLocaleDateString('id-ID')} — {new Date(evt.endDate).toLocaleDateString('id-ID')}
+                                </span>
+                                {evt.timeRange && (
+                                  <span className="flex items-center gap-1 text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-md font-semibold">
+                                    <Clock className="w-2.5 h-2.5" /> {evt.timeRange}
+                                  </span>
+                                )}
+                                {evt.location && (
+                                  <span className="flex items-center gap-1 text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded-md font-semibold">
+                                    <MapPin className="w-2.5 h-2.5" /> {evt.location}
+                                  </span>
+                                )}
+                                {evt.dressCode && (
+                                  <span className="flex items-center gap-1 text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded-md font-semibold">
+                                    <Shirt className="w-2.5 h-2.5" /> {evt.dressCode}
+                                  </span>
+                                )}
+                                <span className="font-mono text-slate-400">
+                                  • {(evt.activities?.length || 0) > 0 ? `${evt.activities.length} Pos` : 'Tanpa Pos'}
+                                </span>
+                              </div>
                             </div>
                         <div className="flex flex-col gap-1.5 shrink-0">
                           <button

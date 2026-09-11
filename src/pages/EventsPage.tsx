@@ -136,16 +136,35 @@ export const EventsPage: React.FC = () => {
                     {event.description}
                   </p>
 
-                  <div className="flex items-center gap-4 text-[11px] text-text-muted font-bold">
+                  {/* Badges / Highlights */}
+                  {(event.location || event.timeRange) && (
+                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      {event.location && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-50 border border-rose-100 text-rose-700 text-[10px] font-black">
+                          <MapPin className="w-3 h-3 text-rose-500" />
+                          {event.location}
+                        </span>
+                      )}
+                      {event.timeRange && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 text-[10px] font-black">
+                          <Clock className="w-3 h-3 text-blue-500" />
+                          {event.timeRange}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-text-muted font-bold pt-1 border-t border-surface-border/50">
                     <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {formatDate(event.startDate)} — {formatDate(event.endDate)}
+                      <Calendar className="w-3 h-3 text-amber-500" />
+                      {formatDate(event.startDate)}
+                      {event.startDate.split('T')[0] !== event.endDate.split('T')[0] && ` — ${formatDate(event.endDate)}`}
                     </span>
                     <span className="flex items-center gap-1">
                       <Trophy className="w-3 h-3 text-amber-500" />
                       {(event.activities?.length || 0) > 0
                         ? `${event.activities.length} Pos Aktivitas`
-                        : 'Event Terpadu (Tanpa Pos)'}
+                        : 'Event Terpadu'}
                     </span>
                   </div>
                 </div>

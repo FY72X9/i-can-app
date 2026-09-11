@@ -11,17 +11,17 @@ import {
   MapPin,
   Coins,
   Star,
-  ChevronRight,
   Sparkles,
-  Eye,
   Maximize2,
   X,
   ExternalLink,
+  Shirt,
 } from 'lucide-react';
 import { CampusEvent, GreenAction } from '@/types';
 import { getEventById, computeEventLeaderboard, EventLeaderboardEntry, getEventTimelineCategory } from '@/services/eventService';
 import { getActions } from '@/services/actionService';
 import { useAuthStore } from '@/stores/authStore';
+import { FormattedText } from '@/components/common/FormattedText';
 
 export const EventDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -95,67 +95,49 @@ export const EventDetailPage: React.FC = () => {
 
       {/* Banner & Poster Preview Trigger */}
       {event.bannerUrl && (
-        <div className="space-y-2.5">
-          <div
-            onClick={() => setShowPosterModal(true)}
-            className="rounded-3xl overflow-hidden relative shadow-eco-card cursor-pointer group"
-            title="Klik untuk melihat poster penuh"
-          >
-            <img
-              src={event.bannerUrl}
-              alt={event.title}
-              className="w-full h-48 sm:h-64 object-cover object-top group-hover:scale-102 transition-transform duration-300"
-            />
-            <div className="absolute top-3 left-3">
-              {category === 'TODAY' && (
-                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-eco-neon/90 text-eco-950 shadow-neon-glow flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-eco-950 animate-ping"></span>
-                  🔴 LIVE / Hari Ini
-                </span>
-              )}
-              {category === 'UPCOMING' && (
-                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-600 text-white shadow-md">
-                  🗓️ Akan Datang
-                </span>
-              )}
-              {category === 'PAST' && (
-                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-800/80 text-white">
-                  Selesai
-                </span>
-              )}
-            </div>
-
-            {/* Poster Preview Button Overlay */}
-            <div className="absolute bottom-3 right-3">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowPosterModal(true);
-                }}
-                className="bg-black/60 hover:bg-black/80 backdrop-blur-md text-white text-xs font-black px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 transition-all shadow-md active:scale-95 border border-white/20"
-              >
-                <Maximize2 className="w-3.5 h-3.5" />
-                <span>Lihat Poster Penuh</span>
-              </button>
-            </div>
+        <div
+          onClick={() => setShowPosterModal(true)}
+          className="rounded-3xl overflow-hidden relative shadow-eco-card cursor-pointer group"
+          title="Klik untuk melihat poster penuh"
+        >
+          <img
+            src={event.bannerUrl}
+            alt={event.title}
+            className="w-full h-48 sm:h-64 object-cover object-top group-hover:scale-102 transition-transform duration-300"
+          />
+          <div className="absolute top-3 left-3">
+            {category === 'TODAY' && (
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-eco-neon/90 text-eco-950 shadow-neon-glow flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-eco-950 animate-ping"></span>
+                🔴 LIVE / Hari Ini
+              </span>
+            )}
+            {category === 'UPCOMING' && (
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-600 text-white shadow-md">
+                🗓️ Akan Datang
+              </span>
+            )}
+            {category === 'PAST' && (
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-800/80 text-white">
+                Selesai
+              </span>
+            )}
           </div>
 
-          {/* Dedicated Bar to Open Full Poster */}
-          <button
-            type="button"
-            onClick={() => setShowPosterModal(true)}
-            className="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/80 rounded-2xl flex items-center justify-between text-xs font-bold text-emerald-900 transition-all active:scale-[0.99] group shadow-2xs"
-          >
-            <div className="flex items-center gap-2">
-              <Eye className="w-4 h-4 text-emerald-700 shrink-0" />
-              <span>Lihat Poster Lengkap Event & Jadwal</span>
-            </div>
-            <div className="flex items-center gap-1 text-[11px] font-black text-emerald-700 group-hover:translate-x-0.5 transition-transform">
-              <span>Buka</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </div>
-          </button>
+          {/* Poster Preview Button Overlay */}
+          <div className="absolute bottom-3 right-3">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowPosterModal(true);
+              }}
+              className="bg-black/60 hover:bg-black/80 backdrop-blur-md text-white text-xs font-black px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 transition-all shadow-md active:scale-95 border border-white/20"
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+              <span>Lihat Poster Penuh</span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -168,19 +150,78 @@ export const EventDetailPage: React.FC = () => {
       )}
 
       {/* Event Info */}
-      <div className="space-y-2">
-        <h1 className="text-lg sm:text-xl font-black text-text-primary">{event.title}</h1>
-        <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary font-bold">
-          <span className="flex items-center gap-1">
+      <div className="space-y-3">
+        <h1 className="text-lg sm:text-xl font-black text-text-primary leading-snug">{event.title}</h1>
+        <div className="flex flex-wrap items-center gap-2 text-xs text-text-secondary font-bold">
+          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700">
             <Users className="w-3.5 h-3.5 text-eco-700" />
             {event.organizerName}
           </span>
-          <span className="flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5 text-amber-500" />
-            {formatDate(event.startDate)} — {formatDate(event.endDate)}
-          </span>
         </div>
-        <p className="text-xs text-text-secondary leading-relaxed">{event.description}</p>
+
+        {/* Structured Event Metadata Chips */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          {/* Tanggal Pelaksanaan */}
+          <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-surface-border shadow-2xs">
+            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
+              <Calendar className="w-4 h-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className="text-[10px] uppercase tracking-wider font-black text-slate-400 block">Tanggal Pelaksanaan</span>
+              <p className="text-xs font-black text-slate-800 truncate">
+                {formatDate(event.startDate)}
+                {event.startDate.split('T')[0] !== event.endDate.split('T')[0] && ` — ${formatDate(event.endDate)}`}
+              </p>
+            </div>
+          </div>
+
+          {/* Jam / Waktu Pelaksanaan */}
+          {event.timeRange && (
+            <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-surface-border shadow-2xs">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                <Clock className="w-4 h-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] uppercase tracking-wider font-black text-slate-400 block">Waktu / Jam</span>
+                <p className="text-xs font-black text-slate-800 truncate">{event.timeRange}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Lokasi Event */}
+          {event.location && (
+            <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-surface-border shadow-2xs">
+              <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] uppercase tracking-wider font-black text-slate-400 block">Lokasi Kampus</span>
+                <p className="text-xs font-black text-slate-800 truncate">{event.location}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Dresscode */}
+          {event.dressCode && (
+            <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-surface-border shadow-2xs">
+              <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100">
+                <Shirt className="w-4 h-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] uppercase tracking-wider font-black text-slate-400 block">Dresscode / Pakaian</span>
+                <p className="text-xs font-black text-slate-800 truncate">{event.dressCode}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Formatted Description Card */}
+        {event.description && (
+          <div className="bg-white rounded-3xl border border-surface-border p-4 sm:p-5 shadow-eco-soft space-y-2">
+            <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-400">Tentang Event & Informasi</h3>
+            <FormattedText content={event.description} />
+          </div>
+        )}
       </div>
 
       {/* Tab Switcher */}
