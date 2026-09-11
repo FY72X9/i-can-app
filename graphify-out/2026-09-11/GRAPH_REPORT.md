@@ -183,7 +183,7 @@ Cohesion: 0.50
 Nodes (3): INITIAL_NOTIFICATIONS, NOTIFICATIONS_STORAGE_KEY, useNotificationStore
 
 ## Knowledge Gaps
-- **211 isolated node(s):** `BadgeProps`, `ButtonProps`, `CardProps`, `TopNavbarProps`, `FaqItem` (+206 more)
+- **211 isolated node(s):** `BadgeProps`, `ButtonProps`, `CardProps`, `FaqItem`, `LeaderboardUser` (+206 more)
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 251 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **5 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 

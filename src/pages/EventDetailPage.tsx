@@ -13,9 +13,13 @@ import {
   Star,
   ChevronRight,
   Sparkles,
+  Eye,
+  Maximize2,
+  X,
+  ExternalLink,
 } from 'lucide-react';
 import { CampusEvent, GreenAction } from '@/types';
-import { getEventById, computeEventLeaderboard, EventLeaderboardEntry } from '@/services/eventService';
+import { getEventById, computeEventLeaderboard, EventLeaderboardEntry, getEventTimelineCategory } from '@/services/eventService';
 import { getActions } from '@/services/actionService';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -28,6 +32,7 @@ export const EventDetailPage: React.FC = () => {
   const [leaderboard, setLeaderboard] = useState<EventLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'activities' | 'leaderboard'>('activities');
+  const [showPosterModal, setShowPosterModal] = useState(false);
 
   useEffect(() => {
     loadEvent();
@@ -74,8 +79,8 @@ export const EventDetailPage: React.FC = () => {
     );
   }
 
-  const now = new Date().toISOString();
-  const isActive = event.status === 'ACTIVE' && event.endDate >= now;
+  const category = getEventTimelineCategory(event);
+  const isActionOpen = category === 'TODAY';
 
   return (
     <div className="space-y-5 -mt-2">
@@ -88,23 +93,77 @@ export const EventDetailPage: React.FC = () => {
         Kembali ke Daftar Event
       </button>
 
-      {/* Banner */}
+      {/* Banner & Poster Preview Trigger */}
       {event.bannerUrl && (
-        <div className="rounded-3xl overflow-hidden relative shadow-eco-card">
-          <img
-            src={event.bannerUrl}
-            alt={event.title}
-            className="w-full h-44 sm:h-56 object-cover"
-          />
-          <div className="absolute top-3 left-3">
-            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-              isActive
-                ? 'bg-eco-neon/90 text-eco-950 shadow-neon-glow'
-                : 'bg-slate-800/70 text-white'
-            }`}>
-              {isActive ? '🔴 LIVE' : event.status}
-            </span>
+        <div className="space-y-2.5">
+          <div
+            onClick={() => setShowPosterModal(true)}
+            className="rounded-3xl overflow-hidden relative shadow-eco-card cursor-pointer group"
+            title="Klik untuk melihat poster penuh"
+          >
+            <img
+              src={event.bannerUrl}
+              alt={event.title}
+              className="w-full h-48 sm:h-64 object-cover object-top group-hover:scale-102 transition-transform duration-300"
+            />
+            <div className="absolute top-3 left-3">
+              {category === 'TODAY' && (
+                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-eco-neon/90 text-eco-950 shadow-neon-glow flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-eco-950 animate-ping"></span>
+                  🔴 LIVE / Hari Ini
+                </span>
+              )}
+              {category === 'UPCOMING' && (
+                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-600 text-white shadow-md">
+                  🗓️ Akan Datang
+                </span>
+              )}
+              {category === 'PAST' && (
+                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-800/80 text-white">
+                  Selesai
+                </span>
+              )}
+            </div>
+
+            {/* Poster Preview Button Overlay */}
+            <div className="absolute bottom-3 right-3">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPosterModal(true);
+                }}
+                className="bg-black/60 hover:bg-black/80 backdrop-blur-md text-white text-xs font-black px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 transition-all shadow-md active:scale-95 border border-white/20"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span>Lihat Poster Penuh</span>
+              </button>
+            </div>
           </div>
+
+          {/* Dedicated Bar to Open Full Poster */}
+          <button
+            type="button"
+            onClick={() => setShowPosterModal(true)}
+            className="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/80 rounded-2xl flex items-center justify-between text-xs font-bold text-emerald-900 transition-all active:scale-[0.99] group shadow-2xs"
+          >
+            <div className="flex items-center gap-2">
+              <Eye className="w-4 h-4 text-emerald-700 shrink-0" />
+              <span>Lihat Poster Lengkap Event & Jadwal</span>
+            </div>
+            <div className="flex items-center gap-1 text-[11px] font-black text-emerald-700 group-hover:translate-x-0.5 transition-transform">
+              <span>Buka</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </div>
+          </button>
+        </div>
+      )}
+
+      {/* Upcoming Notice */}
+      {category === 'UPCOMING' && (
+        <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-2.5 text-xs text-blue-900 font-bold">
+          <Clock className="w-4 h-4 text-blue-600 shrink-0" />
+          <span>Event ini dijadwalkan dibuka pada {formatDate(event.startDate)}. Pos aktivitas QR dapat dipindai saat event berlangsung.</span>
         </div>
       )}
 
@@ -162,7 +221,7 @@ export const EventDetailPage: React.FC = () => {
                   Event ini tidak menggunakan pos aktivitas atau checkpoint terpisah. Seluruh kontribusi aksi dapat langsung dikirimkan untuk event ini.
                 </p>
               </div>
-              {isActive && (
+              {isActionOpen ? (
                 <Link
                   to={`/upload?eventId=${event.id}`}
                   className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-2xl bg-eco-700 hover:bg-eco-800 text-white text-xs font-black transition-colors shadow-eco-sm active:scale-95 mt-2"
@@ -170,6 +229,14 @@ export const EventDetailPage: React.FC = () => {
                   <Camera className="w-4 h-4" />
                   Kirim Bukti Aksi Event
                 </Link>
+              ) : category === 'UPCOMING' ? (
+                <p className="text-xs font-bold text-blue-700 mt-2">
+                  🔒 Pengiriman aksi dibuka saat event dimulai
+                </p>
+              ) : (
+                <p className="text-xs font-bold text-slate-400 mt-2">
+                  Event telah selesai
+                </p>
               )}
             </div>
           ) : (
@@ -193,7 +260,7 @@ export const EventDetailPage: React.FC = () => {
                   </div>
 
                   {/* Action Button */}
-                  {isActive && (
+                  {isActionOpen ? (
                     <Link
                       to={`/upload?eventId=${event.id}&activityId=${activity.id}`}
                       className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-eco-700 hover:bg-eco-800 text-white text-xs font-black transition-colors shadow-eco-sm active:scale-95"
@@ -201,6 +268,14 @@ export const EventDetailPage: React.FC = () => {
                       <Camera className="w-4 h-4" />
                       Kirim Bukti Aksi
                     </Link>
+                  ) : category === 'UPCOMING' ? (
+                    <div className="text-center py-2 bg-slate-50 border border-slate-200 rounded-xl text-[11px] font-bold text-slate-500">
+                      🔒 Pos akan dibuka saat event berlangsung
+                    </div>
+                  ) : (
+                    <div className="text-center py-2 bg-slate-50 border border-slate-200 rounded-xl text-[11px] font-bold text-slate-400">
+                      Event telah selesai
+                    </div>
                   )}
                 </div>
               ))
@@ -249,6 +324,55 @@ export const EventDetailPage: React.FC = () => {
               );
             })
           )}
+        </div>
+      )}
+
+      {/* Poster Preview Modal (Full Aspect Ratio Lightbox) */}
+      {showPosterModal && event.bannerUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5"
+          onClick={() => setShowPosterModal(false)}
+        >
+          <div
+            className="bg-slate-900 border border-white/10 rounded-3xl overflow-hidden max-w-lg w-full max-h-[92vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="p-4 border-b border-white/10 flex items-center justify-between text-white bg-slate-950/70">
+              <div className="min-w-0 pr-2">
+                <h4 className="text-sm font-black truncate">{event.title}</h4>
+                <p className="text-[11px] text-slate-400 truncate">Poster Resmi • {event.organizerName}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <a
+                  href={event.bannerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+                  title="Buka Gambar Asli di Tab Baru"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setShowPosterModal(false)}
+                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+                  title="Tutup Preview"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Poster Image (Full Uncropped Aspect Ratio) */}
+            <div className="p-3 sm:p-4 overflow-auto flex-1 flex items-center justify-center bg-black/60 min-h-0">
+              <img
+                src={event.bannerUrl}
+                alt={`Poster ${event.title}`}
+                className="max-h-[75vh] w-auto max-w-full object-contain rounded-2xl shadow-xl"
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>

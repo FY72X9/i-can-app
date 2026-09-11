@@ -898,18 +898,6 @@
       "source_location": "L12"
     },
     {
-      "id": "src_pages_eventdetailpage_eventdetailpage",
-      "label": "EventDetailPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "eventService.ts",
-      "file_type": "code",
-      "norm_label": "eventdetailpage()",
-      "source_file": "src/pages/EventDetailPage.tsx",
-      "source_location": "L26"
-    },
-    {
       "id": "src_pages_eventspage_eventspage",
       "label": "EventsPage()",
       "_callable": true,
@@ -920,30 +908,6 @@
       "norm_label": "eventspage()",
       "source_file": "src/pages/EventsPage.tsx",
       "source_location": "L7"
-    },
-    {
-      "id": "src_pages_homepage_homepage",
-      "label": "HomePage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "eventService.ts",
-      "file_type": "code",
-      "norm_label": "homepage()",
-      "source_file": "src/pages/HomePage.tsx",
-      "source_location": "L50"
-    },
-    {
-      "id": "src_pages_homepage_resolveprogramicon",
-      "label": "resolveProgramIcon()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "eventService.ts",
-      "file_type": "code",
-      "norm_label": "resolveprogramicon()",
-      "source_file": "src/pages/HomePage.tsx",
-      "source_location": "L34"
     },
     {
       "id": "src_pages_leaderboardpage_leaderboardpage",
@@ -1148,6 +1112,39 @@
       "norm_label": "updateevent()",
       "source_file": "src/services/eventService.ts",
       "source_location": "L218"
+    },
+    {
+      "id": "src_pages_eventdetailpage_eventdetailpage",
+      "label": "EventDetailPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "norm_label": "eventdetailpage()",
+      "source_file": "src/pages/EventDetailPage.tsx",
+      "source_location": "L26"
+    },
+    {
+      "id": "src_pages_homepage_homepage",
+      "label": "HomePage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "norm_label": "homepage()",
+      "source_file": "src/pages/HomePage.tsx",
+      "source_location": "L50"
+    },
+    {
+      "id": "src_pages_homepage_resolveprogramicon",
+      "label": "resolveProgramIcon()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "norm_label": "resolveprogramicon()",
+      "source_file": "src/pages/HomePage.tsx",
+      "source_location": "L34"
     },
     {
       "id": "src_utils_carboncalc_calculateactionimpact",
@@ -4008,17 +4005,6 @@
       "source_location": "L1"
     },
     {
-      "id": "src_pages_eventdetailpage",
-      "label": "EventDetailPage.tsx",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "eventService.ts",
-      "file_type": "code",
-      "norm_label": "eventdetailpage.tsx",
-      "source_file": "src/pages/EventDetailPage.tsx",
-      "source_location": "L1"
-    },
-    {
       "id": "src_pages_eventspage",
       "label": "EventsPage.tsx",
       "_origin": "ast",
@@ -4027,17 +4013,6 @@
       "file_type": "code",
       "norm_label": "eventspage.tsx",
       "source_file": "src/pages/EventsPage.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "src_pages_homepage",
-      "label": "src/pages/HomePage.tsx",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "eventService.ts",
-      "file_type": "code",
-      "norm_label": "src/pages/homepage.tsx",
-      "source_file": "src/pages/HomePage.tsx",
       "source_location": "L1"
     },
     {
@@ -4094,6 +4069,26 @@
       "norm_label": "@supabase/supabase-js",
       "source_file": "package.json",
       "source_location": "L13"
+    },
+    {
+      "id": "src_pages_eventdetailpage",
+      "label": "EventDetailPage.tsx",
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "norm_label": "eventdetailpage.tsx",
+      "source_file": "src/pages/EventDetailPage.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "src_pages_homepage",
+      "label": "src/pages/HomePage.tsx",
+      "_origin": "ast",
+      "community": 2,
+      "file_type": "code",
+      "norm_label": "src/pages/homepage.tsx",
+      "source_file": "src/pages/HomePage.tsx",
+      "source_location": "L1"
     },
     {
       "id": "bottomnav_icon",

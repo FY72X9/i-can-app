@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Users, ChevronRight, Sparkles, Clock, Trophy } from 'lucide-react';
 import { CampusEvent } from '@/types';
-import { getEvents } from '@/services/eventService';
+import { getEvents, getEventTimelineCategory } from '@/services/eventService';
 
 export const EventsPage: React.FC = () => {
   const [events, setEvents] = useState<CampusEvent[]>([]);
-  const [filter, setFilter] = useState<'ALL' | 'ACTIVE' | 'COMPLETED'>('ALL');
+  const [filter, setFilter] = useState<'ALL' | 'TODAY' | 'UPCOMING' | 'PAST'>('ALL');
 
   useEffect(() => {
     loadEvents();
@@ -17,11 +17,10 @@ export const EventsPage: React.FC = () => {
     setEvents(all);
   };
 
-  const now = new Date().toISOString();
   const filtered = events.filter((e) => {
-    if (filter === 'ACTIVE') return e.status === 'ACTIVE' && e.endDate >= now;
-    if (filter === 'COMPLETED') return e.status === 'COMPLETED' || e.endDate < now;
-    return true;
+    if (filter === 'ALL') return true;
+    const cat = getEventTimelineCategory(e);
+    return cat === filter;
   });
 
   const formatDate = (iso: string) => {
@@ -43,18 +42,23 @@ export const EventsPage: React.FC = () => {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2">
-        {(['ALL', 'ACTIVE', 'COMPLETED'] as const).map((f) => (
+      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+        {([
+          { id: 'ALL', label: 'Semua' },
+          { id: 'TODAY', label: '🟢 Hari Ini' },
+          { id: 'UPCOMING', label: '🗓️ Akan Datang' },
+          { id: 'PAST', label: '🏁 Selesai' },
+        ] as const).map((tab) => (
           <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-2xl text-xs font-black transition-all active:scale-95 ${
-              filter === f
+            key={tab.id}
+            onClick={() => setFilter(tab.id)}
+            className={`px-4 py-2 rounded-2xl text-xs font-black transition-all active:scale-95 whitespace-nowrap ${
+              filter === tab.id
                 ? 'bg-eco-700 text-white shadow-eco-sm'
                 : 'bg-surface-subtle text-text-secondary hover:bg-white border border-surface-border/60'
             }`}
           >
-            {f === 'ALL' ? 'Semua' : f === 'ACTIVE' ? '🟢 Aktif' : '✅ Selesai'}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -63,13 +67,21 @@ export const EventsPage: React.FC = () => {
       {filtered.length === 0 ? (
         <div className="text-center py-16 space-y-3">
           <Calendar className="w-12 h-12 text-text-muted mx-auto" />
-          <p className="text-sm font-bold text-text-secondary">Belum ada event yang tersedia.</p>
+          <p className="text-sm font-bold text-text-secondary">
+            {filter === 'ALL'
+              ? 'Belum ada event yang tersedia.'
+              : filter === 'TODAY'
+              ? 'Tidak ada event yang berlangsung hari ini.'
+              : filter === 'UPCOMING'
+              ? 'Belum ada event mendatang yang dijadwalkan.'
+              : 'Belum ada riwayat event yang selesai.'}
+          </p>
           <p className="text-xs text-text-muted">Penyelenggara unit kampus dapat membuat event baru melalui portal AdminLTE.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {filtered.map((event) => {
-            const isActive = event.status === 'ACTIVE' && event.endDate >= now;
+            const category = getEventTimelineCategory(event);
             return (
               <Link
                 key={event.id}
@@ -85,13 +97,22 @@ export const EventsPage: React.FC = () => {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute top-3 left-3">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                        isActive
-                          ? 'bg-eco-neon/90 text-eco-950 shadow-neon-glow'
-                          : 'bg-slate-800/70 text-white'
-                      }`}>
-                        {isActive ? '🔴 LIVE' : event.status}
-                      </span>
+                      {category === 'TODAY' && (
+                        <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-eco-neon/90 text-eco-950 shadow-neon-glow flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-eco-950 animate-ping"></span>
+                          🔴 LIVE / Hari Ini
+                        </span>
+                      )}
+                      {category === 'UPCOMING' && (
+                        <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-600/90 text-white shadow-md">
+                          🗓️ Akan Datang
+                        </span>
+                      )}
+                      {category === 'PAST' && (
+                        <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-800/80 text-white">
+                          Selesai
+                        </span>
+                      )}
                     </div>
                   </div>
                 )}

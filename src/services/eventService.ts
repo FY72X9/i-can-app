@@ -4,7 +4,7 @@
 // ==============================================================================
 
 import { supabase, isConfigured } from '@/services/supabase';
-import { CampusEvent, EventActivity, EventStatus } from '@/types';
+import { CampusEvent, EventActivity, EventStatus, EventTimelineCategory } from '@/types';
 
 const LOCAL_EVENTS_KEY = 'i_can_events';
 
@@ -107,12 +107,68 @@ export const getEventsByOrganizer = async (organizerId: string): Promise<CampusE
 };
 
 /**
- * Get active events (status === 'ACTIVE' and within date range).
+ * Categorize an event into timeline bucket: 'TODAY' | 'UPCOMING' | 'PAST'.
+ */
+export const getEventTimelineCategory = (event: CampusEvent): EventTimelineCategory => {
+  if (event.status === 'COMPLETED') return 'PAST';
+
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+  const start = new Date(event.startDate);
+  const end = new Date(event.endDate);
+
+  // If the event has ended before the start of today
+  if (end.getTime() < todayStart.getTime()) {
+    return 'PAST';
+  }
+
+  // If the event starts strictly after today ends
+  if (start.getTime() > todayEnd.getTime()) {
+    return 'UPCOMING';
+  }
+
+  // Covers today (active today)
+  return 'TODAY';
+};
+
+export interface CategorizedEvents {
+  today: CampusEvent[];
+  upcoming: CampusEvent[];
+  past: CampusEvent[];
+  all: CampusEvent[];
+}
+
+/**
+ * Get all events categorized into today, upcoming, and past.
+ */
+export const getCategorizedEvents = async (statusFilter?: EventStatus): Promise<CategorizedEvents> => {
+  const all = await getEvents(statusFilter);
+  const today: CampusEvent[] = [];
+  const upcoming: CampusEvent[] = [];
+  const past: CampusEvent[] = [];
+
+  for (const evt of all) {
+    const cat = getEventTimelineCategory(evt);
+    if (cat === 'TODAY') {
+      today.push(evt);
+    } else if (cat === 'UPCOMING') {
+      upcoming.push(evt);
+    } else {
+      past.push(evt);
+    }
+  }
+
+  return { today, upcoming, past, all };
+};
+
+/**
+ * Get active events (status === 'ACTIVE' and covering today).
  */
 export const getActiveEvents = async (): Promise<CampusEvent[]> => {
-  const now = new Date().toISOString();
   const allActive = await getEvents('ACTIVE');
-  return allActive.filter((e) => e.startDate <= now && e.endDate >= now);
+  return allActive.filter((e) => getEventTimelineCategory(e) === 'TODAY');
 };
 
 // ============================================================

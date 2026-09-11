@@ -96,6 +96,7 @@ export interface GreenAction {
 // ==============================================================================
 
 export type EventStatus = 'DRAFT' | 'ACTIVE' | 'COMPLETED';
+export type EventTimelineCategory = 'TODAY' | 'UPCOMING' | 'PAST';
 
 export interface EventActivity {
   id: string;

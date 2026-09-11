@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
-import { getActiveEvents } from '@/services/eventService';
+import { getCategorizedEvents, CategorizedEvents, getEventTimelineCategory } from '@/services/eventService';
 import { CampusEvent, DailyQuest, ActionProgram } from '@/types';
 import { getDailyQuests, getActionPrograms } from '@/services/questProgramService';
 import { 
@@ -49,12 +49,18 @@ const resolveProgramIcon = (iconName: string) => {
 
 export const HomePage: React.FC = () => {
   const { user } = useAuthStore();
-  const [activeEvents, setActiveEvents] = useState<CampusEvent[]>([]);
+  const [categorizedEvents, setCategorizedEvents] = useState<CategorizedEvents>({
+    today: [],
+    upcoming: [],
+    past: [],
+    all: [],
+  });
+  const [eventTimelineFilter, setEventTimelineFilter] = useState<'ALL' | 'TODAY' | 'UPCOMING' | 'PAST'>('ALL');
   const [dailyQuests, setDailyQuests] = useState<DailyQuest[]>([]);
   const [actionPrograms, setActionPrograms] = useState<ActionProgram[]>([]);
 
   useEffect(() => {
-    getActiveEvents().then(setActiveEvents);
+    getCategorizedEvents().then(setCategorizedEvents);
   }, []);
 
   useEffect(() => {
@@ -143,49 +149,191 @@ export const HomePage: React.FC = () => {
         </div>
       </Card>
 
-      {/* Event Kampus Aktif Carousel */}
-      {activeEvents.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between px-1">
-            <h3 className="text-sm font-black text-text-primary flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-eco-neon" />
-              Event Kampus Aktif
-            </h3>
-            <Link to="/events" className="text-xs font-bold text-eco-700 hover:underline flex items-center gap-0.5">
-              Lihat Semua <ChevronRight className="w-3 h-3" />
-            </Link>
-          </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 no-scrollbar">
-            {activeEvents.slice(0, 5).map((evt) => (
-              <Link
-                key={evt.id}
-                to={`/events/${evt.id}`}
-                className="shrink-0 w-64 bg-white rounded-2xl border border-surface-border shadow-eco-soft overflow-hidden hover:shadow-eco-card transition-all active:scale-[0.97] group"
-              >
-                {evt.bannerUrl && (
-                  <div className="h-28 overflow-hidden">
-                    <img
-                      src={evt.bannerUrl}
-                      alt={evt.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
+      {/* Event Kampus Section (Today, Upcoming, Past) */}
+      {(() => {
+        const displayedEvents =
+          eventTimelineFilter === 'ALL'
+            ? categorizedEvents.all
+            : eventTimelineFilter === 'TODAY'
+            ? categorizedEvents.today
+            : eventTimelineFilter === 'UPCOMING'
+            ? categorizedEvents.upcoming
+            : categorizedEvents.past;
+
+        return (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-black text-text-primary flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-eco-neon" />
+                  Event Kampus
+                </h3>
+                {categorizedEvents.today.length > 0 && (
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    {categorizedEvents.today.length} Live
+                  </span>
                 )}
-                <div className="p-3 space-y-1">
-                  <h4 className="text-xs font-black text-text-primary truncate group-hover:text-eco-700 transition-colors">
-                    {evt.title}
-                  </h4>
-                  <p className="text-[10px] text-text-muted truncate">{evt.organizerName}</p>
-                  <div className="flex items-center gap-1.5 text-[10px] text-eco-700 font-bold">
-                    <Calendar className="w-3 h-3" />
-                    <span>{evt.activities.length} Pos Aktivitas</span>
-                  </div>
-                </div>
+              </div>
+              <Link to="/events" className="text-xs font-bold text-eco-700 hover:underline flex items-center gap-0.5">
+                Lihat Semua <ChevronRight className="w-3 h-3" />
               </Link>
-            ))}
+            </div>
+
+            {/* Timeline Filter Pills */}
+            {categorizedEvents.all.length > 0 && (
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-[11px] font-black">
+                <button
+                  type="button"
+                  onClick={() => setEventTimelineFilter('ALL')}
+                  className={`px-3 py-1 rounded-xl transition-all whitespace-nowrap ${
+                    eventTimelineFilter === 'ALL'
+                      ? 'bg-eco-700 text-white shadow-xs'
+                      : 'bg-surface-subtle text-text-muted hover:bg-slate-200'
+                  }`}
+                >
+                  Semua ({categorizedEvents.all.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEventTimelineFilter('TODAY')}
+                  className={`px-3 py-1 rounded-xl transition-all whitespace-nowrap flex items-center gap-1 ${
+                    eventTimelineFilter === 'TODAY'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                  }`}
+                >
+                  <span>🟢 Hari Ini ({categorizedEvents.today.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEventTimelineFilter('UPCOMING')}
+                  className={`px-3 py-1 rounded-xl transition-all whitespace-nowrap flex items-center gap-1 ${
+                    eventTimelineFilter === 'UPCOMING'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                  }`}
+                >
+                  <span>🗓️ Akan Datang ({categorizedEvents.upcoming.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEventTimelineFilter('PAST')}
+                  className={`px-3 py-1 rounded-xl transition-all whitespace-nowrap flex items-center gap-1 ${
+                    eventTimelineFilter === 'PAST'
+                      ? 'bg-slate-700 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <span>🏁 Berlalu ({categorizedEvents.past.length})</span>
+                </button>
+              </div>
+            )}
+
+            {/* Cards Carousel or Empty State */}
+            {displayedEvents.length > 0 ? (
+              <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 no-scrollbar snap-x snap-mandatory">
+                {displayedEvents.slice(0, 6).map((evt) => {
+                  const category = getEventTimelineCategory(evt);
+                  const startDateFormatted = new Date(evt.startDate).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'short',
+                  });
+                  const endDateFormatted = new Date(evt.endDate).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'short',
+                  });
+
+                  return (
+                    <Link
+                      key={evt.id}
+                      to={`/events/${evt.id}`}
+                      className="shrink-0 w-full sm:w-72 bg-white rounded-3xl border border-surface-border shadow-eco-soft overflow-hidden hover:shadow-eco-card transition-all active:scale-[0.98] group flex flex-col justify-between snap-center"
+                    >
+                      <div>
+                        {evt.bannerUrl && (
+                          <div className="h-44 sm:h-36 overflow-hidden relative bg-slate-100">
+                            <img
+                              src={evt.bannerUrl}
+                              alt={evt.title}
+                              className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                            />
+                            {/* Timeline Status Pill */}
+                            <div className="absolute top-2.5 left-2.5">
+                              {category === 'TODAY' && (
+                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-white shadow-md flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                                  Hari Ini
+                                </span>
+                              )}
+                              {category === 'UPCOMING' && (
+                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-600 text-white shadow-md">
+                                  🗓️ Akan Datang
+                                </span>
+                              )}
+                              {category === 'PAST' && (
+                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-700/80 text-white shadow-md">
+                                  Selesai
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        <div className="p-4 space-y-1.5">
+                          <h4 className="text-sm sm:text-base font-black text-text-primary truncate group-hover:text-eco-700 transition-colors">
+                            {evt.title}
+                          </h4>
+                          <p className="text-xs text-text-muted truncate">{evt.organizerName}</p>
+                          <div className="flex items-center justify-between text-xs text-text-secondary pt-1 font-semibold">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                              {startDateFormatted === endDateFormatted
+                                ? startDateFormatted
+                                : `${startDateFormatted} - ${endDateFormatted}`}
+                            </span>
+                            <span className="text-eco-700 font-bold bg-eco-50 px-2.5 py-0.5 rounded-full">
+                              {evt.activities.length} Pos
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : categorizedEvents.all.length > 0 ? (
+              <div className="bg-surface-subtle/70 rounded-2xl border border-dashed border-surface-border p-4 text-center space-y-1">
+                <p className="text-xs font-bold text-text-secondary">
+                  Tidak ada event pada kategori {eventTimelineFilter === 'TODAY' ? 'Hari Ini' : eventTimelineFilter === 'UPCOMING' ? 'Akan Datang' : 'Berlalu'}.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setEventTimelineFilter('ALL')}
+                  className="text-[11px] font-black text-eco-700 hover:underline"
+                >
+                  Lihat semua event ({categorizedEvents.all.length})
+                </button>
+              </div>
+            ) : (
+              <div className="bg-surface-subtle/50 rounded-2xl border border-surface-border p-4 text-center space-y-1.5">
+                <Calendar className="w-6 h-6 text-text-muted mx-auto" />
+                <p className="text-xs font-bold text-text-secondary">Belum ada event kampus yang terdaftar.</p>
+                <p className="text-[10px] text-text-muted">
+                  Penyelenggara unit (SSO / ASD) dapat membuat event baru melalui portal AdminLTE.
+                </p>
+                {(user?.role === 'SUPERADMIN' || user?.role === 'ORGANIZER') && (
+                  <Link
+                    to="/adminlte"
+                    className="inline-block mt-1 px-3 py-1 rounded-xl bg-eco-700 text-white text-[10px] font-black hover:bg-eco-800 transition-colors"
+                  >
+                    + Buat Event di Portal AdminLTE
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* 2. Quick Guide & SDG Banners */}
       <div className="grid grid-cols-1 gap-3">

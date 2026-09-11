@@ -4,7 +4,7 @@ import { useAuthStore, DEMO_PROFILES } from '@/stores/authStore';
 import { getActions, updateActionVerification } from '@/services/actionService';
 import { getStoredAccounts } from '@/services/authService';
 import { GreenAction, UserProfile, UserRole, CampusEvent, EventActivity, EventStatus, DailyQuest, ActionProgram, ActionType } from '@/types';
-import { getEvents, getEventsByOrganizer, createEvent, updateEvent, deleteEvent } from '@/services/eventService';
+import { getEvents, getEventsByOrganizer, createEvent, updateEvent, deleteEvent, getEventTimelineCategory } from '@/services/eventService';
 import {
   getDailyQuests,
   createDailyQuest,
@@ -134,6 +134,7 @@ export const AdminLtePage: React.FC = () => {
 
   // Event Management State
   const [eventsList, setEventsList] = useState<CampusEvent[]>([]);
+  const [eventTimelineFilter, setEventTimelineFilter] = useState<'ALL' | 'TODAY' | 'UPCOMING' | 'PAST'>('ALL');
   const [showEventForm, setShowEventForm] = useState(false);
   const [showUserForm, setShowUserForm] = useState(false);
   const [showUserPassword, setShowUserPassword] = useState(false);
@@ -720,8 +721,12 @@ export const AdminLtePage: React.FC = () => {
       title: eventFormData.title.trim(),
       description: eventFormData.description.trim(),
       bannerUrl: eventFormData.bannerUrl || 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=800&auto=format&fit=crop&q=80',
-      startDate: new Date(eventFormData.startDate).toISOString(),
-      endDate: new Date(eventFormData.endDate).toISOString(),
+      startDate: eventFormData.startDate.includes('T')
+        ? new Date(eventFormData.startDate).toISOString()
+        : new Date(`${eventFormData.startDate}T00:00:00`).toISOString(),
+      endDate: eventFormData.endDate.includes('T')
+        ? new Date(eventFormData.endDate).toISOString()
+        : new Date(`${eventFormData.endDate}T23:59:59`).toISOString(),
       status: 'ACTIVE' as EventStatus,
       activities: validActivities,
     };
@@ -1109,6 +1114,84 @@ export const AdminLtePage: React.FC = () => {
               <Award className="w-12 h-12 text-white/20 absolute right-2 bottom-2" />
             </div>
           </div>
+
+          {/* Ringkasan Status Event Kampus (Linimasa) pada Dashboard Overview */}
+          {activeMenu === 'dashboard' && (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-[#007bff]" />
+                  <h3 className="text-xs sm:text-sm font-black text-slate-800">
+                    Status Event Kampus & Linimasa Pelaksanaan
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEventTimelineFilter('ALL');
+                    setActiveMenu('events');
+                  }}
+                  className="text-xs font-bold text-[#007bff] hover:underline flex items-center gap-1"
+                >
+                  Kelola Event ({eventsList.length}) →
+                </button>
+              </div>
+
+              {/* 3 Sub-KPI Cards: Hari Ini, Akan Datang, Berlalu */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div
+                  onClick={() => {
+                    setEventTimelineFilter('TODAY');
+                    setActiveMenu('events');
+                  }}
+                  className="p-3.5 bg-emerald-50 hover:bg-emerald-100/80 rounded-2xl border border-emerald-200/70 cursor-pointer transition-all space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black text-emerald-800">🟢 Hari Ini</span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  </div>
+                  <div className="text-xl sm:text-2xl font-black text-emerald-900">
+                    {eventsList.filter((e) => getEventTimelineCategory(e) === 'TODAY').length}
+                  </div>
+                  <p className="text-[10px] text-emerald-700 font-medium">Event sedang berlangsung hari ini</p>
+                </div>
+
+                <div
+                  onClick={() => {
+                    setEventTimelineFilter('UPCOMING');
+                    setActiveMenu('events');
+                  }}
+                  className="p-3.5 bg-blue-50 hover:bg-blue-100/80 rounded-2xl border border-blue-200/70 cursor-pointer transition-all space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black text-blue-800">🗓️ Akan Datang</span>
+                    <Clock className="w-3.5 h-3.5 text-blue-600" />
+                  </div>
+                  <div className="text-xl sm:text-2xl font-black text-blue-900">
+                    {eventsList.filter((e) => getEventTimelineCategory(e) === 'UPCOMING').length}
+                  </div>
+                  <p className="text-[10px] text-blue-700 font-medium">Terjadwal di masa depan (Upcoming)</p>
+                </div>
+
+                <div
+                  onClick={() => {
+                    setEventTimelineFilter('PAST');
+                    setActiveMenu('events');
+                  }}
+                  className="p-3.5 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200 cursor-pointer transition-all space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black text-slate-700">🏁 Berlalu</span>
+                    <CheckSquare className="w-3.5 h-3.5 text-slate-400" />
+                  </div>
+                  <div className="text-xl sm:text-2xl font-black text-slate-800">
+                    {eventsList.filter((e) => getEventTimelineCategory(e) === 'PAST').length}
+                  </div>
+                  <p className="text-[10px] text-slate-500 font-medium">Event telah selesai / lewat tanggal</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 4. Tab Content: Dashboard & Table 1: Manajemen Akun */}
           {(activeMenu === 'users' || (activeMenu === 'dashboard' && user?.role === 'SUPERADMIN')) && (
@@ -1945,6 +2028,37 @@ export const AdminLtePage: React.FC = () => {
                 </div>
               )}
 
+              {/* Timeline Filter Tabs */}
+              {eventsList.length > 0 && (
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                  {([
+                    { id: 'ALL' as const, label: 'Semua', count: eventsList.length },
+                    { id: 'TODAY' as const, label: '🟢 Hari Ini', count: eventsList.filter((e) => getEventTimelineCategory(e) === 'TODAY').length },
+                    { id: 'UPCOMING' as const, label: '🗓️ Akan Datang', count: eventsList.filter((e) => getEventTimelineCategory(e) === 'UPCOMING').length },
+                    { id: 'PAST' as const, label: '🏁 Berlalu', count: eventsList.filter((e) => getEventTimelineCategory(e) === 'PAST').length },
+                  ]).map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setEventTimelineFilter(tab.id)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                        eventTimelineFilter === tab.id
+                          ? tab.id === 'TODAY'
+                            ? 'bg-emerald-600 text-white shadow-xs'
+                            : tab.id === 'UPCOMING'
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : tab.id === 'PAST'
+                            ? 'bg-slate-700 text-white shadow-xs'
+                            : 'bg-[#007bff] text-white shadow-xs'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {tab.label} ({tab.count})
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {/* Events List */}
               {eventsList.length === 0 ? (
                 <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-8 text-center space-y-2">
@@ -1952,28 +2066,62 @@ export const AdminLtePage: React.FC = () => {
                   <p className="text-sm font-bold text-slate-600">Belum ada event.</p>
                   <p className="text-xs text-slate-500">Klik tombol "Buat Event Baru" untuk memulai.</p>
                 </div>
+              ) : eventsList.filter((e) => eventTimelineFilter === 'ALL' || getEventTimelineCategory(e) === eventTimelineFilter).length === 0 ? (
+                <div className="bg-white rounded-3xl border border-dashed border-slate-200 shadow-xs p-8 text-center space-y-2">
+                  <Calendar className="w-10 h-10 text-slate-300 mx-auto" />
+                  <p className="text-sm font-bold text-slate-600">
+                    Tidak ada event pada kategori {eventTimelineFilter === 'TODAY' ? 'Hari Ini' : eventTimelineFilter === 'UPCOMING' ? 'Akan Datang' : 'Berlalu'}.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setEventTimelineFilter('ALL')}
+                    className="text-xs font-bold text-[#007bff] hover:underline"
+                  >
+                    Tampilkan Semua ({eventsList.length})
+                  </button>
+                </div>
               ) : (
                 <div className="space-y-3">
-                  {eventsList.map((evt) => (
-                    <div key={evt.id} className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
-                      <div className="flex gap-4 p-4">
-                        {evt.bannerUrl && (
-                          <img src={evt.bannerUrl} alt={evt.title} className="w-20 h-20 rounded-xl object-cover shrink-0" />
-                        )}
-                        <div className="min-w-0 flex-1 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-xs sm:text-sm font-black text-slate-800 truncate">{evt.title}</h4>
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${
-                              evt.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-900' : evt.status === 'DRAFT' ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'
-                            }`}>
-                              {evt.status}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-500 truncate">{evt.description}</p>
-                          <p className="text-[10px] text-slate-400 font-mono">
-                            {new Date(evt.startDate).toLocaleDateString('id-ID')} — {new Date(evt.endDate).toLocaleDateString('id-ID')} • {(evt.activities?.length || 0) > 0 ? `${evt.activities.length} Pos` : 'Tanpa Pos'}
-                          </p>
-                        </div>
+                  {eventsList
+                    .filter((e) => eventTimelineFilter === 'ALL' || getEventTimelineCategory(e) === eventTimelineFilter)
+                    .map((evt) => {
+                      const category = getEventTimelineCategory(evt);
+                      return (
+                        <div key={evt.id} className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+                          <div className="flex gap-4 p-4">
+                            {evt.bannerUrl && (
+                              <img src={evt.bannerUrl} alt={evt.title} className="w-20 h-20 rounded-xl object-cover shrink-0" />
+                            )}
+                            <div className="min-w-0 flex-1 space-y-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h4 className="text-xs sm:text-sm font-black text-slate-800 truncate">{evt.title}</h4>
+                                {category === 'TODAY' && (
+                                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                                    Hari Ini (Live)
+                                  </span>
+                                )}
+                                {category === 'UPCOMING' && (
+                                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-blue-100 text-blue-800">
+                                    🗓️ Akan Datang
+                                  </span>
+                                )}
+                                {category === 'PAST' && (
+                                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-slate-100 text-slate-600">
+                                    🏁 Berlalu
+                                  </span>
+                                )}
+                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${
+                                  evt.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700' : evt.status === 'DRAFT' ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'
+                                }`}>
+                                  {evt.status}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-500 truncate">{evt.description}</p>
+                              <p className="text-[10px] text-slate-400 font-mono">
+                                {new Date(evt.startDate).toLocaleDateString('id-ID')} — {new Date(evt.endDate).toLocaleDateString('id-ID')} • {(evt.activities?.length || 0) > 0 ? `${evt.activities.length} Pos` : 'Tanpa Pos'}
+                              </p>
+                            </div>
                         <div className="flex flex-col gap-1.5 shrink-0">
                           <button
                             onClick={() => handleEditEvent(evt)}
@@ -2013,7 +2161,8 @@ export const AdminLtePage: React.FC = () => {
                         )}
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
                 </div>
               )}
 
