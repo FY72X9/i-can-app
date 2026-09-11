@@ -13,10 +13,10 @@ import { VerificationPage } from '@/pages/VerificationPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { LoginPage } from '@/pages/LoginPage';
 import { CallbackPage } from '@/pages/CallbackPage';
-import { GuidePage } from '@/pages/GuidePage';
-import { SdgGuidelinePage } from '@/pages/SdgGuidelinePage';
 import { AdminLtePage } from '@/pages/AdminLtePage';
 import { LeaderboardPage } from '@/pages/LeaderboardPage';
+import { EventsPage } from '@/pages/EventsPage';
+import { EventDetailPage } from '@/pages/EventDetailPage';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppModeStore } from '@/stores/appModeStore';
 import { 
@@ -28,7 +28,6 @@ import {
   Award,
   Zap,
   Radio,
-  BookOpen,
   LayoutDashboard,
   Shield,
   User,
@@ -50,7 +49,7 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
     loadUsersList();
   }, []);
 
-  const canSwitchAccounts = isDemoMode() || user?.role === 'ADMIN';
+  const canSwitchAccounts = isDemoMode() || user?.role === 'SUPERADMIN';
 
   return (
     <div className="min-h-screen eco-gradient-mesh selection:bg-eco-neon/30 selection:text-eco-900 relative overflow-x-hidden flex flex-col items-center">
@@ -59,36 +58,38 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
       <div className="fixed top-1/3 -right-40 w-96 h-96 bg-gold-neon/20 rounded-full blur-3xl pointer-events-none" />
       <div className="fixed -bottom-40 left-1/3 w-96 h-96 bg-cyber-purple/15 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Global Environment & Mode Switcher Bar */}
-      <div className="w-full bg-slate-900 text-white text-xs py-1.5 px-4 z-50 flex items-center justify-between border-b border-slate-800 shadow-sm">
-        <div className="flex items-center gap-2 max-w-6xl mx-auto w-full justify-between">
-          <div className="flex items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-              isPrototypeMode() 
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
-                : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-            }`}>
-              <span className={`w-2 h-2 rounded-full ${isPrototypeMode() ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse`} />
-              {isPrototypeMode() ? '📱 Mode Prototype End-User (Sesuai Role)' : '🛠️ Mode Dev / Demo Showcase (1-Klik Switch)'}
-            </span>
-            <span className="hidden sm:inline text-[11px] text-slate-400">
-              {isPrototypeMode() 
-                ? 'Akses role dibatasi ketat (Hanya Super Admin yang dapat ubah role)' 
-                : 'Akses cepat 5 role demo & AdminLTE aktif untuk juri'}
-            </span>
-          </div>
+      {/* Global Environment & Mode Switcher Bar (Hidden in Production Mode) */}
+      {import.meta.env.VITE_APP_MODE !== 'production' && (
+        <div className="w-full bg-slate-900 text-white text-xs py-1.5 px-4 z-50 flex items-center justify-between border-b border-slate-800 shadow-sm">
+          <div className="flex items-center gap-2 max-w-6xl mx-auto w-full justify-between">
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                isPrototypeMode() 
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
+                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+              }`}>
+                <span className={`w-2 h-2 rounded-full ${isPrototypeMode() ? 'bg-emerald-400' : 'bg-amber-400'} animate-pulse`} />
+                {isPrototypeMode() ? '📱 Mode Prototype End-User (Sesuai Role)' : '🛠️ Mode Dev / Demo Showcase (1-Klik Switch)'}
+              </span>
+              <span className="hidden sm:inline text-[11px] text-slate-400">
+                {isPrototypeMode() 
+                  ? 'Akses role dibatasi ketat (Hanya Super Admin yang dapat ubah role)' 
+                  : 'Akses cepat 5 role demo & AdminLTE aktif untuk juri'}
+              </span>
+            </div>
 
-          <button
-            onClick={toggleMode}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold border border-slate-700 transition-all active:scale-95 text-slate-200"
-            title="Ganti antara Mode Prototype Murni & Mode Demo Juri"
-          >
-            <Sliders className="w-3.5 h-3.5 text-eco-neon" />
-            <span className="hidden xs:inline">Ganti Mode:</span>
-            <strong className="text-eco-neon">{isPrototypeMode() ? 'Ke Dev Mode' : 'Ke Prototype'}</strong>
-          </button>
+            <button
+              onClick={toggleMode}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-bold border border-slate-700 transition-all active:scale-95 text-slate-200"
+              title="Ganti antara Mode Prototype Murni & Mode Demo Juri"
+            >
+              <Sliders className="w-3.5 h-3.5 text-eco-neon" />
+              <span className="hidden xs:inline">Ganti Mode:</span>
+              <strong className="text-eco-neon">{isPrototypeMode() ? 'Ke Dev Mode' : 'Ke Prototype'}</strong>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Container */}
       <div className="w-full max-w-6xl mx-auto flex justify-center lg:gap-8 lg:py-6 lg:px-4 flex-1">
@@ -117,7 +118,7 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
             <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-4 border border-surface-border shadow-eco-soft space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-black text-text-muted uppercase tracking-wider">
-                  Simulasi Akun ({usersList.length} Akun • {user?.role === 'ADMIN' ? 'Admin Mode' : 'Dev Mode'})
+                  Simulasi Akun ({usersList.length} Akun • {user?.role === 'SUPERADMIN' ? 'Admin Mode' : 'Dev Mode'})
                 </span>
                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-eco-neon/20 text-eco-900 border border-eco-neon/40">
                   1-Klik
@@ -127,8 +128,8 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
               <div className="space-y-1.5 max-h-72 overflow-y-auto pr-0.5 no-scrollbar">
                 {usersList.map((u) => {
                   const isActive = user?.id === u.id;
-                  const isVerifier = u.role === 'VERIFIER';
-                  const isAdmin = u.role === 'ADMIN';
+                  const isOrganizer = u.role === 'ORGANIZER';
+                  const isAdmin = u.role === 'SUPERADMIN';
 
                   return (
                     <button
@@ -138,7 +139,7 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
                         isActive
                           ? isAdmin
                             ? 'bg-purple-700 text-white border-purple-700 shadow-xs'
-                            : isVerifier
+                            : isOrganizer
                             ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
                             : 'bg-eco-700 text-white border-eco-700 shadow-xs'
                           : 'bg-surface-subtle text-text-secondary hover:bg-white border-surface-border/60 hover:border-slate-300'
@@ -179,8 +180,8 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
           )}
 
           {/* Quick Navigation Links */}
-          <div className="grid grid-cols-2 gap-2.5">
-            {(canSwitchAccounts || user?.role === 'ADMIN') && (
+          {(canSwitchAccounts || user?.role === 'SUPERADMIN') && (
+            <div className="grid grid-cols-1 gap-2.5">
               <Link
                 to="/admin"
                 className="p-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-left transition-all shadow-xs space-y-1 block"
@@ -192,22 +193,8 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
                 <div className="text-xs font-black">Admin Panel</div>
                 <div className="text-[10px] text-slate-400">Web View SSO</div>
               </Link>
-            )}
-
-            <Link
-              to="/guide"
-              className={`p-3 rounded-2xl bg-white hover:bg-eco-50/80 border border-surface-border text-left transition-all shadow-xs space-y-1 block ${
-                !canSwitchAccounts && user?.role !== 'ADMIN' ? 'col-span-2' : ''
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <BookOpen className="w-4 h-4 text-eco-700" />
-                <span className="text-[9px] font-black bg-eco-neon/20 text-eco-900 px-1.5 py-0.2 rounded">TFI</span>
-              </div>
-              <div className="text-xs font-black text-text-primary">Panduan & FAQ</div>
-              <div className="text-[10px] text-text-muted">Regulasi Resmi SSO</div>
-            </Link>
-          </div>
+            </div>
+          )}
         </aside>
 
         {/* Center Smartphone Screen Canvas */}
@@ -252,16 +239,13 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
             </Link>
           </div>
 
-          {/* Quick Regulatory Summary with Link to Guide & SDG */}
+          {/* Quick Regulatory Summary */}
           <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-5 border border-surface-border shadow-eco-soft space-y-2.5 text-left">
             <div className="flex items-center justify-between text-xs sm:text-sm font-black text-text-primary">
               <div className="flex items-center gap-1.5">
                 <Award className="w-4 h-4 text-amber-600" />
                 <span>Dual-Track & SDGs</span>
               </div>
-              <Link to="/sdg-guideline" className="text-xs text-eco-800 hover:underline font-bold">
-                Matriks SDG →
-              </Link>
             </div>
             <p className="text-xs text-text-secondary leading-relaxed">
               1. <b>BEKEN Award:</b> Gamifikasi koin hijau tahunan.<br />
@@ -289,7 +273,7 @@ export const App: React.FC = () => {
           <Route
             path="/home"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['MAHASISWA']}>
                 <AppLayout>
                   <HomePage />
                 </AppLayout>
@@ -309,7 +293,7 @@ export const App: React.FC = () => {
           <Route
             path="/upload"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['MAHASISWA']}>
                 <AppLayout title="Pelaporan Aksi" subtitle="AI Scanning & Klaim SAT">
                   <UploadPage />
                 </AppLayout>
@@ -319,7 +303,7 @@ export const App: React.FC = () => {
           <Route
             path="/wallet"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['MAHASISWA']}>
                 <AppLayout title="Portofolio Rekognisi" subtitle="Transkrip SAT & BEKEN Track">
                   <WalletPage />
                 </AppLayout>
@@ -339,7 +323,7 @@ export const App: React.FC = () => {
           <Route
             path="/verify"
             element={
-              <ProtectedRoute allowedRoles={['VERIFIER', 'ADMIN']}>
+              <ProtectedRoute allowedRoles={['ORGANIZER', 'SUPERADMIN']}>
                 <AppLayout title="Portal Verifikasi" subtitle="Validasi Admin SSO & TFI">
                   <VerificationPage />
                 </AppLayout>
@@ -357,40 +341,30 @@ export const App: React.FC = () => {
             }
           />
           <Route
-            path="/guide"
-            element={
-              <ProtectedRoute>
-                <AppLayout title="Pusat Panduan & FAQ" subtitle="Regulasi TFI & Standar SSO">
-                  <GuidePage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/sdg-guideline"
-            element={
-              <ProtectedRoute>
-                <AppLayout title="Panduan Target SDG BINUS" subtitle="Pemetaan Aksi I-CAN & Standar Saintifik IPCC">
-                  <SdgGuidelinePage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/guidelines/sdg"
-            element={
-              <ProtectedRoute>
-                <AppLayout title="Panduan Target SDG BINUS" subtitle="Pemetaan Aksi I-CAN & Standar Saintifik IPCC">
-                  <SdgGuidelinePage />
-                </AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/admin"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={['ORGANIZER', 'SUPERADMIN']}>
                 <AdminLtePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/events"
+            element={
+              <ProtectedRoute>
+                <AppLayout title="Event Kampus" subtitle="Jelajahi Kampanye Hijau Kampus">
+                  <EventsPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/events/:id"
+            element={
+              <ProtectedRoute>
+                <AppLayout title="Detail Event" subtitle="Pos Aktivitas & Leaderboard">
+                  <EventDetailPage />
+                </AppLayout>
               </ProtectedRoute>
             }
           />

@@ -3,10 +3,26 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore, DEMO_PROFILES } from '@/stores/authStore';
 import { getActions, updateActionVerification } from '@/services/actionService';
 import { getStoredAccounts } from '@/services/authService';
-import { GreenAction, UserProfile, UserRole } from '@/types';
+import { GreenAction, UserProfile, UserRole, CampusEvent, EventActivity, EventStatus, DailyQuest, ActionProgram, ActionType } from '@/types';
+import { getEvents, getEventsByOrganizer, createEvent, updateEvent, deleteEvent, getEventTimelineCategory } from '@/services/eventService';
+import {
+  getDailyQuests,
+  createDailyQuest,
+  updateDailyQuest,
+  deleteDailyQuest,
+  toggleDailyQuestStatus,
+  resetDailyQuestsToDefault,
+  getActionPrograms,
+  createActionProgram,
+  updateActionProgram,
+  deleteActionProgram,
+  toggleActionProgramStatus,
+  resetActionProgramsToDefault
+} from '@/services/questProgramService';
 import { 
   LayoutDashboard, 
   Users, 
+  User,
   CheckSquare, 
   GraduationCap, 
   BarChart3, 
@@ -24,18 +40,98 @@ import {
   AlertCircle,
   Database,
   Smartphone,
-  Monitor
+  Monitor,
+  QrCode,
+  Calendar,
+  Eye,
+  EyeOff,
+  UserPlus,
+  Trash2,
+  CalendarPlus,
+  Image,
+  ListOrdered,
+  LogOut,
+  Pencil,
+  RotateCcw,
+  UserX,
+  Shield,
+  Filter,
+  Zap,
+  TreePine,
+  Droplets,
+  Video,
+  CupSoda,
+  Leaf,
+  Sparkles,
+  Heart,
+  Globe2,
+  BookOpen,
+  Clock,
+  Tag,
+  Upload,
+  MapPin,
+  Shirt,
+  FileSpreadsheet,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
+import { compressImage } from '@/utils/imageCompressor';
+import { FormattedText } from '@/components/common/FormattedText';
+import { ImportUsersModal } from '@/components/admin/ImportUsersModal';
+
+const PROGRAM_ICONS_LIST = [
+  { id: 'TreePine', label: 'Pohon', icon: TreePine },
+  { id: 'Droplets', label: 'Air/Biopori', icon: Droplets },
+  { id: 'Trash2', label: 'Sampah', icon: Trash2 },
+  { id: 'Leaf', label: 'Daun', icon: Leaf },
+  { id: 'Zap', label: 'Energi', icon: Zap },
+  { id: 'CupSoda', label: 'Tumbler', icon: CupSoda },
+  { id: 'Heart', label: 'Sosial', icon: Heart },
+  { id: 'Award', label: 'Prestasi', icon: Award },
+  { id: 'BookOpen', label: 'Edukasi', icon: BookOpen },
+  { id: 'Video', label: 'Video VBL', icon: Video },
+];
+
+const PROGRAM_COLORS_LIST = [
+  { label: 'Emerald Eco', value: 'from-emerald-600 to-eco-800' },
+  { label: 'Cyan Ocean', value: 'from-cyan-600 to-blue-800' },
+  { label: 'Amber Sun', value: 'from-amber-500 to-orange-700' },
+  { label: 'Purple Royal', value: 'from-purple-600 to-indigo-800' },
+  { label: 'Rose Vibrant', value: 'from-rose-500 to-pink-700' },
+  { label: 'Slate Dark', value: 'from-slate-700 to-slate-900' },
+];
+
+const renderProgramIconHelper = (iconName: string, className = "w-5 h-5") => {
+  switch (iconName) {
+    case 'TreePine': return <TreePine className={className} />;
+    case 'Droplets': return <Droplets className={className} />;
+    case 'Trash2': return <Trash2 className={className} />;
+    case 'Leaf': return <Leaf className={className} />;
+    case 'Zap': return <Zap className={className} />;
+    case 'CupSoda': return <CupSoda className={className} />;
+    case 'Heart': return <Heart className={className} />;
+    case 'Award': return <Award className={className} />;
+    case 'BookOpen': return <BookOpen className={className} />;
+    case 'Video': return <Video className={className} />;
+    default: return <TreePine className={className} />;
+  }
+};
 
 export const AdminLtePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, loginAs, updateUserStats } = useAuthStore();
 
-  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'users' | 'actions' | 'grant' | 'sdg'>('dashboard');
+  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'users' | 'actions' | 'grant' | 'sdg' | 'events' | 'quests' | 'programs'>('dashboard');
   const [actionsList, setActionsList] = useState<GreenAction[]>([]);
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
-  const [isWideView, setIsWideView] = useState(false);
+  const [isWideView, setIsWideView] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Actions Verification Log State
+  const [evidenceModal, setEvidenceModal] = useState<GreenAction | null>(null);
+  const [actionsCurrentPage, setActionsCurrentPage] = useState(1);
+  const [actionsCategoryFilter, setActionsCategoryFilter] = useState<string>('ALL');
+  const actionsItemsPerPage = 10;
 
   // Manual Grant Modal
   const [selectedUserForGrant, setSelectedUserForGrant] = useState<string>('usr-student-001');
@@ -43,6 +139,111 @@ export const AdminLtePage: React.FC = () => {
   const [grantCoinsAmount, setGrantCoinsAmount] = useState<number>(25);
   const [grantReason, setGrantReason] = useState<string>('Pemberian SAT Manual oleh SSO');
   const [grantSuccessMsg, setGrantSuccessMsg] = useState<string | null>(null);
+
+  // Event Management State
+  const [eventsList, setEventsList] = useState<CampusEvent[]>([]);
+  const [eventTimelineFilter, setEventTimelineFilter] = useState<'ALL' | 'TODAY' | 'UPCOMING' | 'PAST'>('ALL');
+  const [showEventForm, setShowEventForm] = useState(false);
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showUserPassword, setShowUserPassword] = useState(false);
+  const [userFormError, setUserFormError] = useState<string | null>(null);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [userFormData, setUserFormData] = useState({
+    nim: '',
+    fullName: '',
+    email: '',
+    password: '',
+    role: 'MAHASISWA' as UserRole,
+    facultyName: 'School of Computer Science'
+  });
+
+  // Edit User Modal State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    nim: '',
+    fullName: '',
+    email: '',
+    facultyName: '',
+    role: 'MAHASISWA' as UserRole,
+    newPassword: '',
+  });
+  const [editFormError, setEditFormError] = useState<string | null>(null);
+  const [isEditingUser, setIsEditingUser] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
+
+  // Status filter and Pagination for user list
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [usersCurrentPage, setUsersCurrentPage] = useState<number>(1);
+  const [usersItemsPerPage, setUsersItemsPerPage] = useState<number>(10);
+
+  useEffect(() => {
+    setUsersCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+
+  const [editingEvent, setEditingEvent] = useState<CampusEvent | null>(null);
+  const [descPreviewMode, setDescPreviewMode] = useState<'write' | 'preview'>('write');
+  const [eventFormData, setEventFormData] = useState({
+    title: '',
+    description: '',
+    bannerUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=800&auto=format&fit=crop&q=80',
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+    timeRange: '',
+    location: '',
+    dressCode: '',
+    hashtags: '#WasteForChange #CampusEcoFair #ZeroWasteBinus',
+    allowGroupMembers: false,
+    maxGroupMembers: 3,
+    activities: [{ name: '', description: '', coinsReward: 10, satPointsReward: 0 }] as Array<{ name: string; description: string; coinsReward: number; satPointsReward?: number }>,
+  });
+  const [showRewardGuide, setShowRewardGuide] = useState(false);
+  const [bannerInputMode, setBannerInputMode] = useState<'upload' | 'url'>('upload');
+  const [isCompressingBanner, setIsCompressingBanner] = useState(false);
+  const [bannerUploadError, setBannerUploadError] = useState<string | null>(null);
+  const bannerFileInputRef = React.useRef<HTMLInputElement>(null);
+  const [showQrModal, setShowQrModal] = useState<{ eventTitle: string; activity: EventActivity } | null>(null);
+
+  // Daily Quests Management State
+  const [questsList, setQuestsList] = useState<DailyQuest[]>([]);
+  const [showQuestModal, setShowQuestModal] = useState(false);
+  const [editingQuest, setEditingQuest] = useState<DailyQuest | null>(null);
+  const [questSearch, setQuestSearch] = useState('');
+  const [questStatusFilter, setQuestStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [questFormData, setQuestFormData] = useState({
+    title: '',
+    desc: '',
+    reward: '+15 Green Coins',
+    coinsReward: 15,
+    satReward: 0,
+    deadline: 'Sisa Hari Ini',
+    actionUrl: '/upload',
+    isActive: true,
+  });
+
+  // Program Aksi Nyata Management State
+  const [programsList, setProgramsList] = useState<ActionProgram[]>([]);
+  const [showProgramModal, setShowProgramModal] = useState(false);
+  const [editingProgram, setEditingProgram] = useState<ActionProgram | null>(null);
+  const [programSearch, setProgramSearch] = useState('');
+  const [programStatusFilter, setProgramStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [programFormData, setProgramFormData] = useState({
+    title: '',
+    category: 'Penyuluhan & Aksi Nyata',
+    categoryType: 'PENYULUHAN_AKSI_NYATA' as ActionType,
+    satPoints: 4,
+    comservHours: 2.0,
+    coins: 25,
+    co2: '5.0 kg',
+    icon: 'TreePine',
+    color: 'from-emerald-600 to-eco-800',
+    tag: 'SDG 15 & 13',
+    urgency: 'Hot Program 🔥',
+    description: '',
+    suggestedPrompt: '',
+    isActive: true,
+  });
 
   useEffect(() => {
     loadData();
@@ -58,29 +259,199 @@ export const AdminLtePage: React.FC = () => {
     } else {
       setUsersList(Object.values(DEMO_PROFILES));
     }
+
+    // Load events (RBAC filtered)
+    if (user?.role === 'SUPERADMIN') {
+      const allEvents = await getEvents();
+      setEventsList(allEvents);
+    } else if (user?.role === 'ORGANIZER' && user?.id) {
+      const myEvents = await getEventsByOrganizer(user.id);
+      setEventsList(myEvents);
+    }
+
+    // Load Daily Quests & Program Aksi Nyata
+    const quests = await getDailyQuests();
+    setQuestsList(quests);
+    const progs = await getActionPrograms();
+    setProgramsList(progs);
   };
 
-  const handleRoleChange = (userId: string, newRole: UserRole) => {
-    const updatedUsers = usersList.map((u) => (u.id === userId ? { ...u, role: newRole } : u));
-    setUsersList(updatedUsers);
+  // Quest Handlers
+  const handleOpenCreateQuest = () => {
+    setEditingQuest(null);
+    setQuestFormData({
+      title: '',
+      desc: '',
+      reward: '+15 Green Coins',
+      coinsReward: 15,
+      satReward: 0,
+      deadline: 'Sisa Hari Ini',
+      actionUrl: '/upload',
+      isActive: true,
+    });
+    setShowQuestModal(true);
+  };
 
-    // Save to localStorage accounts
-    const raw = localStorage.getItem('i_can_registered_accounts');
-    if (raw) {
-      try {
-        const stored = JSON.parse(raw);
-        const next = stored.map((acc: any) => (acc.id === userId ? { ...acc, role: newRole } : acc));
-        localStorage.setItem('i_can_registered_accounts', JSON.stringify(next));
-      } catch {}
-    }
+  const handleOpenEditQuest = (quest: DailyQuest) => {
+    setEditingQuest(quest);
+    setQuestFormData({
+      title: quest.title,
+      desc: quest.desc,
+      reward: quest.reward,
+      coinsReward: quest.coinsReward || 15,
+      satReward: quest.satReward || 0,
+      deadline: quest.deadline,
+      actionUrl: quest.actionUrl || '/upload',
+      isActive: quest.isActive,
+    });
+    setShowQuestModal(true);
+  };
 
-    if (user?.id === userId) {
-      useAuthStore.getState().setUser({ ...user, role: newRole });
+  const handleSaveQuest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!questFormData.title.trim() || !questFormData.desc.trim()) {
+      alert('Judul dan deskripsi misi wajib diisi!');
+      return;
     }
+    const rewardText = questFormData.satReward && questFormData.satReward > 0
+      ? `+${questFormData.coinsReward} GC & +${questFormData.satReward} SAT`
+      : `+${questFormData.coinsReward} Green Coins`;
+
+    if (editingQuest) {
+      await updateDailyQuest(editingQuest.id, {
+        ...questFormData,
+        reward: rewardText,
+      });
+      alert('Daily quest berhasil diperbarui!');
+    } else {
+      await createDailyQuest({
+        ...questFormData,
+        reward: rewardText,
+      });
+      alert('Daily quest baru berhasil dibuat!');
+    }
+    setShowQuestModal(false);
+    const updated = await getDailyQuests();
+    setQuestsList(updated);
+  };
+
+  const handleToggleQuest = async (id: string) => {
+    await toggleDailyQuestStatus(id);
+    const updated = await getDailyQuests();
+    setQuestsList(updated);
+  };
+
+  const handleDeleteQuest = async (id: string, title: string) => {
+    if (window.confirm(`Yakin ingin menghapus daily quest "${title}"?`)) {
+      await deleteDailyQuest(id);
+      const updated = await getDailyQuests();
+      setQuestsList(updated);
+    }
+  };
+
+  const handleResetQuests = async () => {
+    if (window.confirm('Reset daftar Daily Quests ke data awal standar?')) {
+      const reset = await resetDailyQuestsToDefault();
+      setQuestsList(reset);
+      alert('Daily Quests di-reset ke standar.');
+    }
+  };
+
+  // Program Handlers
+  const handleOpenCreateProgram = () => {
+    setEditingProgram(null);
+    setProgramFormData({
+      title: '',
+      category: 'Penyuluhan & Aksi Nyata',
+      categoryType: 'PENYULUHAN_AKSI_NYATA',
+      satPoints: 4,
+      comservHours: 2.0,
+      coins: 25,
+      co2: '5.0 kg',
+      icon: 'TreePine',
+      color: 'from-emerald-600 to-eco-800',
+      tag: 'SDG 15 & 13',
+      urgency: 'Hot Program 🔥',
+      description: '',
+      suggestedPrompt: '',
+      isActive: true,
+    });
+    setShowProgramModal(true);
+  };
+
+  const handleOpenEditProgram = (prog: ActionProgram) => {
+    setEditingProgram(prog);
+    setProgramFormData({
+      title: prog.title,
+      category: prog.category,
+      categoryType: prog.categoryType,
+      satPoints: prog.satPoints,
+      comservHours: prog.comservHours,
+      coins: prog.coins,
+      co2: prog.co2,
+      icon: prog.icon,
+      color: prog.color,
+      tag: prog.tag,
+      urgency: prog.urgency,
+      description: prog.description || '',
+      suggestedPrompt: prog.suggestedPrompt || '',
+      isActive: prog.isActive,
+    });
+    setShowProgramModal(true);
+  };
+
+  const handleSaveProgram = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!programFormData.title.trim() || !programFormData.category.trim()) {
+      alert('Judul dan kategori program wajib diisi!');
+      return;
+    }
+    if (editingProgram) {
+      await updateActionProgram(editingProgram.id, programFormData);
+      alert('Program Aksi Nyata berhasil diperbarui!');
+    } else {
+      await createActionProgram(programFormData);
+      alert('Program Aksi Nyata baru berhasil dibuat!');
+    }
+    setShowProgramModal(false);
+    const updated = await getActionPrograms();
+    setProgramsList(updated);
+  };
+
+  const handleToggleProgram = async (id: string) => {
+    await toggleActionProgramStatus(id);
+    const updated = await getActionPrograms();
+    setProgramsList(updated);
+  };
+
+  const handleDeleteProgram = async (id: string, title: string) => {
+    if (window.confirm(`Yakin ingin menghapus program "${title}"?`)) {
+      await deleteActionProgram(id);
+      const updated = await getActionPrograms();
+      setProgramsList(updated);
+    }
+  };
+
+  const handleResetPrograms = async () => {
+    if (window.confirm('Reset daftar Program Aksi Nyata ke data awal standar?')) {
+      const reset = await resetActionProgramsToDefault();
+      setProgramsList(reset);
+      alert('Program Aksi Nyata di-reset ke standar.');
+    }
+  };
+
+  const handleRoleChange = async (userId: string, newRole: UserRole) => {
+    await useAuthStore.getState().updateUserRole(userId, newRole);
+    await loadData();
     alert(`Role berhasil diperbarui menjadi ${newRole}`);
   };
 
   const handleAdminVerify = async (actionId: string, decision: 'APPROVED_FULL' | 'APPROVED_COINS_ONLY' | 'REJECTED') => {
+    const actionLabel = decision === 'REJECTED' ? 'menolak' : 'menyetujui';
+    if (!window.confirm(`Yakin ingin ${actionLabel} aksi ini?`)) {
+      return;
+    }
+
     await updateActionVerification(
       actionId, 
       decision, 
@@ -159,33 +530,415 @@ export const AdminLtePage: React.FC = () => {
     downloadAnchor.remove();
   };
 
+  const handleUserFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUserFormError(null);
+
+    const identifierLabel = userFormData.role === 'MAHASISWA' ? 'NIM' : 'Binus Number (BN)';
+
+    if (!userFormData.nim.trim()) {
+      setUserFormError(`${identifierLabel} wajib diisi.`);
+      return;
+    }
+
+    if (!userFormData.fullName.trim() || !userFormData.email.trim() || !userFormData.password) {
+      setUserFormError('Semua kolom formulir wajib diisi.');
+      return;
+    }
+
+    if (!userFormData.email.includes('@')) {
+      setUserFormError('Format alamat email tidak valid.');
+      return;
+    }
+
+    if (userFormData.password.length < 6) {
+      setUserFormError('Kata sandi awal minimal 6 karakter.');
+      return;
+    }
+
+    setIsCreatingUser(true);
+    try {
+      const result = await useAuthStore.getState().createUserAccount({
+        nim: userFormData.nim.trim(),
+        fullName: userFormData.fullName.trim(),
+        email: userFormData.email.trim(),
+        facultyName: userFormData.facultyName || 'School of Computer Science',
+        password: userFormData.password,
+        role: userFormData.role,
+      });
+
+      if (result.error) {
+        setUserFormError(result.error);
+        setIsCreatingUser(false);
+      } else {
+        alert(`Pengguna ${userFormData.fullName} (${userFormData.role}) dengan ${identifierLabel} ${userFormData.nim} berhasil ditambahkan!`);
+        setShowUserForm(false);
+        setUserFormData({
+          nim: '',
+          fullName: '',
+          email: '',
+          password: '',
+          role: 'MAHASISWA' as UserRole,
+          facultyName: 'School of Computer Science',
+        });
+        setUserFormError(null);
+        setIsCreatingUser(false);
+        await loadData();
+      }
+    } catch (err: any) {
+      setUserFormError(err?.message || 'Terjadi kesalahan sistem saat membuat akun');
+      setIsCreatingUser(false);
+    }
+  };
+
+  // Real-time NIM/BN input sanitizer
+  const sanitizeNimInput = (value: string, role: UserRole): string => {
+    if (role === 'MAHASISWA') {
+      // Only digits, max 10
+      return value.replace(/\D/g, '').slice(0, 10);
+    } else {
+      // Staff BN format: ensure BN prefix + digits only, max 11 total
+      let clean = value.toUpperCase();
+      if (!clean.startsWith('BN')) {
+        // Auto-prefix BN if user types digits directly
+        const digits = clean.replace(/\D/g, '');
+        clean = 'BN' + digits;
+      } else {
+        // Keep BN prefix, strip non-digits after it
+        const afterBN = clean.slice(2).replace(/\D/g, '');
+        clean = 'BN' + afterBN;
+      }
+      return clean.slice(0, 11); // BN + max 9 digits
+    }
+  };
+
+  // Open Edit Modal with pre-filled data
+  const handleOpenEditModal = (targetUser: UserProfile) => {
+    setEditingUser(targetUser);
+    setEditFormData({
+      nim: targetUser.nim || '',
+      fullName: targetUser.fullName || '',
+      email: targetUser.email || '',
+      facultyName: targetUser.facultyName || '',
+      role: targetUser.role,
+      newPassword: '',
+    });
+    setEditFormError(null);
+    setShowEditPassword(false);
+    setShowEditModal(true);
+  };
+
+  // Edit user form submit
+  const handleEditFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    setEditFormError(null);
+
+    if (!editFormData.fullName.trim() || !editFormData.nim.trim() || !editFormData.email.trim()) {
+      setEditFormError('Nama, NIM/BN, dan Email wajib diisi.');
+      return;
+    }
+
+    if (!editFormData.email.includes('@')) {
+      setEditFormError('Format alamat email tidak valid.');
+      return;
+    }
+
+    if (editFormData.newPassword && editFormData.newPassword.length < 6) {
+      setEditFormError('Kata sandi baru minimal 6 karakter.');
+      return;
+    }
+
+    setIsEditingUser(true);
+    try {
+      const result = await useAuthStore.getState().editUserAccount(editingUser.id, {
+        fullName: editFormData.fullName.trim(),
+        nim: editFormData.nim.trim(),
+        email: editFormData.email.trim(),
+        facultyName: editFormData.facultyName,
+        role: editFormData.role,
+        newPassword: editFormData.newPassword || undefined,
+      });
+
+      if (result.error) {
+        setEditFormError(result.error);
+      } else {
+        alert(`Data pengguna ${editFormData.fullName} berhasil diperbarui.`);
+        setShowEditModal(false);
+        setEditingUser(null);
+        await loadData();
+      }
+    } catch (err: any) {
+      setEditFormError(err?.message || 'Terjadi kesalahan saat memperbarui akun');
+    }
+    setIsEditingUser(false);
+  };
+
+  // Soft delete (deactivate) user
+  const handleSoftDelete = async (targetUser: UserProfile) => {
+    if (!confirm(`Yakin ingin menonaktifkan akun "${targetUser.fullName}"?\n\nAkun yang dinonaktifkan tidak dapat login, namun datanya tetap tersimpan.`)) return;
+    const result = await useAuthStore.getState().softDeleteUserAccount(targetUser.id);
+    if (result.error) {
+      alert(`Gagal: ${result.error}`);
+    } else {
+      alert(`Akun "${targetUser.fullName}" berhasil dinonaktifkan.`);
+      await loadData();
+    }
+  };
+
+  // Restore (reactivate) user
+  const handleRestore = async (targetUser: UserProfile) => {
+    if (!confirm(`Yakin ingin mengaktifkan kembali akun "${targetUser.fullName}"?`)) return;
+    const result = await useAuthStore.getState().restoreUserAccount(targetUser.id);
+    if (result.error) {
+      alert(`Gagal: ${result.error}`);
+    } else {
+      alert(`Akun "${targetUser.fullName}" berhasil dipulihkan dan aktif kembali.`);
+      await loadData();
+    }
+  };
+
+  const handleBannerFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setBannerUploadError('Berkas yang dipilih harus berupa gambar (JPG, PNG, WebP).');
+      return;
+    }
+
+    try {
+      setIsCompressingBanner(true);
+      setBannerUploadError(null);
+      const result = await compressImage(file, 1200, 0.82);
+      setEventFormData((prev) => ({
+        ...prev,
+        bannerUrl: result.dataUrl,
+      }));
+    } catch (err) {
+      console.error('[AdminLTE] Gagal memproses gambar banner:', err);
+      setBannerUploadError('Gagal memproses gambar. Silakan coba gambar lain.');
+    } finally {
+      setIsCompressingBanner(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const handleEventFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const validActivities = (eventFormData.activities || [])
+      .filter((act) => act.name.trim() !== '')
+      .map((act, idx) => ({
+        id: (act as any).id || `act-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+        eventId: editingEvent ? editingEvent.id : '',
+        name: act.name.trim(),
+        description: act.description.trim(),
+        qrCodeValue: (act as any).qrCodeValue || `ican-evt-${Date.now().toString(36)}-act${idx + 1}`,
+        coinsReward: Number(act.coinsReward) || 10,
+        satPointsReward: Number(act.satPointsReward) || 0,
+        order: idx,
+      }));
+
+    const eventPayload = {
+      organizerId: user?.id || 'usr-organizer-002',
+      organizerName: user?.fullName || 'Penyelenggara',
+      title: eventFormData.title.trim(),
+      description: eventFormData.description.trim(),
+      bannerUrl: eventFormData.bannerUrl || 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=800&auto=format&fit=crop&q=80',
+      startDate: eventFormData.startDate.includes('T')
+        ? new Date(eventFormData.startDate).toISOString()
+        : new Date(`${eventFormData.startDate}T00:00:00`).toISOString(),
+      endDate: eventFormData.endDate.includes('T')
+        ? new Date(eventFormData.endDate).toISOString()
+        : new Date(`${eventFormData.endDate}T23:59:59`).toISOString(),
+      timeRange: eventFormData.timeRange.trim() || undefined,
+      location: eventFormData.location.trim() || undefined,
+      dressCode: eventFormData.dressCode.trim() || undefined,
+      status: 'ACTIVE' as EventStatus,
+      allowGroupMembers: eventFormData.allowGroupMembers,
+      maxGroupMembers: eventFormData.allowGroupMembers
+        ? Math.min(20, Math.max(1, Number(eventFormData.maxGroupMembers) || 1))
+        : 0,
+      activities: validActivities,
+      hashtags: (eventFormData.hashtags || '')
+        .split(/[,\s]+/)
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .map((t) => (t.startsWith('#') ? t : `#${t}`)),
+    };
+
+    if (editingEvent) {
+      await updateEvent(editingEvent.id, eventPayload);
+      alert('Event berhasil diperbarui!');
+    } else {
+      await createEvent(eventPayload);
+      alert('Event baru berhasil dibuat!');
+    }
+
+    setShowEventForm(false);
+    setEditingEvent(null);
+    setBannerUploadError(null);
+    setBannerInputMode('upload');
+    setDescPreviewMode('write');
+    setEventFormData({
+      title: '',
+      description: '',
+      bannerUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=800&auto=format&fit=crop&q=80',
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+      timeRange: '',
+      location: '',
+      dressCode: '',
+      hashtags: '#WasteForChange #CampusEcoFair #ZeroWasteBinus',
+      allowGroupMembers: false,
+      maxGroupMembers: 3,
+      activities: [{ name: '', description: '', coinsReward: 10, satPointsReward: 0 }],
+    });
+    await loadData();
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    if (!confirm('Yakin ingin menghapus event ini?')) return;
+    await deleteEvent(eventId);
+    alert('Event berhasil dihapus.');
+    await loadData();
+  };
+
+  const handleEditEvent = (event: CampusEvent) => {
+    setEditingEvent(event);
+    setBannerUploadError(null);
+    setDescPreviewMode('write');
+    if (event.bannerUrl && event.bannerUrl.startsWith('data:')) {
+      setBannerInputMode('upload');
+    } else if (event.bannerUrl && event.bannerUrl.startsWith('http')) {
+      setBannerInputMode('url');
+    } else {
+      setBannerInputMode('upload');
+    }
+    setEventFormData({
+      title: event.title,
+      description: event.description,
+      bannerUrl: event.bannerUrl,
+      startDate: event.startDate.split('T')[0],
+      endDate: event.endDate.split('T')[0],
+      timeRange: event.timeRange || '',
+      location: event.location || '',
+      dressCode: event.dressCode || '',
+      hashtags: event.hashtags && event.hashtags.length > 0 ? event.hashtags.join(' ') : '#WasteForChange #CampusEcoFair #ZeroWasteBinus',
+      allowGroupMembers: event.allowGroupMembers ?? (Boolean(event.maxGroupMembers && event.maxGroupMembers > 0)),
+      maxGroupMembers: event.maxGroupMembers && event.maxGroupMembers > 0 ? event.maxGroupMembers : 3,
+      activities: (event.activities || []).map((a) => ({
+        name: a.name,
+        description: a.description,
+        coinsReward: a.coinsReward,
+        satPointsReward: a.satPointsReward || 0,
+      })),
+    });
+    setShowEventForm(true);
+  };
+
+  const addActivityField = () => {
+    setEventFormData((prev) => ({
+      ...prev,
+      activities: [...prev.activities, { name: '', description: '', coinsReward: 10, satPointsReward: 0 }],
+    }));
+  };
+
+  const applyActivityPreset = (idx: number, coins: number) => {
+    setEventFormData((prev) => ({
+      ...prev,
+      activities: prev.activities.map((a, i) =>
+        i === idx ? { ...a, coinsReward: coins, satPointsReward: 0 } : a
+      ),
+    }));
+  };
+
+  const updateActivityField = (idx: number, field: string, value: string | number) => {
+    setEventFormData((prev) => ({
+      ...prev,
+      activities: prev.activities.map((a, i) => (i === idx ? { ...a, [field]: value } : a)),
+    }));
+  };
+
+  const removeActivityField = (idx: number) => {
+    setEventFormData((prev) => ({
+      ...prev,
+      activities: prev.activities.filter((_, i) => i !== idx),
+    }));
+  };
+
   // KPIs
   const totalUsers = usersList.length;
   const verifiedActions = actionsList.filter((a) => a.status === 'APPROVED').length;
-  const totalSatAwarded = actionsList.reduce((acc, a) => acc + (a.satPointsEarned || 0), 0) + 120;
-  const totalCo2Saved = (actionsList.reduce((acc, a) => acc + (a.carbonImpactKg || 0), 0) + 85.5).toFixed(1);
+  const totalSatAwarded = actionsList.reduce((acc, a) => {
+    if (a.status === 'APPROVED' && a.decision === 'APPROVED_FULL') {
+      return acc + (a.satPointsEarned || 0);
+    }
+    return acc;
+  }, 0);
+  const totalCo2Saved = actionsList.reduce((acc, a) => {
+    if (a.status === 'APPROVED') {
+      return acc + (a.carbonImpactKg || 0);
+    }
+    return acc;
+  }, 0).toFixed(1);
+
+  // Filtered Users List based on Search Term and Status Filter
+  const filteredUsersList = usersList.filter((u) => {
+    // Status filter
+    if (statusFilter === 'active' && u.isDeleted) return false;
+    if (statusFilter === 'inactive' && !u.isDeleted) return false;
+
+    // Search filter
+    if (!searchTerm.trim()) return true;
+    const s = searchTerm.toLowerCase();
+    return (
+      u.fullName?.toLowerCase().includes(s) ||
+      u.nim?.toLowerCase().includes(s) ||
+      u.email?.toLowerCase().includes(s) ||
+      u.facultyName?.toLowerCase().includes(s) ||
+      u.role?.toLowerCase().includes(s)
+    );
+  });
+
+  // Paginate Users List
+  const usersTotalPages = Math.max(1, Math.ceil(filteredUsersList.length / usersItemsPerPage));
+  const paginatedUsersList = filteredUsersList.slice(
+    (usersCurrentPage - 1) * usersItemsPerPage,
+    usersCurrentPage * usersItemsPerPage
+  );
+
+  // Count active superadmins for guardrail logic
+  const activeSuperadminsCount = usersList.filter((u) => u.role === 'SUPERADMIN' && !u.isDeleted).length;
+
+  // Filter and Paginate Actions List
+  const filteredActionsList = actionsList.filter((act) => {
+    if (actionsCategoryFilter === 'ALL') return true;
+    return act.submissionType === actionsCategoryFilter;
+  });
+  const actionsTotalPages = Math.ceil(filteredActionsList.length / actionsItemsPerPage);
+  const paginatedActionsList = filteredActionsList.slice(
+    (actionsCurrentPage - 1) * actionsItemsPerPage,
+    actionsCurrentPage * actionsItemsPerPage
+  );
 
   return (
-    <div className={`min-h-screen bg-[#f4f6f9] text-[#212529] font-sans transition-all ${isWideView ? 'fixed inset-0 z-50 overflow-y-auto' : 'rounded-3xl border border-slate-300 shadow-xl overflow-hidden'}`}>
-      {/* 1. AdminLTE Classic Top Navbar */}
-      <header className="bg-white border-b border-[#dee2e6] px-4 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+    <div className={`min-h-screen bg-[#f4f6f9] font-sans ${isWideView ? 'w-full' : 'max-w-[414px] mx-auto shadow-2xl relative'}`}>
+      {/* 1. AdminLTE Inspired Header Navbar */}
+      <header className="bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between sticky top-0 z-50 shadow-xs">
         <div className="flex items-center gap-3">
-          <Link
-            to="/home"
-            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 transition-colors"
-            title="Kembali ke App Mahasiswa"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Kembali ke App</span>
-          </Link>
-
-          <div className="flex items-center gap-1.5 border-l border-slate-300 pl-3">
-            <div className="w-7 h-7 rounded-lg bg-[#007bff] text-white flex items-center justify-center font-black text-xs shadow-xs">
+          <div className="flex items-center gap-2">
+            <div className={`w-8 h-8 rounded-xl text-white flex items-center justify-center font-black text-xs shadow-xs ${user?.role === 'SUPERADMIN' ? 'bg-[#007bff]' : 'bg-amber-600'}`}>
               LTE
             </div>
-            <span className="text-xs sm:text-sm font-black text-slate-800 tracking-tight">
-              AdminLTE <b>3.4</b> • SSO Panel
-            </span>
+            <div>
+              <span className="text-xs sm:text-sm font-black text-slate-800 tracking-tight block">
+                BINUS I-CAN • {user?.role === 'SUPERADMIN' ? 'Super Admin SSO Platform' : 'Event Organizer Portal'}
+              </span>
+              <span className="text-[10px] text-slate-500 font-bold block">
+                {user?.fullName} ({user?.facultyName || 'BINUS University'})
+              </span>
+            </div>
           </div>
         </div>
 
@@ -208,6 +961,19 @@ export const AdminLtePage: React.FC = () => {
             <Download className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Export myBINUS</span>
           </button>
+
+          {/* Logout Button */}
+          <button
+            onClick={() => {
+              useAuthStore.getState().logout();
+              navigate('/login');
+            }}
+            className="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1 shadow-xs transition-colors"
+            title="Keluar dari sesi akun"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
         </div>
       </header>
 
@@ -218,15 +984,15 @@ export const AdminLtePage: React.FC = () => {
           {/* User Profile Bar */}
           <div className="flex items-center gap-2.5 pb-3 border-b border-[#4f5962]">
             <img
-              src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80"
-              alt="Hendra Admin"
-              className="w-9 h-9 rounded-full object-cover ring-2 ring-[#007bff]"
+              src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'Admin')}&background=7c3aed&color=fff&bold=true&size=150`}
+              alt={user?.fullName || "User"}
+              className={`w-9 h-9 rounded-full object-cover ring-2 ${user?.role === 'SUPERADMIN' ? 'ring-[#007bff]' : 'ring-amber-500'}`}
             />
-            <div className="min-w-0">
-              <h4 className="text-xs font-bold text-white truncate">Pak Hendra (SSO)</h4>
-              <p className="text-[10px] text-[#28a745] flex items-center gap-1 font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#28a745] animate-ping" />
-                Super Admin Online
+            <div className="min-w-0 flex-1">
+              <h4 className="text-xs font-bold text-white truncate">{user?.fullName || 'User Online'}</h4>
+              <p className={`text-[10px] flex items-center gap-1 font-bold ${user?.role === 'SUPERADMIN' ? 'text-[#28a745]' : 'text-amber-400'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full animate-ping ${user?.role === 'SUPERADMIN' ? 'bg-[#28a745]' : 'bg-amber-400'}`} />
+                {user?.role === 'SUPERADMIN' ? 'Super Admin Online' : 'Organizer Online'}
               </p>
             </div>
           </div>
@@ -243,18 +1009,20 @@ export const AdminLtePage: React.FC = () => {
               <span>Dashboard Utama</span>
             </button>
 
-            <button
-              onClick={() => setActiveMenu('users')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
-                activeMenu === 'users' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Users className="w-4 h-4" />
-                <span>Manajemen Akun</span>
-              </div>
-              <span className="bg-[#17a2b8] text-white text-[9px] px-1.5 py-0.2 rounded-full">{usersList.length}</span>
-            </button>
+            {user?.role === 'SUPERADMIN' && (
+              <button
+                onClick={() => setActiveMenu('users')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
+                  activeMenu === 'users' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Users className="w-4 h-4" />
+                  <span>Manajemen Akun</span>
+                </div>
+                <span className="bg-[#17a2b8] text-white text-[9px] px-1.5 py-0.2 rounded-full">{usersList.length}</span>
+              </button>
+            )}
 
             <button
               onClick={() => setActiveMenu('actions')}
@@ -271,14 +1039,63 @@ export const AdminLtePage: React.FC = () => {
               </span>
             </button>
 
+            {user?.role === 'SUPERADMIN' && (
+              <button
+                onClick={() => setActiveMenu('grant')}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left ${
+                  activeMenu === 'grant' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                }`}
+              >
+                <GraduationCap className="w-4 h-4" />
+                <span>Manual SAT Grant</span>
+              </button>
+            )}
+
+            {user?.role === 'SUPERADMIN' && (
+              <>
+                <button
+                  onClick={() => setActiveMenu('quests')}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
+                    activeMenu === 'quests' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Zap className="w-4 h-4 text-amber-400" />
+                    <span>Daily Quests</span>
+                  </div>
+                  <span className="bg-amber-500 text-slate-900 text-[9px] px-1.5 py-0.2 rounded-full font-black">
+                    {questsList.filter((q) => q.isActive).length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveMenu('programs')}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
+                    activeMenu === 'programs' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <TreePine className="w-4 h-4 text-emerald-400" />
+                    <span>Program Aksi Nyata</span>
+                  </div>
+                  <span className="bg-emerald-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-black">
+                    {programsList.filter((p) => p.isActive).length}
+                  </span>
+                </button>
+              </>
+            )}
+
             <button
-              onClick={() => setActiveMenu('grant')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left ${
-                activeMenu === 'grant' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+              onClick={() => setActiveMenu('events')}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
+                activeMenu === 'events' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
               }`}
             >
-              <GraduationCap className="w-4 h-4" />
-              <span>Manual SAT Grant</span>
+              <div className="flex items-center gap-2.5">
+                <Calendar className="w-4 h-4" />
+                <span>Manajemen Event</span>
+              </div>
+              <span className="bg-[#28a745] text-white text-[9px] px-1.5 py-0.2 rounded-full">{eventsList.length}</span>
             </button>
 
             <button
@@ -290,6 +1107,19 @@ export const AdminLtePage: React.FC = () => {
               <BarChart3 className="w-4 h-4" />
               <span>Analitik SDG Kampus</span>
             </button>
+
+            <div className="pt-4 mt-4 border-t border-[#4f5962]">
+              <button
+                onClick={() => {
+                  useAuthStore.getState().logout();
+                  navigate('/login');
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-400 hover:bg-rose-900/30 hover:text-rose-300 transition-colors text-left font-bold"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Keluar (Logout)</span>
+              </button>
+            </div>
           </nav>
         </aside>
 
@@ -303,14 +1133,17 @@ export const AdminLtePage: React.FC = () => {
                 {activeMenu === 'users' && 'Manajemen Pengguna & Pengaturan Role'}
                 {activeMenu === 'actions' && 'Log & Validasi Aksi Nyata Mahasiswa'}
                 {activeMenu === 'grant' && 'Pemberian Poin SAT & Jam Comserv Manual'}
+                {activeMenu === 'quests' && 'Manajemen Daily Quests (Misi Kampus)'}
+                {activeMenu === 'programs' && 'Manajemen Program Aksi Nyata'}
                 {activeMenu === 'sdg' && 'Metrik & Dampak Berkelanjutan SDG Kampus'}
+                {activeMenu === 'events' && 'Manajemen Event Kampus & QR Pos'}
               </h1>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
                 Panel Administrasi Terpusat • BINUS University
               </p>
             </div>
             <span className="text-xs font-mono font-bold bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl">
-              Session: Super Admin
+              Session: {user?.role === 'SUPERADMIN' ? 'Super Admin' : 'Organizer'}
             </span>
           </div>
 
@@ -353,73 +1186,397 @@ export const AdminLtePage: React.FC = () => {
             </div>
           </div>
 
-          {/* 4. Tab Content: Dashboard & Table 1: Manajemen Akun */}
-          {(activeMenu === 'dashboard' || activeMenu === 'users') && (
-            <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
+          {/* Ringkasan Status Event Kampus (Linimasa) pada Dashboard Overview */}
+          {activeMenu === 'dashboard' && (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-[#007bff]" />
+                  <h3 className="text-xs sm:text-sm font-black text-slate-800">
+                    Status Event Kampus & Linimasa Pelaksanaan
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEventTimelineFilter('ALL');
+                    setActiveMenu('events');
+                  }}
+                  className="text-xs font-bold text-[#007bff] hover:underline flex items-center gap-1"
+                >
+                  Kelola Event ({eventsList.length}) →
+                </button>
+              </div>
+
+              {/* 3 Sub-KPI Cards: Hari Ini, Akan Datang, Berlalu */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div
+                  onClick={() => {
+                    setEventTimelineFilter('TODAY');
+                    setActiveMenu('events');
+                  }}
+                  className="p-3.5 bg-emerald-50 hover:bg-emerald-100/80 rounded-2xl border border-emerald-200/70 cursor-pointer transition-all space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black text-emerald-800">🟢 Hari Ini</span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  </div>
+                  <div className="text-xl sm:text-2xl font-black text-emerald-900">
+                    {eventsList.filter((e) => getEventTimelineCategory(e) === 'TODAY').length}
+                  </div>
+                  <p className="text-[10px] text-emerald-700 font-medium">Event sedang berlangsung hari ini</p>
+                </div>
+
+                <div
+                  onClick={() => {
+                    setEventTimelineFilter('UPCOMING');
+                    setActiveMenu('events');
+                  }}
+                  className="p-3.5 bg-blue-50 hover:bg-blue-100/80 rounded-2xl border border-blue-200/70 cursor-pointer transition-all space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black text-blue-800">🗓️ Akan Datang</span>
+                    <Clock className="w-3.5 h-3.5 text-blue-600" />
+                  </div>
+                  <div className="text-xl sm:text-2xl font-black text-blue-900">
+                    {eventsList.filter((e) => getEventTimelineCategory(e) === 'UPCOMING').length}
+                  </div>
+                  <p className="text-[10px] text-blue-700 font-medium">Terjadwal di masa depan (Upcoming)</p>
+                </div>
+
+                <div
+                  onClick={() => {
+                    setEventTimelineFilter('PAST');
+                    setActiveMenu('events');
+                  }}
+                  className="p-3.5 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200 cursor-pointer transition-all space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-black text-slate-700">🏁 Berlalu</span>
+                    <CheckSquare className="w-3.5 h-3.5 text-slate-400" />
+                  </div>
+                  <div className="text-xl sm:text-2xl font-black text-slate-800">
+                    {eventsList.filter((e) => getEventTimelineCategory(e) === 'PAST').length}
+                  </div>
+                  <p className="text-[10px] text-slate-500 font-medium">Event telah selesai / lewat tanggal</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 4. Tab Content: Dashboard & Table 1: Manajemen Akun */}
+          {(activeMenu === 'users' || (activeMenu === 'dashboard' && user?.role === 'SUPERADMIN')) && (
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-[#007bff]" />
-                  Daftar Akun & Manajemen Hak Akses (Role)
-                </h3>
-                <span className="text-xs text-slate-500 font-bold">{usersList.length} Akun Terdaftar</span>
+                  <h3 className="text-xs sm:text-sm font-black text-slate-800">
+                    Daftar Akun & Manajemen Hak Akses (Role)
+                  </h3>
+                  <span className="text-xs text-slate-500 font-bold hidden sm:inline ml-1">
+                    ({filteredUsersList.length} Akun)
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Cari nama, NIM/BN, email..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="text-xs pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] w-48 sm:w-60"
+                    />
+                  </div>
+                  {user?.role === 'SUPERADMIN' && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          console.log('[AdminLTE] Opening Import Excel Modal');
+                          setShowImportModal(true);
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs shrink-0 cursor-pointer"
+                        title="Import Pengguna Mahasiswa dari Excel / CSV (Khusus Superadmin)"
+                      >
+                        <FileSpreadsheet className="w-3.5 h-3.5" />
+                        <span>Import Excel</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowUserForm(true);
+                          setUserFormError(null);
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs shrink-0"
+                        title="Tambah Pengguna Baru (Khusus Superadmin)"
+                      >
+                        <UserPlus className="w-3.5 h-3.5" />
+                        <span>Tambah Pengguna</span>
+                      </button>
+                    </>
+                  )}
+              </div>
+              </div>
+
+              {/* Status Filter Tabs */}
+              <div className="flex items-center gap-1.5">
+                {([
+                  { key: 'all' as const, label: 'Semua', count: usersList.length },
+                  { key: 'active' as const, label: 'Aktif', count: usersList.filter(u => !u.isDeleted).length },
+                  { key: 'inactive' as const, label: 'Nonaktif', count: usersList.filter(u => u.isDeleted).length },
+                ]).map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setStatusFilter(tab.key)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      statusFilter === tab.key
+                        ? tab.key === 'inactive'
+                          ? 'bg-rose-600 text-white shadow-xs'
+                          : tab.key === 'active'
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'bg-[#007bff] text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {tab.label} ({tab.count})
+                  </button>
+                ))}
               </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-slate-100 text-slate-700 border-b border-slate-200">
-                      <th className="p-3 font-black">NIM / ID</th>
+                      <th className="p-3 font-black">NIM / BN</th>
                       <th className="p-3 font-black">Nama Lengkap</th>
-                      <th className="p-3 font-black">Fakultas</th>
+                      <th className="p-3 font-black">Fakultas / Unit</th>
                       <th className="p-3 font-black">Green Coins</th>
                       <th className="p-3 font-black">Poin SAT</th>
-                      <th className="p-3 font-black">Role / Hak Akses</th>
-                      <th className="p-3 font-black">Aksi Cepat</th>
+                      <th className="p-3 font-black">Role</th>
+                      <th className="p-3 font-black">Status</th>
+                      <th className="p-3 font-black">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {usersList.map((u) => (
-                      <tr key={u.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="p-3 font-mono text-xs text-slate-600">{u.nim}</td>
-                        <td className="p-3 font-bold text-slate-900 flex items-center gap-2.5">
-                          <img src={u.avatarUrl} alt={u.fullName} className="w-7 h-7 rounded-full object-cover" />
-                          <span>{u.fullName}</span>
-                        </td>
-                        <td className="p-3 text-slate-600 text-xs">{u.facultyName}</td>
-                        <td className="p-3 font-bold text-amber-700 font-mono text-xs">{u.totalGreenCoins || 0} GC</td>
-                        <td className="p-3 font-bold text-blue-700 font-mono text-xs">{u.totalSatPoints || 0} SAT</td>
-                        <td className="p-3">
-                          <select
-                            value={u.role}
-                            onChange={(e) => handleRoleChange(u.id, e.target.value as UserRole)}
-                            className={`text-xs font-bold py-1.5 px-2.5 rounded-xl border cursor-pointer ${
-                              u.role === 'ADMIN'
-                                ? 'bg-purple-100 text-purple-900 border-purple-300'
-                                : u.role === 'VERIFIER'
-                                ? 'bg-amber-100 text-amber-900 border-amber-300'
-                                : 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                            }`}
-                          >
-                            <option value="STUDENT">STUDENT</option>
-                            <option value="VERIFIER">VERIFIER</option>
-                            <option value="ADMIN">ADMIN</option>
-                          </select>
-                        </td>
-                        <td className="p-3">
-                          <button
-                            onClick={async () => {
-                              await loginAs(u.id);
-                              alert(`Beralih simulasi login sebagai ${u.fullName}`);
-                            }}
-                            className="px-2.5 py-1.5 rounded-xl bg-slate-200 hover:bg-[#007bff] hover:text-white text-xs font-bold transition-colors"
-                          >
-                            Login As
-                          </button>
+                    {filteredUsersList.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="p-8 text-center text-slate-400">
+                          <Users className="w-8 h-8 text-slate-300 mx-auto mb-1.5" />
+                          <p className="text-xs font-bold text-slate-500">Tidak ada akun yang sesuai dengan filter</p>
+                          {searchTerm && <p className="text-[11px] text-slate-400 mt-0.5">Kata kunci: "{searchTerm}"</p>}
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      paginatedUsersList.map((u) => {
+                        const isDeactivated = u.isDeleted === true;
+                        const isSelf = user?.id === u.id;
+                        const isLastSuperadmin = u.role === 'SUPERADMIN' && activeSuperadminsCount <= 1;
+                        const canDeactivate = user?.role === 'SUPERADMIN' && !isSelf && !isLastSuperadmin && !isDeactivated;
+                        const canRestore = user?.role === 'SUPERADMIN' && isDeactivated;
+
+                        return (
+                          <tr key={u.id} className={`hover:bg-slate-50 transition-colors ${isDeactivated ? 'opacity-60' : ''}`}>
+                            <td className="p-3 font-mono text-xs text-slate-600 font-semibold">{u.nim}</td>
+                            <td className="p-3 font-bold text-slate-900">
+                              <div className="flex items-center gap-2.5">
+                                <img
+                                  src={u.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName || 'User')}&background=059669&color=fff&bold=true&size=150`}
+                                  alt={u.fullName}
+                                  className="w-7 h-7 rounded-full object-cover"
+                                />
+                                <div>
+                                  <span className="block">{u.fullName}</span>
+                                  <span className="block text-[10px] font-medium text-slate-400">{u.email}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-3 text-slate-600 text-xs">{u.facultyName}</td>
+                            <td className="p-3 font-bold text-amber-700 font-mono text-xs">{u.totalGreenCoins || 0} GC</td>
+                            <td className="p-3 font-bold text-blue-700 font-mono text-xs">{u.totalSatPoints || 0} SAT</td>
+                            <td className="p-3">
+                              <span className={`text-xs font-bold py-1 px-2.5 rounded-xl ${
+                                u.role === 'SUPERADMIN'
+                                  ? 'bg-purple-100 text-purple-900'
+                                  : u.role === 'ORGANIZER'
+                                  ? 'bg-amber-100 text-amber-900'
+                                  : 'bg-emerald-100 text-emerald-900'
+                              }`}>
+                                {u.role}
+                              </span>
+                            </td>
+                            <td className="p-3">
+                              {isDeactivated ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold py-1 px-2.5 rounded-xl bg-rose-100 text-rose-700">
+                                  <UserX className="w-3 h-3" /> Nonaktif
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold py-1 px-2.5 rounded-xl bg-emerald-100 text-emerald-700">
+                                  <Shield className="w-3 h-3" /> Aktif
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              <div className="flex items-center gap-1.5">
+                                {user?.role === 'SUPERADMIN' && (
+                                  <>
+                                    {/* Edit Button */}
+                                    <button
+                                      onClick={() => handleOpenEditModal(u)}
+                                      className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
+                                      title="Edit Pengguna"
+                                    >
+                                      <Pencil className="w-3.5 h-3.5" />
+                                    </button>
+
+                                    {/* Deactivate / Restore Button */}
+                                    {isDeactivated ? (
+                                      <button
+                                        onClick={() => handleRestore(u)}
+                                        className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 transition-colors"
+                                        title="Pulihkan / Aktifkan Kembali"
+                                      >
+                                        <RotateCcw className="w-3.5 h-3.5" />
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={() => handleSoftDelete(u)}
+                                        disabled={!canDeactivate}
+                                        className={`p-1.5 rounded-lg transition-colors ${
+                                          canDeactivate
+                                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-600'
+                                            : 'bg-slate-50 text-slate-300 cursor-not-allowed'
+                                        }`}
+                                        title={
+                                          isSelf
+                                            ? 'Tidak dapat menonaktifkan akun sendiri'
+                                            : isLastSuperadmin
+                                            ? 'Tidak dapat menonaktifkan Superadmin terakhir'
+                                            : 'Nonaktifkan Akun'
+                                        }
+                                      >
+                                        <UserX className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                  </>
+                                )}
+                                {/* Login As Button */}
+                                <button
+                                  onClick={async () => {
+                                    await loginAs(u.id);
+                                    alert(`Beralih simulasi login sebagai ${u.fullName}`);
+                                  }}
+                                  disabled={isDeactivated}
+                                  className={`px-2 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${
+                                    isDeactivated
+                                      ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
+                                      : 'bg-slate-200 hover:bg-[#007bff] hover:text-white'
+                                  }`}
+                                >
+                                  Login As
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Users Pagination Controls */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-xs font-medium text-slate-500">
+                    Menampilkan{' '}
+                    <strong className="text-slate-800 font-bold">
+                      {filteredUsersList.length === 0 ? 0 : (usersCurrentPage - 1) * usersItemsPerPage + 1}
+                    </strong>
+                    {' '}-{' '}
+                    <strong className="text-slate-800 font-bold">
+                      {Math.min(usersCurrentPage * usersItemsPerPage, filteredUsersList.length)}
+                    </strong>
+                    {' '}dari{' '}
+                    <strong className="text-slate-800 font-bold">{filteredUsersList.length}</strong> Akun
+                  </span>
+
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <span className="text-[11px] text-slate-400 font-medium">Tampilkan:</span>
+                    <select
+                      value={usersItemsPerPage}
+                      onChange={(e) => {
+                        setUsersItemsPerPage(Number(e.target.value));
+                        setUsersCurrentPage(1);
+                      }}
+                      className="text-xs font-bold border border-slate-200 rounded-lg px-2 py-1 bg-slate-50 focus:bg-white focus:outline-none cursor-pointer"
+                    >
+                      <option value={5}>5 / hal</option>
+                      <option value={10}>10 / hal</option>
+                      <option value={20}>20 / hal</option>
+                      <option value={50}>50 / hal</option>
+                      <option value={100}>100 / hal</option>
+                    </select>
+                  </div>
+                </div>
+
+                {usersTotalPages > 1 && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setUsersCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={usersCurrentPage === 1}
+                      className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 text-slate-700"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                      <span className="hidden xs:inline">Prev</span>
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: usersTotalPages }, (_, i) => i + 1)
+                        .filter((p) => {
+                          if (p === 1 || p === usersTotalPages) return true;
+                          return Math.abs(p - usersCurrentPage) <= 1;
+                        })
+                        .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                          if (idx > 0 && p - (arr[idx - 1] as number) > 1) {
+                            acc.push('...');
+                          }
+                          acc.push(p);
+                          return acc;
+                        }, [])
+                        .map((item, idx) =>
+                          item === '...' ? (
+                            <span key={`ellipsis-${idx}`} className="px-1 text-xs text-slate-400 font-bold">
+                              ...
+                            </span>
+                          ) : (
+                            <button
+                              key={`page-${item}`}
+                              type="button"
+                              onClick={() => setUsersCurrentPage(Number(item))}
+                              className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+                                usersCurrentPage === item
+                                  ? 'bg-[#007bff] text-white shadow-xs'
+                                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                              }`}
+                            >
+                              {item}
+                            </button>
+                          )
+                        )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setUsersCurrentPage((p) => Math.min(usersTotalPages, p + 1))}
+                      disabled={usersCurrentPage === usersTotalPages}
+                      className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 text-slate-700"
+                    >
+                      <span className="hidden xs:inline">Next</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -427,12 +1584,34 @@ export const AdminLtePage: React.FC = () => {
           {/* 5. Tab Content: Table 2: Log Verifikasi Aksi */}
           {(activeMenu === 'dashboard' || activeMenu === 'actions') && (
             <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
                   <CheckSquare className="w-4 h-4 text-[#28a745]" />
-                  Log Pengajuan Aksi & Keputusan SSO
-                </h3>
-                <span className="text-xs text-slate-500 font-bold">{actionsList.length} Total Pengajuan</span>
+                  <h3 className="text-xs sm:text-sm font-black text-slate-800">
+                    Log Pengajuan Aksi & Keputusan SSO
+                  </h3>
+                  <span className="text-xs text-slate-500 font-bold ml-1">
+                    ({filteredActionsList.length} Pengajuan)
+                  </span>
+                </div>
+
+                {/* Filter Kategori Aksi */}
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-slate-400" />
+                  <select
+                    value={actionsCategoryFilter}
+                    onChange={(e) => {
+                      setActionsCategoryFilter(e.target.value);
+                      setActionsCurrentPage(1); // Reset page on filter change
+                    }}
+                    className="text-xs font-bold p-1.5 rounded-lg border border-slate-300 bg-slate-50 focus:outline-none focus:border-[#007bff]"
+                  >
+                    <option value="ALL">Semua Kategori</option>
+                    <option value="PENYULUHAN_AKSI_NYATA">Penyuluhan Aksi Nyata (TFI)</option>
+                    <option value="VIDEO_BASED_LEARNING">Video Based Learning</option>
+                    <option value="SELF_GREEN_CAMPAIGN">Self Green Campaign</option>
+                  </select>
+                </div>
               </div>
 
               <div className="overflow-x-auto">
@@ -442,6 +1621,7 @@ export const AdminLtePage: React.FC = () => {
                       <th className="p-3 font-black">Mahasiswa</th>
                       <th className="p-3 font-black">Kategori Aksi</th>
                       <th className="p-3 font-black">Tipe Program</th>
+                      <th className="p-3 font-black">Bukti</th>
                       <th className="p-3 font-black">Potensi SAT</th>
                       <th className="p-3 font-black">AI Score</th>
                       <th className="p-3 font-black">Status</th>
@@ -449,18 +1629,27 @@ export const AdminLtePage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {actionsList.map((act) => (
+                    {paginatedActionsList.map((act) => (
                       <tr key={act.id} className="hover:bg-slate-50 transition-colors">
                         <td className="p-3 font-bold text-slate-900">{act.userName}</td>
                         <td className="p-3 text-slate-700 font-medium">{act.categoryName}</td>
                         <td className="p-3 text-xs text-slate-500 font-mono">{act.submissionType}</td>
+                        <td className="p-3">
+                          <button
+                            onClick={() => setEvidenceModal(act)}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold transition-colors"
+                          >
+                            <Image className="w-3.5 h-3.5" />
+                            Lihat Bukti
+                          </button>
+                        </td>
                         <td className="p-3 font-bold text-blue-700 font-mono text-xs">+{act.satPointsEarned} SAT</td>
                         <td className="p-3 font-bold text-emerald-700 font-mono text-xs">
                           {Math.round((act.aiConfidence || 0.9) * 100)}%
                         </td>
                         <td className="p-3">
                           <span
-                            className={`px-2.5 py-1 rounded-full text-xs font-black ${
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
                               act.status === 'APPROVED'
                                 ? 'bg-emerald-100 text-emerald-900'
                                 : act.status === 'REJECTED'
@@ -472,28 +1661,66 @@ export const AdminLtePage: React.FC = () => {
                           </span>
                         </td>
                         <td className="p-3">
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={() => handleAdminVerify(act.id, 'APPROVED_FULL')}
-                              className="px-2.5 py-1 bg-[#28a745] hover:bg-[#218838] text-white rounded-lg text-xs font-bold transition-colors"
-                              title="Approve Full SAT + Coins"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => handleAdminVerify(act.id, 'REJECTED')}
-                              className="px-2.5 py-1 bg-[#dc3545] hover:bg-[#c82333] text-white rounded-lg text-xs font-bold transition-colors"
-                              title="Tolak Aksi"
-                            >
-                              Reject
-                            </button>
-                          </div>
+                          {act.status === 'PENDING' ? (
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => handleAdminVerify(act.id, 'APPROVED_FULL')}
+                                className="px-2.5 py-1.5 bg-[#28a745] hover:bg-[#218838] text-white rounded-lg text-[10px] font-bold transition-colors"
+                                title="Approve Full SAT + Coins"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleAdminVerify(act.id, 'REJECTED')}
+                                className="px-2.5 py-1.5 bg-[#dc3545] hover:bg-[#c82333] text-white rounded-lg text-[10px] font-bold transition-colors"
+                                title="Tolak Aksi"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                              <Check className="w-3 h-3" /> Selesai
+                            </span>
+                          )}
                         </td>
                       </tr>
                     ))}
+                    {paginatedActionsList.length === 0 && (
+                      <tr>
+                        <td colSpan={8} className="p-6 text-center text-slate-500 font-bold">
+                          Tidak ada data yang sesuai filter.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {actionsTotalPages > 1 && (
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                  <span className="text-xs font-bold text-slate-500">
+                    Halaman {actionsCurrentPage} dari {actionsTotalPages}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setActionsCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={actionsCurrentPage === 1}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 disabled:opacity-50 transition-colors"
+                    >
+                      Prev
+                    </button>
+                    <button
+                      onClick={() => setActionsCurrentPage((p) => Math.min(actionsTotalPages, p + 1))}
+                      disabled={actionsCurrentPage === actionsTotalPages}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 disabled:opacity-50 transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -585,17 +1812,11 @@ export const AdminLtePage: React.FC = () => {
           {/* 7. Tab Content: SDG Analytics */}
           {activeMenu === 'sdg' && (
             <div className="space-y-4">
-              <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5">
+              <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
                 <div>
                   <h3 className="text-sm sm:text-base font-black text-slate-900">Monitoring Target UN SDG BINUS University</h3>
                   <p className="text-xs text-slate-500 mt-0.5">Agregasi capaian program keberlanjutan kampus semester aktif 2026</p>
                 </div>
-                <Link
-                  to="/sdg-guideline"
-                  className="px-4 py-2 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 text-xs font-black border border-emerald-300 transition-colors flex items-center gap-1.5 shrink-0"
-                >
-                  <span>Buka Panduan & Matriks SDG Lengkap →</span>
-                </Link>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
@@ -628,8 +1849,2282 @@ export const AdminLtePage: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* 8. Tab Content: Event Management & QR Pos */}
+          {activeMenu === 'events' && (
+            <div className="space-y-4">
+              {/* Create Button */}
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-[#007bff]" />
+                  Daftar Event Kampus
+                </h3>
+                <button
+                  onClick={() => {
+                    setEditingEvent(null);
+                    setBannerUploadError(null);
+                    setDescPreviewMode('write');
+                    setEventFormData({
+                      title: '',
+                      description: '',
+                      bannerUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=800&auto=format&fit=crop&q=80',
+                      startDate: new Date().toISOString().split('T')[0],
+                      endDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+                      timeRange: '',
+                      location: '',
+                      dressCode: '',
+                      hashtags: '#WasteForChange #CampusEcoFair #ZeroWasteBinus',
+                      allowGroupMembers: false,
+                      maxGroupMembers: 3,
+                      activities: [{ name: '', description: '', coinsReward: 10, satPointsReward: 0 }],
+                    });
+                    setShowEventForm(true);
+                  }}
+                  className="px-3 py-2 rounded-xl bg-[#007bff] hover:bg-[#0069d9] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Buat Event Baru
+                </button>
+              </div>
+
+              {showUserForm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+              <h3 className="font-black text-slate-800 flex items-center gap-2">
+                <Users className="w-5 h-5 text-emerald-600" />
+                Tambah Pengguna Baru
+              </h3>
+              <button onClick={() => setShowUserForm(false)} className="p-1.5 rounded-full hover:bg-slate-200 text-slate-500">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 sm:p-5 overflow-y-auto">
+              <form id="userForm" onSubmit={handleUserFormSubmit} className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">NIM / NIP / ID</label>
+                  <input type="text" required value={userFormData.nim} onChange={e => setUserFormData({...userFormData, nim: e.target.value})} className="w-full p-2.5 rounded-xl border border-slate-300 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Nama Lengkap</label>
+                  <input type="text" required value={userFormData.fullName} onChange={e => setUserFormData({...userFormData, fullName: e.target.value})} className="w-full p-2.5 rounded-xl border border-slate-300 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Email</label>
+                  <input type="email" required value={userFormData.email} onChange={e => setUserFormData({...userFormData, email: e.target.value})} className="w-full p-2.5 rounded-xl border border-slate-300 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Password</label>
+                  <input type="password" required minLength={6} value={userFormData.password} onChange={e => setUserFormData({...userFormData, password: e.target.value})} className="w-full p-2.5 rounded-xl border border-slate-300 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Fakultas / Departemen</label>
+                  <input type="text" required value={userFormData.facultyName} onChange={e => setUserFormData({...userFormData, facultyName: e.target.value})} className="w-full p-2.5 rounded-xl border border-slate-300 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Role / Hak Akses</label>
+                  <select value={userFormData.role} onChange={e => setUserFormData({...userFormData, role: e.target.value as UserRole})} className="w-full p-2.5 rounded-xl border border-slate-300 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-bold">
+                    <option value="MAHASISWA">MAHASISWA</option>
+                    <option value="ORGANIZER">ORGANIZER (Penyelenggara)</option>
+                    <option value="SUPERADMIN">SUPERADMIN (SSO)</option>
+                  </select>
+                </div>
+              </form>
+            </div>
+            <div className="p-4 sm:p-5 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+              <button onClick={() => setShowUserForm(false)} className="px-4 py-2 rounded-xl text-slate-600 font-bold text-sm hover:bg-slate-200 transition-colors">Batal</button>
+              <button form="userForm" type="submit" className="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-colors">Buat Akun</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Event Form */}
+              {showEventForm && (
+                <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 space-y-4">
+                  <h4 className="text-sm font-black text-slate-800">
+                    {editingEvent ? 'Edit Event' : 'Buat Event Baru'}
+                  </h4>
+                  <form onSubmit={handleEventFormSubmit} className="space-y-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1.5">Nama Event</label>
+                      <input
+                        type="text"
+                        value={eventFormData.title}
+                        onChange={(e) => setEventFormData((p) => ({ ...p, title: e.target.value }))}
+                        placeholder="Contoh: BreakSFest 2026 - BINUSIAN Lestari Bumi"
+                        className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
+                        required
+                      />
+                    </div>
+
+                    {/* Lokasi Event */}
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1.5 flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                        Lokasi / Kampus Pelaksanaan
+                      </label>
+                      <input
+                        type="text"
+                        value={eventFormData.location}
+                        onChange={(e) => setEventFormData((p) => ({ ...p, location: e.target.value }))}
+                        placeholder="Contoh: BINUS @Bekasi (Plaza Kampus / Kolam Ikan)"
+                        className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
+                      />
+                    </div>
+
+                    {/* Jam & Dresscode Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1.5 flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-blue-500" />
+                          Jam / Waktu Pelaksanaan
+                        </label>
+                        <input
+                          type="text"
+                          value={eventFormData.timeRange}
+                          onChange={(e) => setEventFormData((p) => ({ ...p, timeRange: e.target.value }))}
+                          placeholder="Contoh: 07.00 - 10.00 WIB"
+                          className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1.5 flex items-center gap-1.5">
+                          <Shirt className="w-3.5 h-3.5 text-indigo-500" />
+                          Dresscode / Ketentuan Pakaian
+                        </label>
+                        <input
+                          type="text"
+                          value={eventFormData.dressCode}
+                          onChange={(e) => setEventFormData((p) => ({ ...p, dressCode: e.target.value }))}
+                          placeholder="Contoh: Kaos hitam & celana panjang"
+                          className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Deskripsi dengan Formatting Toolbar & Live Preview */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-700">Deskripsi & Informasi Event</label>
+                        <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-[11px] font-bold">
+                          <button
+                            type="button"
+                            onClick={() => setDescPreviewMode('write')}
+                            className={`px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                              descPreviewMode === 'write'
+                                ? 'bg-white text-[#007bff] shadow-2xs font-black'
+                                : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            <Pencil className="w-3 h-3" /> Tulis Teks
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDescPreviewMode('preview')}
+                            className={`px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                              descPreviewMode === 'preview'
+                                ? 'bg-white text-[#007bff] shadow-2xs font-black'
+                                : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            <Eye className="w-3 h-3" /> Pratinjau Tampilan
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Quick Snippets Toolbar (hanya muncul di mode Tulis) */}
+                      {descPreviewMode === 'write' && (
+                        <div className="flex flex-wrap items-center gap-1.5 pb-1">
+                          <span className="text-[10px] text-slate-400 font-bold">Format Cepat:</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEventFormData((p) => ({
+                                ...p,
+                                description: p.description + (p.description ? '\n' : '') + '### Judul Bagian\n',
+                              }));
+                            }}
+                            className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors border border-slate-200"
+                          >
+                            + Judul
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEventFormData((p) => ({
+                                ...p,
+                                description: p.description + (p.description ? '\n' : '') + '- Poin kegiatan\n',
+                              }));
+                            }}
+                            className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors border border-slate-200"
+                          >
+                            + Poin List
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEventFormData((p) => ({
+                                ...p,
+                                description: p.description + (p.description ? '\n' : '') + 'Link Pendaftaran: bit.ly/LestariBumi26\n',
+                              }));
+                            }}
+                            className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors border border-blue-200"
+                          >
+                            + Tautan Link
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEventFormData((p) => ({
+                                ...p,
+                                description: p.description + (p.description ? '\n' : '') + 'Contact Person: 082125786440 (Ka Ashley)\n',
+                              }));
+                            }}
+                            className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition-colors border border-emerald-200"
+                          >
+                            + Kontak WhatsApp
+                          </button>
+                        </div>
+                      )}
+
+                      {descPreviewMode === 'write' ? (
+                        <textarea
+                          value={eventFormData.description}
+                          onChange={(e) => setEventFormData((p) => ({ ...p, description: e.target.value }))}
+                          placeholder="Tulis deskripsi event... Mendukung baris baru, format **teks tebal**, bullet list (- item), tautan link (bit.ly/...), dan nomor WA (08...)."
+                          rows={4}
+                          className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none resize-y leading-relaxed font-sans"
+                          required
+                        />
+                      ) : (
+                        <div className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 min-h-[105px]">
+                          {eventFormData.description.trim() ? (
+                            <FormattedText content={eventFormData.description} />
+                          ) : (
+                            <p className="text-xs text-slate-400 italic">Deskripsi masih kosong. Silakan ketik di tab 'Tulis Teks'.</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {/* Banner Image / URL */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-700">Banner / Poster Event</label>
+                        <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-[11px] font-bold">
+                          <button
+                            type="button"
+                            onClick={() => setBannerInputMode('upload')}
+                            className={`px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                              bannerInputMode === 'upload'
+                                ? 'bg-white text-[#007bff] shadow-2xs font-black'
+                                : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            <Upload className="w-3 h-3" /> Unggah Berkas
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBannerInputMode('url')}
+                            className={`px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                              bannerInputMode === 'url'
+                                ? 'bg-white text-[#007bff] shadow-2xs font-black'
+                                : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            <ExternalLink className="w-3 h-3" /> Tautan URL
+                          </button>
+                        </div>
+                      </div>
+
+                      {bannerInputMode === 'upload' ? (
+                        <div className="space-y-2">
+                          <input
+                            ref={bannerFileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleBannerFileChange}
+                            className="hidden"
+                          />
+                          {eventFormData.bannerUrl ? (
+                            <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 group">
+                              <img
+                                src={eventFormData.bannerUrl}
+                                alt="Pratinjau Banner"
+                                className="w-full h-36 sm:h-44 object-cover"
+                              />
+                              <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => bannerFileInputRef.current?.click()}
+                                  disabled={isCompressingBanner}
+                                  className="px-3 py-1.5 rounded-xl bg-white text-slate-800 text-xs font-bold hover:bg-slate-100 flex items-center gap-1 shadow-md transition-transform active:scale-95"
+                                >
+                                  <Upload className="w-3.5 h-3.5 text-[#007bff]" /> Ganti Gambar
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEventFormData((p) => ({ ...p, bannerUrl: '' }))}
+                                  className="px-3 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 flex items-center gap-1 shadow-md transition-transform active:scale-95"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" /> Hapus
+                                </button>
+                              </div>
+                              <div className="absolute bottom-2 left-2 bg-slate-900/70 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">
+                                <Check className="w-3 h-3 text-emerald-400" /> Banner Terpasang
+                              </div>
+                            </div>
+                          ) : (
+                            <div
+                              onClick={() => !isCompressingBanner && bannerFileInputRef.current?.click()}
+                              className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-colors ${
+                                isCompressingBanner
+                                  ? 'border-blue-300 bg-blue-50/50 cursor-wait'
+                                  : 'border-slate-300 hover:border-[#007bff] bg-slate-50 hover:bg-blue-50/30'
+                              }`}
+                            >
+                              <div className="w-10 h-10 rounded-2xl bg-blue-100 text-[#007bff] flex items-center justify-center mx-auto mb-2">
+                                {isCompressingBanner ? (
+                                  <RefreshCw className="w-5 h-5 animate-spin" />
+                                ) : (
+                                  <Upload className="w-5 h-5" />
+                                )}
+                              </div>
+                              <p className="text-xs font-bold text-slate-700">
+                                {isCompressingBanner ? 'Mengompresi & Memproses Gambar...' : 'Klik untuk Unggah Gambar Banner'}
+                              </p>
+                              <p className="text-[10px] text-slate-400 mt-1">
+                                Mendukung format JPG, PNG, atau WebP (otomatis dikompresi)
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <input
+                            type="url"
+                            value={eventFormData.bannerUrl}
+                            onChange={(e) => setEventFormData((p) => ({ ...p, bannerUrl: e.target.value }))}
+                            placeholder="https://images.unsplash.com/photo-..."
+                            className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
+                          />
+                          {eventFormData.bannerUrl && (
+                            <div className="rounded-2xl overflow-hidden border border-slate-200 h-28 bg-slate-100 relative">
+                              <img
+                                src={eventFormData.bannerUrl}
+                                alt="Pratinjau Banner URL"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLElement).style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {bannerUploadError && (
+                        <p className="text-xs text-rose-600 font-bold flex items-center gap-1 mt-1">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {bannerUploadError}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1.5">Tanggal Mulai</label>
+                        <input
+                          type="date"
+                          value={eventFormData.startDate}
+                          onChange={(e) => setEventFormData((p) => ({ ...p, startDate: e.target.value }))}
+                          className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1.5">Tanggal Selesai</label>
+                        <input
+                          type="date"
+                          value={eventFormData.endDate}
+                          onChange={(e) => setEventFormData((p) => ({ ...p, endDate: e.target.value }))}
+                          className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Event Official Hashtags */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Hashtag Resmi Event (Otomatis Disematkan di Caption Mahasiswa)
+                        </label>
+                        <span className="text-[10px] text-slate-400">Pisahkan dengan spasi atau koma</span>
+                      </div>
+                      <input
+                        type="text"
+                        value={eventFormData.hashtags}
+                        onChange={(e) => setEventFormData((p) => ({ ...p, hashtags: e.target.value }))}
+                        placeholder="#WasteForChange #CampusEcoFair #ZeroWasteBinus #SDG12"
+                        className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none font-mono text-emerald-800 font-bold"
+                      />
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Hashtag ini akan otomatis disertakan oleh AI saat mahasiswa menekan tombol &ldquo;Generate Caption&rdquo; di halaman Kirim Bukti Aksi.
+                      </p>
+                    </div>
+
+                    {/* Group Action Configuration (Aksi Berkelompok) */}
+                    <div className="rounded-2xl border border-purple-200/80 bg-purple-50/40 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                            <Users className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-slate-800 block cursor-pointer">
+                              Partisipasi Aksi Berkelompok (Group Action)
+                            </label>
+                            <p className="text-[11px] text-slate-500">
+                              Izinkan mahasiswa mengerjakan aksi event ini secara berkelompok
+                            </p>
+                          </div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={eventFormData.allowGroupMembers}
+                            onChange={(e) => setEventFormData((p) => ({ ...p, allowGroupMembers: e.target.checked }))}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                      </div>
+
+                      {eventFormData.allowGroupMembers && (
+                        <div className="pt-3 border-t border-purple-200/60 space-y-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                            <div>
+                              <label className="text-xs font-bold text-slate-700 block">
+                                Maksimal Mahasiswa yang Bisa Ditambahkan
+                              </label>
+                              <span className="text-[10px] text-slate-500">
+                                Batas rekan tim tambahan yang dapat didaftarkan pelapor (1 s.d. 20 orang)
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                min={1}
+                                max={20}
+                                value={eventFormData.maxGroupMembers}
+                                onChange={(e) => {
+                                  const val = Math.min(20, Math.max(1, parseInt(e.target.value) || 1));
+                                  setEventFormData((p) => ({ ...p, maxGroupMembers: val }));
+                                }}
+                                className="w-20 text-center font-bold text-sm p-2 rounded-xl border border-purple-300 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 font-mono"
+                              />
+                              <span className="text-xs font-bold text-slate-600">Orang</span>
+                            </div>
+                          </div>
+
+                          {/* Quick Preset Buttons */}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] text-slate-400 font-bold mr-1">Preset Cepat:</span>
+                            {[3, 5, 10, 15, 20].map((preset) => (
+                              <button
+                                key={preset}
+                                type="button"
+                                onClick={() => setEventFormData((p) => ({ ...p, maxGroupMembers: preset }))}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                                  eventFormData.maxGroupMembers === preset
+                                    ? 'bg-purple-600 text-white shadow-xs'
+                                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-purple-50 hover:text-purple-700'
+                                }`}
+                              >
+                                {preset} Orang
+                              </button>
+                            ))}
+                          </div>
+
+                          <div className="bg-white/80 border border-purple-200/80 rounded-xl p-2.5 text-[11px] text-purple-900 leading-relaxed flex items-start gap-2">
+                            <Sparkles className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                            <span>
+                              Pelapor (ketua tim) dapat mendaftarkan hingga <strong>{eventFormData.maxGroupMembers} rekan mahasiswa</strong>. Pada halaman Kirim Bukti Aksi, pelapor diwajibkan mengunggah <strong>Foto Bersama Seluruh Anggota di Lokasi (Slot 2)</strong> untuk validasi kehadiran oleh panitia.
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Activities */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Pos Aktivitas / Station ({eventFormData.activities.length})
+                          </label>
+                          <span className="text-[10px] text-slate-400">
+                            Opsional — Kosongkan jika event tidak memiliki pos aktivitas terpisah
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={addActivityField}
+                          className="text-xs font-bold text-[#007bff] hover:underline flex items-center gap-1 px-2.5 py-1 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 transition-colors"
+                        >
+                          <Plus className="w-3 h-3" /> Tambah Pos
+                        </button>
+                      </div>
+
+                      {/* Panduan Keadilan Gamifikasi Reward */}
+                      <div className="rounded-2xl border border-amber-200/80 bg-amber-50/70 p-3 text-xs space-y-2">
+                        <div
+                          className="flex items-center justify-between cursor-pointer select-none"
+                          onClick={() => setShowRewardGuide(!showRewardGuide)}
+                        >
+                          <span className="font-black text-amber-900 flex items-center gap-1.5">
+                            <Award className="w-4 h-4 text-amber-600" />
+                            Panduan Keadilan Gamifikasi Reward Pos
+                          </span>
+                          <span className="text-[11px] font-bold text-amber-700 hover:underline">
+                            {showRewardGuide ? 'Sembunyikan ▲' : 'Lihat Rekomendasi ▼'}
+                          </span>
+                        </div>
+                        {showRewardGuide && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-amber-200/60 text-[11px]">
+                            <div className="p-2 rounded-xl bg-white/90 border border-amber-100 space-y-0.5 shadow-2xs">
+                              <p className="font-bold text-slate-800">
+                                🌱 Minimal (&lt; 5 mnt): <span className="text-amber-700 font-mono font-black">10 GC</span>
+                              </p>
+                              <p className="text-slate-500">Usaha cepat &amp; bersih. Cth: Memilah sampah, buang botol ke drop-box, foto tumbler.</p>
+                            </div>
+                            <div className="p-2 rounded-xl bg-white/90 border border-amber-100 space-y-0.5 shadow-2xs">
+                              <p className="font-bold text-slate-800">
+                                🌿 Sedang (10-20 mnt): <span className="text-amber-700 font-mono font-black">15 - 20 GC</span>
+                              </p>
+                              <p className="text-slate-500">Keterlibatan aktif ringan. Cth: Pemanfaatan Biopori, pengomposan, survei stan.</p>
+                            </div>
+                            <div className="p-2 rounded-xl bg-white/90 border border-amber-100 space-y-0.5 shadow-2xs">
+                              <p className="font-bold text-slate-800">
+                                🧹 Fisik / Kolektif (20-30 mnt): <span className="text-amber-700 font-mono font-black">25 - 30 GC</span>
+                              </p>
+                              <p className="text-slate-500">Tenaga fisik gotong royong. Cth: Membersihkan fasilitas kampus, sapu selasar.</p>
+                            </div>
+                            <div className="p-2 rounded-xl bg-white/90 border border-amber-100 space-y-0.5 shadow-2xs">
+                              <p className="font-bold text-slate-800">
+                                🏆 Berat / Ekstra (&gt; 30 mnt): <span className="text-amber-700 font-mono font-black">35 - 50 GC</span>
+                              </p>
+                              <p className="text-slate-500">Tenaga fisik berat/kotor/basah. Cth: Bersih-bersih kolam ikan, kuras lumpur/selokan.</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {eventFormData.activities.length === 0 ? (
+                        <div className="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-4 text-center space-y-1.5">
+                          <p className="text-xs font-bold text-slate-700">Event ini tidak memiliki pos aktivitas terpisah.</p>
+                          <p className="text-[11px] text-slate-500">
+                            Peserta akan langsung berpartisipasi pada event secara utuh tanpa pos checkpoint. Klik tombol di bawah jika ingin menambahkan pos.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={addActivityField}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-xs font-bold text-[#007bff] hover:bg-blue-50 transition-colors shadow-2xs mt-1"
+                          >
+                            <Plus className="w-3 h-3" /> Tambah Pos Pertama
+                          </button>
+                        </div>
+                      ) : (
+                        eventFormData.activities.map((act, idx) => (
+                          <div key={idx} className="flex gap-2 items-start bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                            <div className="flex-1 space-y-2.5">
+                              <input
+                                type="text"
+                                placeholder={`Nama Pos ${idx + 1} (cth: Bersih kolam ikan)`}
+                                value={act.name}
+                                onChange={(e) => updateActivityField(idx, 'name', e.target.value)}
+                                className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-white focus:outline-none font-bold"
+                                required
+                              />
+                              <input
+                                type="text"
+                                placeholder="Deskripsi singkat pos aktivitas..."
+                                value={act.description}
+                                onChange={(e) => updateActivityField(idx, 'description', e.target.value)}
+                                className="w-full text-xs p-2 rounded-xl border border-slate-300 bg-white focus:outline-none"
+                              />
+
+                              {/* Quick Effort Presets (Green Coins Only) */}
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="text-[10px] text-slate-400 font-bold">Preset GC:</span>
+                                <button
+                                  type="button"
+                                  onClick={() => applyActivityPreset(idx, 10)}
+                                  className={`px-2 py-0.5 text-[10px] font-bold rounded-lg border transition-colors ${
+                                    act.coinsReward === 10
+                                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                  }`}
+                                  title="Minimal: Usaha cepat & bersih (cth: pilah sampah)"
+                                >
+                                  🌱 10 GC
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => applyActivityPreset(idx, 15)}
+                                  className={`px-2 py-0.5 text-[10px] font-bold rounded-lg border transition-colors ${
+                                    act.coinsReward === 15
+                                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                  }`}
+                                  title="Sedang: Keterlibatan aktif (cth: biopori)"
+                                >
+                                  🌿 15 GC
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => applyActivityPreset(idx, 25)}
+                                  className={`px-2 py-0.5 text-[10px] font-bold rounded-lg border transition-colors ${
+                                    act.coinsReward === 25
+                                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                  }`}
+                                  title="Fisik: Gotong royong (cth: bersih fasilitas)"
+                                >
+                                  🧹 25 GC
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => applyActivityPreset(idx, 40)}
+                                  className={`px-2 py-0.5 text-[10px] font-bold rounded-lg border transition-colors ${
+                                    act.coinsReward === 40
+                                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                  }`}
+                                  title="Berat: Tenaga ekstra/kotor/basah (cth: bersih kolam)"
+                                >
+                                  🏆 40 GC
+                                </button>
+                              </div>
+
+                              {/* Manual Coins Number Input */}
+                              <div className="pt-0.5">
+                                <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 w-fit">
+                                  <span className="text-[11px] text-slate-600 font-bold">Reward Koin:</span>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={100}
+                                    value={act.coinsReward}
+                                    onChange={(e) => updateActivityField(idx, 'coinsReward', Number(e.target.value))}
+                                    className="w-16 text-xs p-1 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none font-mono text-center font-bold"
+                                  />
+                                  <span className="text-xs text-amber-700 font-black">GC</span>
+                                </div>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeActivityField(idx)}
+                              title="Hapus pos ini"
+                              className="p-1.5 rounded-lg hover:bg-rose-100 text-rose-500 hover:text-rose-700 transition-colors shrink-0"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        className="flex-1 py-3 bg-[#007bff] hover:bg-[#0069d9] text-white rounded-2xl text-xs font-black shadow-xs transition-colors"
+                      >
+                        {editingEvent ? 'Perbarui Event' : 'Buat Event →'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowEventForm(false)}
+                        className="px-4 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-2xl text-xs font-bold transition-colors"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* Timeline Filter Tabs */}
+              {eventsList.length > 0 && (
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                  {([
+                    { id: 'ALL' as const, label: 'Semua', count: eventsList.length },
+                    { id: 'TODAY' as const, label: '🟢 Hari Ini', count: eventsList.filter((e) => getEventTimelineCategory(e) === 'TODAY').length },
+                    { id: 'UPCOMING' as const, label: '🗓️ Akan Datang', count: eventsList.filter((e) => getEventTimelineCategory(e) === 'UPCOMING').length },
+                    { id: 'PAST' as const, label: '🏁 Berlalu', count: eventsList.filter((e) => getEventTimelineCategory(e) === 'PAST').length },
+                  ]).map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setEventTimelineFilter(tab.id)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                        eventTimelineFilter === tab.id
+                          ? tab.id === 'TODAY'
+                            ? 'bg-emerald-600 text-white shadow-xs'
+                            : tab.id === 'UPCOMING'
+                            ? 'bg-blue-600 text-white shadow-xs'
+                            : tab.id === 'PAST'
+                            ? 'bg-slate-700 text-white shadow-xs'
+                            : 'bg-[#007bff] text-white shadow-xs'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {tab.label} ({tab.count})
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Events List */}
+              {eventsList.length === 0 ? (
+                <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-8 text-center space-y-2">
+                  <Calendar className="w-10 h-10 text-slate-400 mx-auto" />
+                  <p className="text-sm font-bold text-slate-600">Belum ada event.</p>
+                  <p className="text-xs text-slate-500">Klik tombol "Buat Event Baru" untuk memulai.</p>
+                </div>
+              ) : eventsList.filter((e) => eventTimelineFilter === 'ALL' || getEventTimelineCategory(e) === eventTimelineFilter).length === 0 ? (
+                <div className="bg-white rounded-3xl border border-dashed border-slate-200 shadow-xs p-8 text-center space-y-2">
+                  <Calendar className="w-10 h-10 text-slate-300 mx-auto" />
+                  <p className="text-sm font-bold text-slate-600">
+                    Tidak ada event pada kategori {eventTimelineFilter === 'TODAY' ? 'Hari Ini' : eventTimelineFilter === 'UPCOMING' ? 'Akan Datang' : 'Berlalu'}.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setEventTimelineFilter('ALL')}
+                    className="text-xs font-bold text-[#007bff] hover:underline"
+                  >
+                    Tampilkan Semua ({eventsList.length})
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {eventsList
+                    .filter((e) => eventTimelineFilter === 'ALL' || getEventTimelineCategory(e) === eventTimelineFilter)
+                    .map((evt) => {
+                      const category = getEventTimelineCategory(evt);
+                      return (
+                        <div key={evt.id} className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+                          <div className="flex gap-4 p-4">
+                            {evt.bannerUrl && (
+                              <img src={evt.bannerUrl} alt={evt.title} className="w-20 h-20 rounded-xl object-cover shrink-0" />
+                            )}
+                            <div className="min-w-0 flex-1 space-y-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h4 className="text-xs sm:text-sm font-black text-slate-800 truncate">{evt.title}</h4>
+                                {category === 'TODAY' && (
+                                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                                    Hari Ini (Live)
+                                  </span>
+                                )}
+                                {category === 'UPCOMING' && (
+                                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-blue-100 text-blue-800">
+                                    🗓️ Akan Datang
+                                  </span>
+                                )}
+                                {category === 'PAST' && (
+                                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-slate-100 text-slate-600">
+                                    🏁 Berlalu
+                                  </span>
+                                )}
+                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${
+                                  evt.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700' : evt.status === 'DRAFT' ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'
+                                }`}>
+                                  {evt.status}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-500 truncate">{evt.description}</p>
+                              <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-[10px] text-slate-500 font-medium">
+                                <span className="font-mono">
+                                  {new Date(evt.startDate).toLocaleDateString('id-ID')} — {new Date(evt.endDate).toLocaleDateString('id-ID')}
+                                </span>
+                                {evt.timeRange && (
+                                  <span className="flex items-center gap-1 text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-md font-semibold">
+                                    <Clock className="w-2.5 h-2.5" /> {evt.timeRange}
+                                  </span>
+                                )}
+                                {evt.location && (
+                                  <span className="flex items-center gap-1 text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded-md font-semibold">
+                                    <MapPin className="w-2.5 h-2.5" /> {evt.location}
+                                  </span>
+                                )}
+                                {evt.dressCode && (
+                                  <span className="flex items-center gap-1 text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded-md font-semibold">
+                                    <Shirt className="w-2.5 h-2.5" /> {evt.dressCode}
+                                  </span>
+                                )}
+                                <span className="font-mono text-slate-400">
+                                  • {(evt.activities?.length || 0) > 0 ? `${evt.activities.length} Pos` : 'Tanpa Pos'}
+                                </span>
+                                {evt.allowGroupMembers || (evt.maxGroupMembers && evt.maxGroupMembers > 0) ? (
+                                  <span className="flex items-center gap-1 text-purple-700 bg-purple-50 border border-purple-200/60 px-1.5 py-0.5 rounded-md font-semibold">
+                                    <Users className="w-2.5 h-2.5" /> Tim (Maks. {evt.maxGroupMembers || 3} Mhs)
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center gap-1 text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md font-semibold">
+                                    <User className="w-2.5 h-2.5" /> Individu
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                        <div className="flex flex-col gap-1.5 shrink-0">
+                          <button
+                            onClick={() => handleEditEvent(evt)}
+                            className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-[#007bff] hover:text-white text-xs font-bold transition-colors"
+                          >
+                            Edit
+                          </button>
+                          {(user?.role === 'SUPERADMIN' || user?.id === evt.organizerId) && (
+                            <button
+                              onClick={() => handleDeleteEvent(evt.id)}
+                              className="px-2.5 py-1.5 rounded-lg bg-rose-100 hover:bg-rose-500 hover:text-white text-rose-700 text-xs font-bold transition-colors"
+                            >
+                              Hapus
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Activities QR Section */}
+                      <div className="border-t border-slate-100 px-4 py-3 bg-slate-50">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">Pos Aktivitas & QR Code</p>
+                        {evt.activities && evt.activities.length > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            {evt.activities.map((act) => (
+                              <button
+                                key={act.id}
+                                onClick={() => setShowQrModal({ eventTitle: evt.title, activity: act })}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-[#007bff] hover:bg-blue-50 text-xs font-bold text-slate-700 transition-colors"
+                              >
+                                <QrCode className="w-3.5 h-3.5 text-[#007bff]" />
+                                {act.name} (+{act.coinsReward} GC)
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-slate-400 italic">Event Terpadu — Tidak ada pos checkpoint terpisah</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                </div>
+              )}
+
+              {/* QR Code Modal */}
+              {showQrModal && (
+                <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setShowQrModal(null)}>
+                  <div className="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-black text-slate-800">QR Code Pos Aktivitas</h4>
+                      <button onClick={() => setShowQrModal(null)} className="p-1 rounded-lg hover:bg-slate-100">
+                        <X className="w-4 h-4 text-slate-500" />
+                      </button>
+                    </div>
+                    <div className="text-center space-y-3">
+                      <div className="w-48 h-48 mx-auto bg-slate-100 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center space-y-2">
+                        <QrCode className="w-16 h-16 text-[#007bff]" />
+                        <p className="text-[10px] font-mono text-slate-500 px-2 break-all">{showQrModal.activity.qrCodeValue}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-black text-slate-800">{showQrModal.eventTitle}</p>
+                        <p className="text-xs text-slate-600 font-bold">{showQrModal.activity.name}</p>
+                        <p className="text-xs text-amber-700 font-bold mt-1">+{showQrModal.activity.coinsReward} Green Coins</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const qrText = `QR: ${showQrModal.activity.qrCodeValue}\nEvent: ${showQrModal.eventTitle}\nPos: ${showQrModal.activity.name}\nReward: +${showQrModal.activity.coinsReward} GC`;
+                          navigator.clipboard?.writeText(qrText).then(() => alert('QR info disalin ke clipboard!'));
+                        }}
+                        className="w-full py-3 bg-[#007bff] hover:bg-[#0069d9] text-white rounded-2xl text-xs font-black shadow-xs transition-colors"
+                      >
+                        Salin QR Code Info
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 9. Tab Content: Daily Quests Management (Superadmin) */}
+          {activeMenu === 'quests' && user?.role === 'SUPERADMIN' && (
+            <div className="space-y-4">
+              {/* Header & Action Buttons */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                      <Zap className="w-4 h-4 fill-amber-500" />
+                    </div>
+                    <h3 className="text-sm sm:text-base font-black text-slate-800">
+                      Manajemen Daily Quests (Misi Kampus)
+                    </h3>
+                    <span className="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">
+                      {questsList.length} Misi
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Atur misi kebiasaan hijau mikro harian untuk mahasiswa di lingkungan kampus BINUS.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResetQuests}
+                    className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                    title="Reset ke data awal default"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Reset Default</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleOpenCreateQuest}
+                    className="px-4 py-2 rounded-xl bg-[#007bff] hover:bg-[#0069d9] text-white text-xs font-black flex items-center gap-1.5 shadow-xs transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Tambah Misi Baru</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Filter & Search Bar */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={questSearch}
+                    onChange={(e) => setQuestSearch(e.target.value)}
+                    placeholder="Cari daily quest berdasarkan judul atau deskripsi..."
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-2xl border border-slate-200 bg-white text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#007bff]"
+                  />
+                </div>
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setQuestStatusFilter('all')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      questStatusFilter === 'all' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Semua ({questsList.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuestStatusFilter('active')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      questStatusFilter === 'active' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Aktif ({questsList.filter((q) => q.isActive).length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuestStatusFilter('inactive')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      questStatusFilter === 'inactive' ? 'bg-slate-700 text-white shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Nonaktif ({questsList.filter((q) => !q.isActive).length})
+                  </button>
+                </div>
+              </div>
+
+              {/* Quest List Cards / Table */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {questsList
+                  .filter((q) => {
+                    const match = q.title.toLowerCase().includes(questSearch.toLowerCase()) || q.desc.toLowerCase().includes(questSearch.toLowerCase());
+                    if (questStatusFilter === 'active') return match && q.isActive;
+                    if (questStatusFilter === 'inactive') return match && !q.isActive;
+                    return match;
+                  })
+                  .map((quest) => (
+                    <div
+                      key={quest.id}
+                      className={`p-4 sm:p-5 rounded-3xl border transition-all space-y-3 relative ${
+                        quest.isActive ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-50/70 border-slate-200/60 opacity-70'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                            quest.isActive ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-500'
+                          }`}>
+                            <Zap className="w-5 h-5 fill-current" />
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="text-xs sm:text-sm font-black text-slate-800 truncate">{quest.title}</h4>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[10px] font-mono text-slate-400 font-bold">{quest.id}</span>
+                              <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-slate-400" /> {quest.deadline}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <span
+                          className={`text-[10px] font-black px-2 py-0.5 rounded-full border shrink-0 ${
+                            quest.isActive
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-slate-100 text-slate-500 border-slate-200'
+                          }`}
+                        >
+                          {quest.isActive ? '● Aktif' : '○ Nonaktif'}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-slate-600 leading-relaxed">{quest.desc}</p>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <div className="flex items-center gap-1.5 text-xs font-black">
+                          <span className="text-amber-800 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
+                            {quest.reward}
+                          </span>
+                          {quest.satReward && quest.satReward > 0 ? (
+                            <span className="text-blue-700 bg-blue-50 px-2 py-1 rounded-xl border border-blue-200 text-[10px]">
+                              +{quest.satReward} SAT
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleQuest(quest.id)}
+                            title={quest.isActive ? 'Nonaktifkan misi' : 'Aktifkan misi'}
+                            className={`p-2 rounded-xl text-xs font-bold transition-colors ${
+                              quest.isActive
+                                ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                            }`}
+                          >
+                            {quest.isActive ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditQuest(quest)}
+                            title="Edit misi"
+                            className="p-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteQuest(quest.id, quest.title)}
+                            title="Hapus misi"
+                            className="p-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                {questsList.length === 0 && (
+                  <div className="col-span-full py-12 text-center bg-white rounded-3xl border border-slate-200 space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 mx-auto flex items-center justify-center">
+                      <Zap className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-sm font-black text-slate-700">Belum ada Daily Quests</h4>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                      Mulai buat misi kebiasaan hijau harian atau klik Reset Default untuk memuat template awal.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleOpenCreateQuest}
+                      className="px-4 py-2 rounded-xl bg-[#007bff] text-white text-xs font-bold inline-flex items-center gap-1.5"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Tambah Misi
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 10. Tab Content: Program Aksi Nyata Management (Superadmin) */}
+          {activeMenu === 'programs' && user?.role === 'SUPERADMIN' && (
+            <div className="space-y-4">
+              {/* Header & Action Buttons */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                      <TreePine className="w-4 h-4" />
+                    </div>
+                    <h3 className="text-sm sm:text-base font-black text-slate-800">
+                      Manajemen Program Aksi Nyata
+                    </h3>
+                    <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                      {programsList.length} Program
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Pengaturan program pengabdian masyarakat mandiri resmi TFI untuk pemenuhan Poin SAT & Jam Comserv.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResetPrograms}
+                    className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                    title="Reset ke data awal default"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Reset Default</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleOpenCreateProgram}
+                    className="px-4 py-2 rounded-xl bg-[#007bff] hover:bg-[#0069d9] text-white text-xs font-black flex items-center gap-1.5 shadow-xs transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Tambah Program Baru</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Filter & Search Bar */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={programSearch}
+                    onChange={(e) => setProgramSearch(e.target.value)}
+                    placeholder="Cari program aksi berdasarkan nama atau kategori..."
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-2xl border border-slate-200 bg-white text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#007bff]"
+                  />
+                </div>
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setProgramStatusFilter('all')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      programStatusFilter === 'all' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Semua ({programsList.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProgramStatusFilter('active')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      programStatusFilter === 'active' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Aktif ({programsList.filter((p) => p.isActive).length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProgramStatusFilter('inactive')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      programStatusFilter === 'inactive' ? 'bg-slate-700 text-white shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Nonaktif ({programsList.filter((p) => !p.isActive).length})
+                  </button>
+                </div>
+              </div>
+
+              {/* Program List Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {programsList
+                  .filter((p) => {
+                    const match = p.title.toLowerCase().includes(programSearch.toLowerCase()) || p.category.toLowerCase().includes(programSearch.toLowerCase());
+                    if (programStatusFilter === 'active') return match && p.isActive;
+                    if (programStatusFilter === 'inactive') return match && !p.isActive;
+                    return match;
+                  })
+                  .map((prog) => (
+                    <div
+                      key={prog.id}
+                      className={`p-4 sm:p-5 rounded-3xl border transition-all space-y-3.5 relative ${
+                        prog.isActive ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-50/70 border-slate-200/60 opacity-70'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${prog.color} text-white flex items-center justify-center shadow-xs shrink-0`}>
+                            {renderProgramIconHelper(prog.icon, "w-6 h-6")}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-900 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block mb-1">
+                              {prog.urgency}
+                            </span>
+                            <h4 className="text-xs sm:text-sm font-black text-slate-800 truncate">{prog.title}</h4>
+                            <p className="text-[11px] text-slate-500 font-bold truncate mt-0.5">{prog.category}</p>
+                          </div>
+                        </div>
+
+                        <span
+                          className={`text-[10px] font-black px-2 py-0.5 rounded-full border shrink-0 ${
+                            prog.isActive
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-slate-100 text-slate-500 border-slate-200'
+                          }`}
+                        >
+                          {prog.isActive ? '● Aktif' : '○ Nonaktif'}
+                        </span>
+                      </div>
+
+                      {/* Rewards Bar */}
+                      <div className="bg-slate-50 p-3 rounded-2xl flex items-center justify-between text-xs font-black border border-slate-200/70">
+                        <span className="text-blue-700 flex items-center gap-1">
+                          <GraduationCap className="w-3.5 h-3.5" />
+                          +{prog.satPoints} SAT ({prog.comservHours} Jam Comserv)
+                        </span>
+                        <span className="text-amber-800">
+                          +{prog.coins} Green Coins
+                        </span>
+                      </div>
+
+                      {/* Tag & CO2 Impact */}
+                      <div className="flex items-center justify-between text-xs text-slate-600 pt-1 border-t border-slate-100">
+                        <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold border border-slate-200 text-[10px]">
+                          {prog.tag} • Reduksi CO2: {prog.co2}
+                        </span>
+
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleProgram(prog.id)}
+                            title={prog.isActive ? 'Nonaktifkan program' : 'Aktifkan program'}
+                            className={`p-2 rounded-xl text-xs font-bold transition-colors ${
+                              prog.isActive
+                                ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                            }`}
+                          >
+                            {prog.isActive ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditProgram(prog)}
+                            title="Edit program"
+                            className="p-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteProgram(prog.id, prog.title)}
+                            title="Hapus program"
+                            className="p-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                {programsList.length === 0 && (
+                  <div className="col-span-full py-12 text-center bg-white rounded-3xl border border-slate-200 space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center">
+                      <TreePine className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-sm font-black text-slate-700">Belum ada Program Aksi Nyata</h4>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                      Buat program aksi pengabdian mandiri resmi TFI atau klik Reset Default untuk memuat template awal.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleOpenCreateProgram}
+                      className="px-4 py-2 rounded-xl bg-[#007bff] text-white text-xs font-bold inline-flex items-center gap-1.5"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Tambah Program
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </main>
       </div>
+
+      {/* Import Users from Excel Modal (Superadmin) */}
+      <ImportUsersModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onSuccess={() => {
+          loadData();
+        }}
+        existingUsers={usersList}
+      />
+
+      {/* User Creation Modal (Superadmin) */}
+      {showUserForm && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => !isCreatingUser && setShowUserForm(false)}
+        >
+          <div
+            className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl relative my-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-xs">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-800">Tambah Pengguna Baru</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">Platform SSO & I-CAN BINUS University</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isCreatingUser) {
+                    setShowUserForm(false);
+                    setUserFormError(null);
+                  }
+                }}
+                disabled={isCreatingUser}
+                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {userFormError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-bold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{userFormError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleUserFormSubmit} className="space-y-3.5">
+              {/* Role Selection */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                  Role / Hak Akses Akun
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['MAHASISWA', 'ORGANIZER', 'SUPERADMIN'] as UserRole[]).map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() =>
+                        setUserFormData((prev) => ({
+                          ...prev,
+                          role: r,
+                          facultyName:
+                            r === 'SUPERADMIN'
+                              ? 'Student Service Office (SSO)'
+                              : r === 'ORGANIZER'
+                              ? 'Teach For Indonesia (TFI)'
+                              : prev.facultyName || 'School of Computer Science',
+                        }))
+                      }
+                      className={`py-2 px-2 rounded-xl text-xs font-black border transition-all text-center ${
+                        userFormData.role === r
+                          ? r === 'SUPERADMIN'
+                            ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                            : r === 'ORGANIZER'
+                            ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                            : 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1">
+                  {userFormData.role === 'MAHASISWA' && 'Mahasiswa aktif BINUS: submit aksi hijau, kumpulkan SAT & GC.'}
+                  {userFormData.role === 'ORGANIZER' && 'Penyelenggara Event: membuat kegiatan kampus & pos QR reward.'}
+                  {userFormData.role === 'SUPERADMIN' && 'Super Admin SSO: verifikasi aksi, kelola akun, manual SAT grant.'}
+                </p>
+              </div>
+
+              {/* Dynamic Identifier: NIM for Mahasiswa, Binus Number (BN) for Staff */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 flex items-center justify-between mb-1.5">
+                  <span>
+                    {userFormData.role === 'MAHASISWA' ? 'NIM (Nomor Induk Mahasiswa)' : 'Binus Number (BN) / ID Pegawai'}
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    {userFormData.role === 'MAHASISWA' ? '10 Digit NIM' : 'Format BN / NIP'}
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  value={userFormData.nim}
+                  onChange={(e) => setUserFormData((prev) => ({ ...prev, nim: sanitizeNimInput(e.target.value, prev.role) }))}
+                  placeholder={
+                    userFormData.role === 'MAHASISWA' ? 'Contoh: 2602158890' : 'Contoh: BN00123456 / 1980010101'
+                  }
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] font-mono"
+                  required
+                />
+              </div>
+
+              {/* Full Name */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Nama Lengkap</label>
+                <input
+                  type="text"
+                  value={userFormData.fullName}
+                  onChange={(e) => setUserFormData((prev) => ({ ...prev, fullName: e.target.value }))}
+                  placeholder="Contoh: Siti Rahmawati, S.Kom"
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Email Resmi</label>
+                <input
+                  type="email"
+                  value={userFormData.email}
+                  onChange={(e) => setUserFormData((prev) => ({ ...prev, email: e.target.value }))}
+                  placeholder={
+                    userFormData.role === 'MAHASISWA' ? 'siti.rahmawati@binus.ac.id' : 'siti.rahmawati@binus.edu'
+                  }
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                />
+              </div>
+
+              {/* Faculty / Unit */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Fakultas / Unit Kerja</label>
+                <select
+                  value={userFormData.facultyName}
+                  onChange={(e) => setUserFormData((prev) => ({ ...prev, facultyName: e.target.value }))}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                >
+                  <option value="School of Computer Science">School of Computer Science</option>
+                  <option value="School of Information Systems">School of Information Systems</option>
+                  <option value="School of Design">School of Design</option>
+                  <option value="BINUS Business School">BINUS Business School</option>
+                  <option value="Faculty of Engineering">Faculty of Engineering</option>
+                  <option value="Faculty of Humanities">Faculty of Humanities</option>
+                  <option value="Faculty of Digital Communication & Hotel & Tourism">Faculty of Digital Communication & Hotel & Tourism</option>
+                  <option value="Student Service Office (SSO)">Student Service Office (SSO)</option>
+                  <option value="Teach For Indonesia (TFI)">Teach For Indonesia (TFI)</option>
+                </select>
+              </div>
+
+              {/* Password */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 flex items-center justify-between mb-1.5">
+                  <span>Kata Sandi Awal</span>
+                  <span className="text-[10px] text-slate-400">Minimal 6 karakter</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showUserPassword ? 'text' : 'password'}
+                    value={userFormData.password}
+                    onChange={(e) => setUserFormData((prev) => ({ ...prev, password: e.target.value }))}
+                    placeholder="Masukkan kata sandi awal pengguna"
+                    className="w-full text-xs p-2.5 pr-10 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowUserPassword(!showUserPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                  >
+                    {showUserPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex gap-2 pt-3">
+                <button
+                  type="submit"
+                  disabled={isCreatingUser}
+                  className="flex-1 py-3 bg-[#28a745] hover:bg-[#218838] text-white rounded-2xl text-xs font-black shadow-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+                >
+                  {isCreatingUser ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Menyimpan Akun...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Simpan Pengguna</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUserForm(false);
+                    setUserFormError(null);
+                  }}
+                  disabled={isCreatingUser}
+                  className="px-5 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-2xl text-xs font-bold transition-colors"
+                >
+                  Batal
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit User Modal (Superadmin) */}
+      {showEditModal && editingUser && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => !isEditingUser && setShowEditModal(false)}
+        >
+          <div
+            className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl relative my-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center shadow-xs">
+                  <Pencil className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-800">Edit Data Pengguna</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">Perbarui profil atau role pengguna</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isEditingUser) setShowEditModal(false);
+                }}
+                disabled={isEditingUser}
+                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {editFormError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-bold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{editFormError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleEditFormSubmit} className="space-y-3.5">
+              {/* Role Selection */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Role / Hak Akses Akun</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['MAHASISWA', 'ORGANIZER', 'SUPERADMIN'] as UserRole[]).map((r) => {
+                    // Guardrails UI logic
+                    let isDisabled = false;
+                    let disabledReason = '';
+                    if (editingUser?.role === 'SUPERADMIN' && r !== 'SUPERADMIN') {
+                      if (user?.id === editingUser.id) {
+                        isDisabled = true;
+                        disabledReason = 'Tidak dapat menurunkan role akun sendiri';
+                      } else if (activeSuperadminsCount <= 1) {
+                        isDisabled = true;
+                        disabledReason = 'Tidak dapat menurunkan role Superadmin terakhir';
+                      }
+                    }
+
+                    return (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => {
+                          if (!isDisabled) setEditFormData((prev) => ({ ...prev, role: r }));
+                        }}
+                        disabled={isDisabled}
+                        title={isDisabled ? disabledReason : undefined}
+                        className={`py-2 px-2 rounded-xl text-xs font-black border transition-all text-center ${
+                          isDisabled
+                            ? 'bg-slate-100 text-slate-300 border-slate-100 cursor-not-allowed'
+                            : editFormData.role === r
+                            ? r === 'SUPERADMIN'
+                              ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                              : r === 'ORGANIZER'
+                              ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                              : 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        {r}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Dynamic Identifier: NIM for Mahasiswa, Binus Number (BN) for Staff */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 flex items-center justify-between mb-1.5">
+                  <span>{editFormData.role === 'MAHASISWA' ? 'NIM (Nomor Induk Mahasiswa)' : 'Binus Number (BN) / ID Pegawai'}</span>
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.nim}
+                  onChange={(e) => setEditFormData((prev) => ({ ...prev, nim: sanitizeNimInput(e.target.value, prev.role) }))}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] font-mono"
+                  required
+                />
+              </div>
+
+              {/* Full Name */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Nama Lengkap</label>
+                <input
+                  type="text"
+                  value={editFormData.fullName}
+                  onChange={(e) => setEditFormData((prev) => ({ ...prev, fullName: e.target.value }))}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Email Resmi</label>
+                <input
+                  type="email"
+                  value={editFormData.email}
+                  onChange={(e) => setEditFormData((prev) => ({ ...prev, email: e.target.value }))}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                />
+              </div>
+
+              {/* Faculty / Unit */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Fakultas / Unit Kerja</label>
+                <select
+                  value={editFormData.facultyName}
+                  onChange={(e) => setEditFormData((prev) => ({ ...prev, facultyName: e.target.value }))}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                >
+                  <option value="School of Computer Science">School of Computer Science</option>
+                  <option value="School of Information Systems">School of Information Systems</option>
+                  <option value="School of Design">School of Design</option>
+                  <option value="BINUS Business School">BINUS Business School</option>
+                  <option value="Faculty of Engineering">Faculty of Engineering</option>
+                  <option value="Faculty of Humanities">Faculty of Humanities</option>
+                  <option value="Faculty of Digital Communication & Hotel & Tourism">Faculty of Digital Communication & Hotel & Tourism</option>
+                  <option value="Student Service Office (SSO)">Student Service Office (SSO)</option>
+                  <option value="Teach For Indonesia (TFI)">Teach For Indonesia (TFI)</option>
+                </select>
+              </div>
+
+              {/* Optional Password Reset */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 flex items-center justify-between mb-1.5">
+                  <span>Reset Kata Sandi (Opsional)</span>
+                  <span className="text-[10px] text-slate-400">Kosongkan jika tidak diubah</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showEditPassword ? 'text' : 'password'}
+                    value={editFormData.newPassword}
+                    onChange={(e) => setEditFormData((prev) => ({ ...prev, newPassword: e.target.value }))}
+                    placeholder="Masukkan kata sandi baru..."
+                    className="w-full text-xs p-2.5 pr-10 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowEditPassword(!showEditPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                  >
+                    {showEditPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex gap-2 pt-3">
+                <button
+                  type="submit"
+                  disabled={isEditingUser}
+                  className="flex-1 py-3 bg-[#007bff] hover:bg-[#0069d9] text-white rounded-2xl text-xs font-black shadow-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+                >
+                  {isEditingUser ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Simpan Perubahan</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  disabled={isEditingUser}
+                  className="px-5 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-2xl text-xs font-bold transition-colors"
+                >
+                  Batal
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Daily Quest Modal (Superadmin) */}
+      {showQuestModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => setShowQuestModal(false)}
+        >
+          <div
+            className="bg-white rounded-3xl p-6 max-w-lg w-full space-y-4 shadow-2xl relative my-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shadow-xs">
+                  <Zap className="w-5 h-5 fill-amber-500" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-800">
+                    {editingQuest ? 'Edit Daily Quest' : 'Tambah Daily Quest Baru'}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Misi kebiasaan mikro ramah lingkungan harian mahasiswa
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowQuestModal(false)}
+                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveQuest} className="space-y-3.5">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Judul Misi (dengan Emoji)</label>
+                <input
+                  type="text"
+                  value={questFormData.title}
+                  onChange={(e) => setQuestFormData((p) => ({ ...p, title: e.target.value }))}
+                  placeholder="Contoh: Campus Tumbler Boost 🥤"
+                  className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Deskripsi Instruksi Misi</label>
+                <textarea
+                  value={questFormData.desc}
+                  onChange={(e) => setQuestFormData((p) => ({ ...p, desc: e.target.value }))}
+                  placeholder="Jelaskan aksi yang harus dilakukan mahasiswa secara ringkas..."
+                  rows={3}
+                  className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] resize-none"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Reward Green Coins</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={questFormData.coinsReward}
+                    onChange={(e) => setQuestFormData((p) => ({ ...p, coinsReward: Number(e.target.value) }))}
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Reward Poin SAT (Opsional)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={10}
+                    value={questFormData.satReward}
+                    onChange={(e) => setQuestFormData((p) => ({ ...p, satReward: Number(e.target.value) }))}
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Tenggat Waktu / Deadline</label>
+                  <input
+                    type="text"
+                    value={questFormData.deadline}
+                    onChange={(e) => setQuestFormData((p) => ({ ...p, deadline: e.target.value }))}
+                    placeholder="Contoh: Sisa Hari Ini / 23:59 WIB"
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Tautan Aksi (Route)</label>
+                  <input
+                    type="text"
+                    value={questFormData.actionUrl}
+                    onChange={(e) => setQuestFormData((p) => ({ ...p, actionUrl: e.target.value }))}
+                    placeholder="/upload"
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-1 flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                <div>
+                  <p className="text-xs font-bold text-slate-800">Status Publikasi</p>
+                  <p className="text-[10px] text-slate-500">Misi langsung muncul di beranda mahasiswa jika aktif</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={questFormData.isActive}
+                    onChange={(e) => setQuestFormData((p) => ({ ...p, isActive: e.target.checked }))}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-[#007bff] hover:bg-[#0069d9] text-white rounded-2xl text-xs font-black shadow-xs transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{editingQuest ? 'Simpan Perubahan' : 'Buat Daily Quest'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowQuestModal(false)}
+                  className="px-5 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-2xl text-xs font-bold transition-colors"
+                >
+                  Batal
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Program Aksi Nyata Modal (Superadmin) */}
+      {showProgramModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => setShowProgramModal(false)}
+        >
+          <div
+            className="bg-white rounded-3xl p-6 max-w-xl w-full space-y-4 shadow-2xl relative my-8 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-xs">
+                  <TreePine className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-800">
+                    {editingProgram ? 'Edit Program Aksi Nyata' : 'Tambah Program Aksi Nyata Baru'}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Program aksi mandiri resmi TFI dengan rekognisi Poin SAT & Jam Comserv
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowProgramModal(false)}
+                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProgram} className="space-y-3.5">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Nama / Judul Program Aksi</label>
+                <input
+                  type="text"
+                  value={programFormData.title}
+                  onChange={(e) => setProgramFormData((p) => ({ ...p, title: e.target.value }))}
+                  placeholder="Contoh: Penanaman Pohon Pelindung"
+                  className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Kategori Tampilan</label>
+                  <input
+                    type="text"
+                    value={programFormData.category}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, category: e.target.value }))}
+                    placeholder="Contoh: Penyuluhan & Aksi Nyata"
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Tipe Aksi Resmi TFI</label>
+                  <select
+                    value={programFormData.categoryType}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, categoryType: e.target.value as ActionType }))}
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] font-bold"
+                  >
+                    <option value="PENYULUHAN_AKSI_NYATA">Penyuluhan & Aksi Nyata</option>
+                    <option value="BINA_LINGKUNGAN">Bina Lingkungan</option>
+                    <option value="BINA_DIRI">Bina Diri</option>
+                    <option value="SELF_GREEN_CAMPAIGN">Self Green Campaign</option>
+                    <option value="VIDEO_BASED_LEARNING">Video Based Learning</option>
+                    <option value="VIRTUAL_VOLUNTEER">Virtual Volunteer</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Poin SAT Riil</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={20}
+                    value={programFormData.satPoints}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, satPoints: Number(e.target.value) }))}
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Jam Comserv (Jam)</label>
+                  <input
+                    type="number"
+                    step={0.5}
+                    min={0}
+                    max={50}
+                    value={programFormData.comservHours}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, comservHours: Number(e.target.value) }))}
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Green Coins</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={200}
+                    value={programFormData.coins}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, coins: Number(e.target.value) }))}
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Reduksi CO2e</label>
+                  <input
+                    type="text"
+                    value={programFormData.co2}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, co2: e.target.value }))}
+                    placeholder="Contoh: 5.0 kg"
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Tag SDG</label>
+                  <input
+                    type="text"
+                    value={programFormData.tag}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, tag: e.target.value }))}
+                    placeholder="Contoh: SDG 15 & 13"
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Badge Urgensi</label>
+                  <input
+                    type="text"
+                    value={programFormData.urgency}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, urgency: e.target.value }))}
+                    placeholder="Contoh: Hot Program 🔥"
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Icon Picker */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Pilih Ikon Representatif</label>
+                <div className="grid grid-cols-5 gap-2">
+                  {PROGRAM_ICONS_LIST.map((item) => {
+                    const IconComp = item.icon;
+                    const isSelected = programFormData.icon === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setProgramFormData((p) => ({ ...p, icon: item.id }))}
+                        className={`p-2.5 rounded-2xl border flex flex-col items-center gap-1 transition-all ${
+                          isSelected
+                            ? 'bg-emerald-50 border-emerald-600 text-emerald-700 shadow-xs scale-105'
+                            : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        <IconComp className="w-4 h-4" />
+                        <span className="text-[10px] font-bold truncate max-w-full">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Color Gradient Picker */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Pilih Tema Gradasi Warna</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {PROGRAM_COLORS_LIST.map((c) => {
+                    const isSelected = programFormData.color === c.value;
+                    return (
+                      <button
+                        key={c.value}
+                        type="button"
+                        onClick={() => setProgramFormData((p) => ({ ...p, color: c.value }))}
+                        className={`p-2 rounded-2xl border flex items-center gap-2 transition-all text-left ${
+                          isSelected ? 'border-slate-800 bg-slate-100 ring-2 ring-slate-800/20' : 'border-slate-200 bg-white hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-lg bg-gradient-to-tr ${c.value} shrink-0`} />
+                        <span className="text-[11px] font-bold text-slate-700 truncate">{c.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Deskripsi / Petunjuk Pelaksanaan (Opsional)</label>
+                <textarea
+                  value={programFormData.description}
+                  onChange={(e) => setProgramFormData((p) => ({ ...p, description: e.target.value }))}
+                  placeholder="Kriteria minimal aksi, jumlah partisipan warga, lokasi..."
+                  rows={2}
+                  className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Saran Prompt Cerita / Template Laporan Mahasiswa</label>
+                <textarea
+                  value={programFormData.suggestedPrompt}
+                  onChange={(e) => setProgramFormData((p) => ({ ...p, suggestedPrompt: e.target.value }))}
+                  placeholder="Template teks deskripsi yang disarankan untuk memandu mahasiswa melapor..."
+                  rows={2}
+                  className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] resize-none"
+                />
+              </div>
+
+              <div className="pt-1 flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                <div>
+                  <p className="text-xs font-bold text-slate-800">Status Program</p>
+                  <p className="text-[10px] text-slate-500">Program dapat dipilih mahasiswa untuk pelaporan jika aktif</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={programFormData.isActive}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, isActive: e.target.checked }))}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-[#007bff] hover:bg-[#0069d9] text-white rounded-2xl text-xs font-black shadow-xs transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{editingProgram ? 'Simpan Perubahan' : 'Buat Program Aksi'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowProgramModal(false)}
+                  className="px-5 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-2xl text-xs font-bold transition-colors"
+                >
+                  Batal
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Evidence Modal */}
+      {evidenceModal && (
+        <div 
+          className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setEvidenceModal(null)}
+        >
+          <div 
+            className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh] space-y-4 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <h4 className="text-sm sm:text-base font-black text-slate-800 flex items-center gap-2">
+                <Image className="w-5 h-5 text-indigo-600" />
+                Bukti Aksi: {evidenceModal.userName}
+              </h4>
+              <button 
+                onClick={() => setEvidenceModal(null)}
+                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Photos Display (Primary Action + Group Selfie Photo) */}
+            <div className="space-y-3">
+              <div className="rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 relative group">
+                <div className="p-2 bg-slate-800/90 text-white text-[10px] font-black flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                    Foto 1: Bukti Pelaksanaan Aksi (Dianalisis AI)
+                  </span>
+                  <span className="text-emerald-400 font-mono">
+                    Match: {Math.round((evidenceModal.aiConfidence || 0.95) * 100)}%
+                  </span>
+                </div>
+                <img 
+                  src={evidenceModal.photoUrl} 
+                  alt="Bukti Aksi Utama" 
+                  loading="lazy"
+                  className="w-full h-auto object-contain max-h-[260px] mx-auto bg-black/5"
+                />
+              </div>
+
+              {evidenceModal.groupPhotoUrl && (
+                <div className="rounded-2xl overflow-hidden bg-purple-50/50 border border-purple-200 relative group">
+                  <div className="p-2 bg-purple-900 text-white text-[10px] font-black flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-purple-300" />
+                      Foto 2: Foto Bersama Seluruh Anggota Tim di Lokasi (Verifikasi Fisik)
+                    </span>
+                    <span className="text-purple-300 font-bold">Welfie Kehadiran</span>
+                  </div>
+                  <img 
+                    src={evidenceModal.groupPhotoUrl} 
+                    alt="Foto Bersama Anggota" 
+                    loading="lazy"
+                    className="w-full h-auto object-contain max-h-[260px] mx-auto bg-black/5"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Group Members List if Present */}
+            {evidenceModal.groupMembers && evidenceModal.groupMembers.length > 0 && (
+              <div className="bg-purple-50/80 border border-purple-200/80 p-3.5 rounded-2xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
+                    <Users className="w-4 h-4 text-purple-700" />
+                    Anggota Tim Terdaftar ({evidenceModal.groupMembers.length} Orang)
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full">
+                    Aksi Berkelompok
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {evidenceModal.groupMembers.map((nim) => (
+                    <span key={nim} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white border border-purple-200 text-purple-900 font-mono text-xs font-bold shadow-2xs">
+                      <User className="w-3 h-3 text-purple-600" />
+                      {nim}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {evidenceModal.story && (
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed italic">
+                  "{evidenceModal.story}"
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-slate-700">Kategori: <span className="font-medium text-slate-600">{evidenceModal.categoryName}</span></p>
+              <p className="text-xs font-bold text-slate-700">Program: <span className="font-medium text-slate-600">{evidenceModal.submissionType}</span></p>
+              
+              {evidenceModal.campaignUrl && (
+                <a 
+                  href={evidenceModal.campaignUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 mt-2"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Buka Tautan Kampanye/Sosmed
+                </a>
+              )}
+              {evidenceModal.videoUrl && (
+                <a 
+                  href={evidenceModal.videoUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs font-bold text-red-600 hover:text-red-800 mt-2"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Buka Tautan Video
+                </a>
+              )}
+            </div>
+
+            <div className="pt-2 flex gap-2">
+              <button
+                onClick={() => setEvidenceModal(null)}
+                className="flex-1 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold transition-colors"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

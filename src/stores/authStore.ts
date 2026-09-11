@@ -5,84 +5,32 @@ import {
   registerUser, 
   RegisterParams, 
   getAllUsersList, 
-  updateStoredUserAccount 
+  updateStoredUserAccount,
+  createAccountByAdmin,
+  editAccountByAdmin,
+  softDeleteAccountByAdmin,
+  restoreAccountByAdmin,
+  normalizeUserRole,
+  EditUserParams,
+  validateUserIdentifier,
+  batchImportAccounts,
+  BatchImportUserItem,
+  BatchImportOptions,
+  BatchImportResult,
+  getNeutralAvatarUrl
 } from '@/services/authService';
 
 // Default initial seeded profiles
 export const DEMO_PROFILES: Record<string, UserProfile> = {
-  student: {
-    id: 'usr-student-001',
-    nim: '2602158890',
-    email: 'budi.santoso@binus.ac.id',
-    fullName: 'Budi Santoso',
-    role: 'STUDENT',
-    facultyId: 'fac-socs',
-    facultyName: 'School of Computer Science',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    totalGreenCoins: 450,
-    totalSatPoints: 45, // Target: 120 SAT Points
-    totalCarbonSaved: 12.50, // kg CO2e
-    streakDays: 5,
-    lastActionAt: new Date().toISOString(),
-    createdAt: '2026-08-01T00:00:00Z',
-  },
-  verifier: {
-    id: 'usr-verifier-002',
-    nim: '2501987654',
-    email: 'siska.amanda@binus.ac.id',
-    fullName: 'Siska Amanda',
-    role: 'VERIFIER',
-    facultyId: 'fac-sis',
-    facultyName: 'School of Information Systems',
-    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-    totalGreenCoins: 1250,
-    totalSatPoints: 85,
-    totalCarbonSaved: 34.20,
-    streakDays: 14,
-    lastActionAt: new Date().toISOString(),
-    createdAt: '2026-07-15T00:00:00Z',
-  },
-  nadia: {
-    id: 'usr-student-003',
-    nim: '2602234567',
-    email: 'nadia.safira@binus.ac.id',
-    fullName: 'Nadia Safira',
-    role: 'STUDENT',
-    facultyId: 'fac-sod',
-    facultyName: 'School of Design',
-    avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
-    totalGreenCoins: 890,
-    totalSatPoints: 68,
-    totalCarbonSaved: 24.80,
-    streakDays: 9,
-    lastActionAt: new Date().toISOString(),
-    createdAt: '2026-07-28T00:00:00Z',
-  },
-  farhan: {
-    id: 'usr-student-004',
-    nim: '2602345678',
-    email: 'farhan.ramadhan@binus.ac.id',
-    fullName: 'Farhan Ramadhan',
-    role: 'STUDENT',
-    facultyId: 'fac-eng',
-    facultyName: 'Faculty of Engineering',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    totalGreenCoins: 210,
-    totalSatPoints: 16,
-    totalCarbonSaved: 5.10,
-    streakDays: 3,
-    lastActionAt: new Date().toISOString(),
-    createdAt: '2026-08-10T00:00:00Z',
-  },
   admin: {
     id: 'usr-admin-005',
     nim: '1980010101',
-    email: 'hendra.sso@binus.ac.id',
-    fullName: 'Hendra Kusuma, M.Kom (Super Admin)',
-    role: 'ADMIN',
+    email: 'musangking@binus.ac.id',
+    fullName: 'MUSANG KING(Super Admin)',
+    role: 'SUPERADMIN',
     facultyId: 'fac-sso',
     facultyName: 'Student Service Office (SSO)',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    avatarUrl: getNeutralAvatarUrl('MUSANG KING(Super Admin)', '1980010101', 'SUPERADMIN'),
     totalGreenCoins: 2400,
     totalSatPoints: 120,
     totalCarbonSaved: 62.00,
@@ -106,6 +54,11 @@ interface AuthState {
   clearError: () => void;
   updateUserStats: (stats: { greenCoins?: number; satPoints?: number; carbonSaved?: number; streakDays?: number }) => void;
   updateUserRole: (userId: string, newRole: UserRole) => Promise<void>;
+  createUserAccount: (params: RegisterParams) => Promise<{ user?: UserProfile; error?: string }>;
+  editUserAccount: (userId: string, data: EditUserParams) => Promise<{ user?: UserProfile; error?: string }>;
+  softDeleteUserAccount: (userId: string) => Promise<{ success?: boolean; error?: string }>;
+  restoreUserAccount: (userId: string) => Promise<{ success?: boolean; error?: string }>;
+  batchImportUsers: (items: BatchImportUserItem[], options?: BatchImportOptions) => Promise<BatchImportResult>;
   setUser: (user: UserProfile | null) => void;
 }
 
@@ -116,6 +69,13 @@ export const useAuthStore = create<AuthState>((set, get) => {
   if (savedUser) {
     try {
       initialUser = JSON.parse(savedUser);
+      if (initialUser) {
+        initialUser.role = normalizeUserRole(initialUser.role);
+        if (!initialUser.avatarUrl || initialUser.avatarUrl.includes('photo-1535713875002-d1d0cf377fde') || initialUser.avatarUrl.includes('photo-1500648767791-00dcc994a43e')) {
+          initialUser.avatarUrl = getNeutralAvatarUrl(initialUser.fullName, initialUser.nim, initialUser.role);
+          localStorage.setItem('i_can_user', JSON.stringify(initialUser));
+        }
+      }
     } catch {
       initialUser = null;
     }
@@ -135,6 +95,11 @@ export const useAuthStore = create<AuthState>((set, get) => {
         const list = await getAllUsersList();
         if (list && list.length > 0) {
           set({ usersList: list });
+          const currentUserId = get().user?.id;
+          if (currentUserId && !list.find(u => u.id === currentUserId)) {
+            localStorage.removeItem('i_can_user');
+            set({ user: null, isAuthenticated: false });
+          }
           return list;
         }
       } catch (err) {
@@ -160,12 +125,12 @@ export const useAuthStore = create<AuthState>((set, get) => {
 
       // Nickname & Role shortcuts fallback
       if (!matched) {
-        if (cleanTarget === 'student') {
-          matched = list.find((u) => u.id === 'usr-student-001') || list.find((u) => u.role === 'STUDENT');
-        } else if (cleanTarget === 'verifier') {
-          matched = list.find((u) => u.role === 'VERIFIER');
-        } else if (cleanTarget === 'admin') {
-          matched = list.find((u) => u.role === 'ADMIN');
+        if (cleanTarget === 'student' || cleanTarget === 'mahasiswa') {
+          matched = list.find((u) => u.id === 'usr-student-001') || list.find((u) => u.role === 'MAHASISWA');
+        } else if (cleanTarget === 'organizer' || cleanTarget === 'verifier') {
+          matched = list.find((u) => u.role === 'ORGANIZER');
+        } else if (cleanTarget === 'admin' || cleanTarget === 'superadmin') {
+          matched = list.find((u) => u.role === 'SUPERADMIN');
         } else if (cleanTarget === 'nadia') {
           matched = list.find((u) => u.id === 'usr-student-003');
         } else if (cleanTarget === 'farhan') {
@@ -173,7 +138,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         }
       }
 
-      const selectedProfile = matched || DEMO_PROFILES[target] || DEMO_PROFILES.student;
+      const selectedProfile = matched || DEMO_PROFILES[target] || DEMO_PROFILES.admin;
       localStorage.setItem('i_can_user', JSON.stringify(selectedProfile));
       set({ user: selectedProfile, isAuthenticated: true, authError: null });
     },
@@ -244,6 +209,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
     },
 
     updateUserRole: async (userId: string, newRole: UserRole) => {
+      if (get().user?.role !== 'SUPERADMIN') return;
       await updateStoredUserAccount(userId, { role: newRole });
       const updatedList = get().usersList.map((u) => (u.id === userId ? { ...u, role: newRole } : u));
       set({ usersList: updatedList });
@@ -252,6 +218,129 @@ export const useAuthStore = create<AuthState>((set, get) => {
         const updatedUser = { ...get().user!, role: newRole };
         localStorage.setItem('i_can_user', JSON.stringify(updatedUser));
         set({ user: updatedUser });
+      }
+    },
+
+    createUserAccount: async (params: RegisterParams) => {
+      if (get().user?.role !== 'SUPERADMIN') return { error: 'Akses ditolak. Hanya Superadmin yang dapat membuat akun.' };
+      set({ isLoading: true, authError: null });
+      try {
+        const result = await createAccountByAdmin(params);
+        if (result.user) {
+          await get().loadUsersList();
+        }
+        set({ isLoading: false });
+        return result;
+      } catch (err: any) {
+        set({ isLoading: false });
+        return { error: err.message || 'Gagal membuat akun' };
+      }
+    },
+
+    editUserAccount: async (userId: string, data: EditUserParams) => {
+      const currentUser = get().user;
+      if (currentUser?.role !== 'SUPERADMIN') return { error: 'Akses ditolak. Hanya Superadmin.' };
+
+      // Guardrails for Role Downgrade
+      if (data.role && data.role !== 'SUPERADMIN') {
+        const list = get().usersList;
+        const targetUser = list.find((u) => u.id === userId);
+
+        if (targetUser?.role === 'SUPERADMIN') {
+          // 1. Prevent self-downgrade
+          if (currentUser.id === userId) {
+            return { error: 'Anda tidak dapat menurunkan role Superadmin Anda sendiri.' };
+          }
+
+          // 2. Prevent downgrading the last active Superadmin
+          const activeSuperadmins = list.filter((u) => u.role === 'SUPERADMIN' && !u.isDeleted).length;
+          if (activeSuperadmins <= 1) {
+            return { error: 'Tidak dapat menurunkan role Superadmin terakhir. Minimal 1 Superadmin aktif harus tersisa.' };
+          }
+        }
+      }
+
+      set({ isLoading: true });
+      try {
+        const result = await editAccountByAdmin(userId, data);
+        if (result.user) {
+          await get().loadUsersList();
+          // Sync session if editing own account
+          if (currentUser?.id === userId) {
+            localStorage.setItem('i_can_user', JSON.stringify(result.user));
+            set({ user: result.user });
+          }
+        }
+        set({ isLoading: false });
+        return result;
+      } catch (err: any) {
+        set({ isLoading: false });
+        return { error: err.message || 'Gagal memperbarui akun' };
+      }
+    },
+
+    softDeleteUserAccount: async (userId: string) => {
+      const currentUser = get().user;
+      if (currentUser?.role !== 'SUPERADMIN') return { error: 'Akses ditolak. Hanya Superadmin.' };
+
+      // Guardrail: No self-deactivation
+      if (currentUser.id === userId) {
+        return { error: 'Anda tidak dapat menonaktifkan akun Anda sendiri yang sedang login.' };
+      }
+
+      // Guardrail: Minimum 1 active superadmin
+      const list = get().usersList;
+      const targetUser = list.find((u) => u.id === userId);
+      if (targetUser?.role === 'SUPERADMIN') {
+        const activeSuperadmins = list.filter((u) => u.role === 'SUPERADMIN' && !u.isDeleted).length;
+        if (activeSuperadmins <= 1) {
+          return { error: 'Tidak dapat menonaktifkan Superadmin terakhir. Minimal 1 Superadmin aktif harus tersisa.' };
+        }
+      }
+
+      set({ isLoading: true });
+      try {
+        const result = await softDeleteAccountByAdmin(userId);
+        if (result.success) {
+          await get().loadUsersList();
+        }
+        set({ isLoading: false });
+        return result;
+      } catch (err: any) {
+        set({ isLoading: false });
+        return { error: err.message || 'Gagal menonaktifkan akun' };
+      }
+    },
+
+    restoreUserAccount: async (userId: string) => {
+      if (get().user?.role !== 'SUPERADMIN') return { error: 'Akses ditolak. Hanya Superadmin.' };
+      set({ isLoading: true });
+      try {
+        const result = await restoreAccountByAdmin(userId);
+        if (result.success) {
+          await get().loadUsersList();
+        }
+        set({ isLoading: false });
+        return result;
+      } catch (err: any) {
+        set({ isLoading: false });
+        return { error: err.message || 'Gagal memulihkan akun' };
+      }
+    },
+
+    batchImportUsers: async (items, options) => {
+      if (get().user?.role !== 'SUPERADMIN') {
+        throw new Error('Akses ditolak. Hanya Superadmin yang dapat melakukan import massal.');
+      }
+      set({ isLoading: true, authError: null });
+      try {
+        const result = await batchImportAccounts(items, options);
+        await get().loadUsersList();
+        set({ isLoading: false });
+        return result;
+      } catch (err: any) {
+        set({ isLoading: false, authError: err?.message || 'Gagal import pengguna' });
+        throw err;
       }
     },
 

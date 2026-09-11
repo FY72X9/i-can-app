@@ -8,6 +8,7 @@ import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppModeStore } from '@/stores/appModeStore';
 import { isLogtoConfigured } from '@/services/logto';
+import { getRoleDefaultPath } from '@/components/common/ProtectedRoute';
 import { 
   Leaf, 
   GraduationCap, 
@@ -98,7 +99,8 @@ export const LoginPage: React.FC = () => {
 
     const success = await loginWithPassword(loginIdentifier, loginPassword);
     if (success) {
-      navigate('/home');
+      const activeUser = useAuthStore.getState().user;
+      navigate(getRoleDefaultPath(activeUser?.role));
     }
   };
 
@@ -127,7 +129,7 @@ export const LoginPage: React.FC = () => {
       email: regEmail,
       facultyName: regFaculty,
       password: regPassword,
-      role: 'STUDENT',
+      role: 'MAHASISWA',
     });
 
     if (success) {
@@ -137,7 +139,7 @@ export const LoginPage: React.FC = () => {
         origin: { y: 0.6 },
         colors: ['#2E8B57', '#00FF66', '#E5A93C'],
       });
-      navigate('/home');
+      navigate(getRoleDefaultPath('MAHASISWA'));
     }
   };
 
@@ -205,7 +207,7 @@ export const LoginPage: React.FC = () => {
               <div className="text-xs font-black truncate">{user.fullName} ({user.role})</div>
             </div>
             <button
-              onClick={() => navigate('/home')}
+              onClick={() => navigate(getRoleDefaultPath(user.role))}
               className="px-3 py-1.5 bg-eco-neon text-eco-950 font-black text-xs rounded-xl shrink-0 hover:bg-emerald-300 transition-all active:scale-95 shadow-sm"
             >
               Buka Dashboard →
@@ -501,9 +503,9 @@ export const LoginPage: React.FC = () => {
               {/* Dynamic Students & Verifiers Grid */}
               <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
                 {usersList
-                  .filter((u) => u.role !== 'ADMIN')
+                  .filter((u) => u.role !== 'SUPERADMIN')
                   .map((u) => {
-                    const isVerifier = u.role === 'VERIFIER';
+                    const isOrganizer = u.role === 'ORGANIZER';
                     const isTopStudent = u.id === 'usr-student-003' || (u.totalSatPoints && u.totalSatPoints >= 60);
 
                     return (
@@ -512,7 +514,7 @@ export const LoginPage: React.FC = () => {
                         type="button"
                         onClick={async () => {
                           await loginAs(u.id);
-                          navigate(isVerifier ? '/verify' : '/home');
+                          navigate(getRoleDefaultPath(u.role));
                         }}
                         className="p-2.5 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-2xs flex items-center gap-2 group active:scale-95"
                       >
@@ -525,15 +527,15 @@ export const LoginPage: React.FC = () => {
                           <h4 className="text-[11px] font-black text-text-primary truncate flex items-center gap-1">
                             {u.fullName.split(' ')[0]}
                             <span className={`text-[8px] font-bold px-1 rounded ${
-                              isVerifier ? 'bg-amber-100 text-amber-900' :
+                              isOrganizer ? 'bg-amber-100 text-amber-900' :
                               isTopStudent ? 'bg-emerald-100 text-emerald-900' :
                               'bg-slate-100 text-slate-700'
                             }`}>
-                              {isVerifier ? 'Verifier' : isTopStudent ? 'Top' : 'Student'}
+                              {isOrganizer ? 'Organizer' : isTopStudent ? 'Top' : 'Student'}
                             </span>
                           </h4>
                           <p className="text-[9px] text-text-secondary truncate font-mono">
-                            {isVerifier ? 'SSO / TFI' : `${u.totalSatPoints || 0} SAT • ${u.totalGreenCoins || 0} GC`}
+                            {isOrganizer ? 'SSO / TFI' : `${u.totalSatPoints || 0} SAT • ${u.totalGreenCoins || 0} GC`}
                           </p>
                         </div>
                       </button>
@@ -543,7 +545,7 @@ export const LoginPage: React.FC = () => {
 
               {/* Dynamic Super Admin Buttons */}
               {usersList
-                .filter((u) => u.role === 'ADMIN')
+                .filter((u) => u.role === 'SUPERADMIN')
                 .map((adminUser) => (
                   <button
                     key={adminUser.id}

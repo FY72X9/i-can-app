@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
-import { getActions } from '@/services/actionService';
-import { GreenAction } from '@/types';
+import { getCategorizedEvents, CategorizedEvents, getEventTimelineCategory } from '@/services/eventService';
+import { CampusEvent, DailyQuest, ActionProgram } from '@/types';
+import { getDailyQuests, getActionPrograms } from '@/services/questProgramService';
 import { 
   TreePine, 
   Droplets, 
@@ -23,112 +24,52 @@ import {
   Heart,
   BookOpen,
   ArrowRight,
-  Trophy,
-  History,
   ShieldCheck,
-  Globe2
+  Calendar,
+  Trash2,
+  Leaf
 } from 'lucide-react';
+
+const resolveProgramIcon = (iconName: string) => {
+  switch (iconName) {
+    case 'TreePine': return TreePine;
+    case 'Droplets': return Droplets;
+    case 'Trash2': return Trash2;
+    case 'Leaf': return Leaf;
+    case 'Zap': return Zap;
+    case 'CupSoda': return CupSoda;
+    case 'Heart': return Heart;
+    case 'Award': return Award;
+    case 'BookOpen': return BookOpen;
+    case 'Video': return Video;
+    default: return TreePine;
+  }
+};
 
 export const HomePage: React.FC = () => {
   const { user } = useAuthStore();
-  const [recentActivities, setRecentActivities] = useState<GreenAction[]>([]);
-  const [cheers, setCheers] = useState<Record<string, number>>({
-    socs: 148,
-    sis: 112,
-    sod: 95
+  const [categorizedEvents, setCategorizedEvents] = useState<CategorizedEvents>({
+    today: [],
+    upcoming: [],
+    past: [],
+    all: [],
   });
-  const [hasCheered, setHasCheered] = useState<Record<string, boolean>>({});
+  const [eventTimelineFilter, setEventTimelineFilter] = useState<'ALL' | 'TODAY' | 'UPCOMING' | 'PAST'>('ALL');
+  const [dailyQuests, setDailyQuests] = useState<DailyQuest[]>([]);
+  const [actionPrograms, setActionPrograms] = useState<ActionProgram[]>([]);
 
   useEffect(() => {
-    async function loadRecent() {
-      const actions = await getActions();
-      const approved = actions.filter((a) => a.status === 'APPROVED').slice(0, 5);
-      setRecentActivities(approved);
-    }
-    loadRecent();
+    getCategorizedEvents().then(setCategorizedEvents);
   }, []);
 
-  const handleCheer = (facultyId: string) => {
-    setHasCheered((prev) => ({ ...prev, [facultyId]: !prev[facultyId] }));
-    setCheers((prev) => ({
-      ...prev,
-      [facultyId]: prev[facultyId] + (hasCheered[facultyId] ? -1 : 1)
-    }));
-  };
-
-  const programs = [
-    {
-      id: 'tree',
-      title: 'Penanaman Pohon Keras',
-      category: 'Penyuluhan & Aksi Nyata',
-      satPoints: 4,
-      comservHours: 2.0,
-      coins: 25,
-      co2: '5.0 kg',
-      icon: TreePine,
-      color: 'from-emerald-600 to-eco-800',
-      tag: 'SDG 15 & 13',
-      urgency: 'Hot Program 🔥',
-    },
-    {
-      id: 'biopori',
-      title: 'Pembuatan Lubang Biopori',
-      category: 'Penyuluhan & Aksi Nyata',
-      satPoints: 4,
-      comservHours: 2.0,
-      coins: 20,
-      co2: '0.5 kg',
-      icon: Droplets,
-      color: 'from-cyan-600 to-blue-800',
-      tag: 'SDG 6 & 15',
-      urgency: 'Musim Hujan 💧',
-    },
-    {
-      id: 'vbl',
-      title: 'Video Based Learning (VBL)',
-      category: 'Edukasi Digital 5-10 Min',
-      satPoints: 3,
-      comservHours: 1.5,
-      coins: 25,
-      co2: '0.1 kg',
-      icon: Video,
-      color: 'from-purple-600 to-indigo-800',
-      tag: 'SDG 4 Quality Edu',
-      urgency: 'Format APA 🎓',
-    },
-    {
-      id: 'tumbler',
-      title: 'Bawa Tumbler & Zero Waste',
-      category: 'Self Green Campaign',
-      satPoints: 0,
-      comservHours: 0,
-      coins: 10,
-      co2: '0.05 kg',
-      icon: CupSoda,
-      color: 'from-amber-500 to-orange-700',
-      tag: 'SDG 12 Sirkular',
-      urgency: 'Daily Quest ⚡',
-    },
-  ];
-
-  const flashQuests = [
-    {
-      id: 'q1',
-      title: 'Campus Tumbler Boost 🥤',
-      desc: 'Isi ulang air minum di Water Station Gedung Anggrek lantai 2.',
-      reward: '+15 Green Coins',
-      deadline: 'Sisa 3 Jam',
-      completed: true,
-    },
-    {
-      id: 'q2',
-      title: 'VBL 5-Min Sprint 🎬',
-      desc: 'Unggah video edukasi singkat berjaket almamater BINUS.',
-      reward: '+25 GC & +3 SAT',
-      deadline: 'Sisa Hari Ini',
-      completed: false,
-    },
-  ];
+  useEffect(() => {
+    getDailyQuests().then((quests) => {
+      setDailyQuests(quests.filter((q) => q.isActive));
+    });
+    getActionPrograms().then((progs) => {
+      setActionPrograms(progs.filter((p) => p.isActive));
+    });
+  }, []);
 
   return (
     <div className="space-y-6 sm:space-y-7 pb-8">
@@ -207,55 +148,198 @@ export const HomePage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 2. Quick Guide & SDG Banners */}
-      <div className="grid grid-cols-1 gap-3">
-        <Link
-          to="/sdg-guideline"
-          className="p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-300/80 rounded-2xl flex items-center justify-between shadow-2xs hover:shadow-xs transition-all group block"
-        >
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-emerald-700 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0">
-              <Globe2 className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <h4 className="text-xs sm:text-sm font-black text-emerald-950 group-hover:text-emerald-800 transition-colors truncate">
-                Panduan Target SDG BINUS
-              </h4>
-              <p className="text-xs text-text-secondary leading-relaxed mt-0.5 truncate">
-                8 Target prioritas & formula kuantifikasi emisi IPCC.
-              </p>
-            </div>
-          </div>
-          <ChevronRight className="w-4 h-4 text-emerald-700 shrink-0 group-hover:translate-x-1 transition-transform ml-2" />
-        </Link>
+      {/* Event Kampus Section (Today, Upcoming, Past) */}
+      {(() => {
+        const displayedEvents =
+          eventTimelineFilter === 'ALL'
+            ? categorizedEvents.all
+            : eventTimelineFilter === 'TODAY'
+            ? categorizedEvents.today
+            : eventTimelineFilter === 'UPCOMING'
+            ? categorizedEvents.upcoming
+            : categorizedEvents.past;
 
-        <Link
-          to="/guide"
-          className="p-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border border-blue-200/80 rounded-2xl flex items-center justify-between shadow-2xs hover:shadow-xs transition-all group block"
-        >
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-blue-700 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0">
-              <BookOpen className="w-5 h-5" />
+        return (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-black text-text-primary flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-eco-neon" />
+                  Event Kampus
+                </h3>
+                {categorizedEvents.today.length > 0 && (
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    {categorizedEvents.today.length} Live
+                  </span>
+                )}
+              </div>
+              <Link to="/events" className="text-xs font-bold text-eco-700 hover:underline flex items-center gap-0.5">
+                Lihat Semua <ChevronRight className="w-3 h-3" />
+              </Link>
             </div>
-            <div className="min-w-0">
-              <h4 className="text-xs sm:text-sm font-black text-blue-950 group-hover:text-blue-800 transition-colors truncate">
-                Pusat Panduan & FAQ TFI
-              </h4>
-              <p className="text-xs text-text-secondary leading-relaxed mt-0.5 truncate">
-                Regulasi resmi SSO, foto pohon & format sitasi video VBL.
-              </p>
-            </div>
-          </div>
-          <ChevronRight className="w-4 h-4 text-blue-700 shrink-0 group-hover:translate-x-1 transition-transform ml-2" />
-        </Link>
-      </div>
 
-      {/* 3. ⚡ Daily Flash Quests Section */}
+            {/* Timeline Filter Pills */}
+            {categorizedEvents.all.length > 0 && (
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-[11px] font-black">
+                <button
+                  type="button"
+                  onClick={() => setEventTimelineFilter('ALL')}
+                  className={`px-3 py-1 rounded-xl transition-all whitespace-nowrap ${
+                    eventTimelineFilter === 'ALL'
+                      ? 'bg-eco-700 text-white shadow-xs'
+                      : 'bg-surface-subtle text-text-muted hover:bg-slate-200'
+                  }`}
+                >
+                  Semua ({categorizedEvents.all.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEventTimelineFilter('TODAY')}
+                  className={`px-3 py-1 rounded-xl transition-all whitespace-nowrap flex items-center gap-1 ${
+                    eventTimelineFilter === 'TODAY'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                  }`}
+                >
+                  <span>🟢 Hari Ini ({categorizedEvents.today.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEventTimelineFilter('UPCOMING')}
+                  className={`px-3 py-1 rounded-xl transition-all whitespace-nowrap flex items-center gap-1 ${
+                    eventTimelineFilter === 'UPCOMING'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                  }`}
+                >
+                  <span>🗓️ Akan Datang ({categorizedEvents.upcoming.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEventTimelineFilter('PAST')}
+                  className={`px-3 py-1 rounded-xl transition-all whitespace-nowrap flex items-center gap-1 ${
+                    eventTimelineFilter === 'PAST'
+                      ? 'bg-slate-700 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <span>🏁 Berlalu ({categorizedEvents.past.length})</span>
+                </button>
+              </div>
+            )}
+
+            {/* Cards Carousel or Empty State */}
+            {displayedEvents.length > 0 ? (
+              <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 no-scrollbar">
+                {displayedEvents.slice(0, 6).map((evt) => {
+                  const category = getEventTimelineCategory(evt);
+                  const startDateFormatted = new Date(evt.startDate).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'short',
+                  });
+                  const endDateFormatted = new Date(evt.endDate).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'short',
+                  });
+
+                  return (
+                    <Link
+                      key={evt.id}
+                      to={`/events/${evt.id}`}
+                      className="shrink-0 w-64 bg-white rounded-2xl border border-surface-border shadow-eco-soft overflow-hidden hover:shadow-eco-card transition-all active:scale-[0.97] group flex flex-col justify-between"
+                    >
+                      <div>
+                        {evt.bannerUrl && (
+                          <div className="h-28 overflow-hidden relative">
+                            <img
+                              src={evt.bannerUrl}
+                              alt={evt.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                            {/* Timeline Status Pill */}
+                            <div className="absolute top-2 left-2">
+                              {category === 'TODAY' && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500 text-white shadow-xs flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                                  Hari Ini
+                                </span>
+                              )}
+                              {category === 'UPCOMING' && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-600 text-white shadow-xs">
+                                  🗓️ Akan Datang
+                                </span>
+                              )}
+                              {category === 'PAST' && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-700/80 text-white shadow-xs">
+                                  Selesai
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        <div className="p-3 space-y-1">
+                          <h4 className="text-xs font-black text-text-primary truncate group-hover:text-eco-700 transition-colors">
+                            {evt.title}
+                          </h4>
+                          <p className="text-[10px] text-text-muted truncate">{evt.organizerName}</p>
+                          <div className="flex items-center justify-between text-[10px] text-text-secondary pt-1 font-semibold">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3 text-amber-500" />
+                              {startDateFormatted === endDateFormatted
+                                ? startDateFormatted
+                                : `${startDateFormatted} - ${endDateFormatted}`}
+                            </span>
+                            <span className="text-eco-700 font-bold">
+                              {evt.activities.length} Pos
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : categorizedEvents.all.length > 0 ? (
+              <div className="bg-surface-subtle/70 rounded-2xl border border-dashed border-surface-border p-4 text-center space-y-1">
+                <p className="text-xs font-bold text-text-secondary">
+                  Tidak ada event pada kategori {eventTimelineFilter === 'TODAY' ? 'Hari Ini' : eventTimelineFilter === 'UPCOMING' ? 'Akan Datang' : 'Berlalu'}.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setEventTimelineFilter('ALL')}
+                  className="text-[11px] font-black text-eco-700 hover:underline"
+                >
+                  Lihat semua event ({categorizedEvents.all.length})
+                </button>
+              </div>
+            ) : (
+              <div className="bg-surface-subtle/50 rounded-2xl border border-surface-border p-4 text-center space-y-1.5">
+                <Calendar className="w-6 h-6 text-text-muted mx-auto" />
+                <p className="text-xs font-bold text-text-secondary">Belum ada event kampus yang terdaftar.</p>
+                <p className="text-[10px] text-text-muted">
+                  Penyelenggara unit (SSO / ASD) dapat membuat event baru melalui portal AdminLTE.
+                </p>
+                {(user?.role === 'SUPERADMIN' || user?.role === 'ORGANIZER') && (
+                  <Link
+                    to="/adminlte"
+                    className="inline-block mt-1 px-3 py-1 rounded-xl bg-eco-700 text-white text-[10px] font-black hover:bg-eco-800 transition-colors"
+                  >
+                    + Buat Event di Portal AdminLTE
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* 2. ⚡ Daily Quests Section */}
       <div className="space-y-3.5">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
             <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
-            Daily Flash Quests (Misi Kampus)
+            Daily Quests (Misi Kampus)
           </h2>
           <span className="text-xs font-black text-eco-900 bg-eco-neon/20 px-2.5 py-0.5 rounded-full border border-eco-neon/40">
             Bonus Aktif
@@ -263,7 +347,7 @@ export const HomePage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-3.5">
-          {flashQuests.map((quest) => (
+          {dailyQuests.map((quest) => (
             <Card 
               key={quest.id} 
               className={`p-4 sm:p-5 space-y-3 border transition-all ${
@@ -288,13 +372,19 @@ export const HomePage: React.FC = () => {
               <div className="flex items-center justify-between pt-1 text-xs font-black border-t border-black/5">
                 <span className="text-amber-800">{quest.reward}</span>
                 {!quest.completed && (
-                  <Link to="/upload" className="text-eco-800 hover:underline flex items-center gap-0.5 font-bold">
+                  <Link to={quest.actionUrl || `/upload?source=quest&questId=${quest.id}`} className="text-eco-800 hover:underline flex items-center gap-0.5 font-bold">
                     Kerjakan Misi →
                   </Link>
                 )}
               </div>
             </Card>
           ))}
+
+          {dailyQuests.length === 0 && (
+            <div className="p-4 bg-white rounded-2xl border border-dashed border-slate-200 text-center text-xs text-slate-500">
+              Belum ada Daily Quests aktif saat ini.
+            </div>
+          )}
         </div>
       </div>
 
@@ -304,20 +394,22 @@ export const HomePage: React.FC = () => {
           <div>
             <h2 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
               <TreePine className="w-4 h-4 text-eco-700" />
-              Pilihan Program Aksi Nyata & VBL
+              Pilihan Program Aksi Nyata
             </h2>
             <p className="text-xs text-text-secondary mt-0.5">Pilih program, unggah bukti fisik & klaim SAT resmi</p>
           </div>
-          <Link to="/upload" className="text-xs font-black text-eco-800 hover:text-eco-950 flex items-center gap-0.5">
-            Unggah <ChevronRight className="w-4 h-4" />
-          </Link>
+          {actionPrograms.length > 0 && (
+            <Link to="/upload?source=program" className="text-xs font-black text-eco-800 hover:text-eco-950 flex items-center gap-0.5">
+              Unggah <ChevronRight className="w-4 h-4" />
+            </Link>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-3.5">
-          {programs.map((prog) => {
-            const Icon = prog.icon;
+          {actionPrograms.map((prog) => {
+            const Icon = resolveProgramIcon(prog.icon);
             return (
-              <Link key={prog.id} to="/upload" className="block">
+              <Link key={prog.id} to={`/upload?source=program&programId=${prog.id}`} className="block">
                 <Card className="p-4 sm:p-5 bg-white border-surface-border shadow-eco-sm hover:shadow-eco-card hover:border-eco-400 transition-all duration-200 group active:scale-[0.98] space-y-3.5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3.5 min-w-0">
@@ -354,153 +446,13 @@ export const HomePage: React.FC = () => {
               </Link>
             );
           })}
-        </div>
-      </div>
 
-      {/* 4.5. Live Recent Activity Stream */}
-      <div className="space-y-3.5">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
-            <History className="w-4 h-4 text-eco-700" />
-            Aktivitas Terkini Mahasiswa & Verifikator
-          </h2>
-          <Link to="/feed" className="text-xs font-black text-eco-800 hover:text-eco-950 flex items-center gap-0.5">
-            Feed Komunitas <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        <div className="space-y-2.5">
-          {recentActivities.map((act) => (
-            <Link key={act.id} to="/feed" className="block">
-              <Card className="p-3.5 sm:p-4 bg-white border-surface-border hover:border-eco-400 transition-all shadow-xs flex items-center gap-3.5">
-                <img
-                  src={act.userAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                  alt={act.userName}
-                  className="w-11 h-11 rounded-2xl object-cover ring-1 ring-surface-border shrink-0"
-                />
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <h4 className="text-xs sm:text-sm font-black text-text-primary truncate">
-                      {act.userName}
-                    </h4>
-                    <span className="text-[10px] font-bold text-slate-500 font-mono shrink-0">
-                      {new Date(act.submittedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-eco-900 font-bold truncate mt-0.5">
-                    {act.categoryName}
-                  </p>
-
-                  <div className="flex items-center gap-2.5 text-[11px] text-text-muted mt-1">
-                    {act.satPointsEarned > 0 && (
-                      <span className="text-blue-700 font-black">+{act.satPointsEarned} SAT</span>
-                    )}
-                    <span className="text-amber-800 font-black">+{act.greenCoinsEarned} GC</span>
-                    {act.verifiedBy && (
-                      <span className="text-slate-500 font-mono truncate">
-                        ✓ {act.verifiedBy.split(' ')[0]}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* 5. Campus SDG Leaderboard & Top Student Highlight */}
-      <div className="space-y-3.5">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
-            <Trophy className="w-4 h-4 text-gold-500 fill-gold-500" />
-            Top Student & BEKEN Leaderboard
-          </h2>
-          <Link to="/leaderboard" className="text-xs font-black text-eco-800 hover:text-eco-950 flex items-center gap-0.5">
-            Lihat Semua <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        {/* Top 1 Student Spotlight Mini Card */}
-        <Link to="/leaderboard" className="block">
-          <Card className="p-4 sm:p-5 bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-amber-500/10 border-amber-300/80 hover:border-amber-400 transition-all shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider bg-gold-neon/30 text-amber-950 px-2.5 py-0.5 rounded-full border border-gold-neon/60">
-                👑 #1 BEKEN Nominee
-              </span>
-              <span className="text-xs font-black text-amber-900">
-                890 GC • 68 SAT
-              </span>
+          {actionPrograms.length === 0 && (
+            <div className="p-4 bg-white rounded-2xl border border-dashed border-slate-200 text-center text-xs text-slate-500">
+              Belum ada Program Aksi Nyata aktif saat ini.
             </div>
-
-            <div className="flex items-center gap-3.5">
-              <img
-                src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80"
-                alt="Nadia Safira"
-                className="w-12 h-12 rounded-2xl object-cover ring-2 ring-gold-neon shadow-xs shrink-0"
-              />
-              <div className="min-w-0 flex-1">
-                <h4 className="text-xs sm:text-sm font-black text-text-primary truncate">Nadia Safira (SOD)</h4>
-                <p className="text-xs text-text-secondary truncate italic mt-0.5">
-                  "Penanaman 5 Pohon Tabebuya & VBL Zero Waste"
-                </p>
-                <div className="text-[11px] font-bold text-eco-800 mt-1">
-                  🌿 24.8 kg CO2e Hemat • 9 Hari Streak 🔥
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-amber-700 shrink-0" />
-            </div>
-          </Card>
-        </Link>
-
-        {/* Faculty Standing Mini List */}
-        <Card className="p-4 sm:p-5 bg-white space-y-3 border-surface-border shadow-eco-soft">
-          <div className="space-y-2">
-            {[
-              { id: 'socs', rank: '🥇 1', name: 'School of Computer Science', points: '4,850 GC', sat: '640 SAT' },
-              { id: 'sod', rank: '🥈 2', name: 'School of Design (SOD)', points: '4,120 GC', sat: '580 SAT' },
-              { id: 'sis', rank: '🥉 3', name: 'School of Information Systems', points: '3,560 GC', sat: '490 SAT' },
-            ].map((fac) => (
-              <div
-                key={fac.id}
-                className="p-3 rounded-2xl bg-surface-subtle hover:bg-eco-50/60 transition-colors flex items-center justify-between border border-surface-border/60"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-sm font-black">{fac.rank}</span>
-                  <div className="min-w-0">
-                    <h4 className="text-xs sm:text-sm font-black text-text-primary truncate">{fac.name}</h4>
-                    <p className="text-[11px] text-text-muted font-mono mt-0.5">{fac.points} • {fac.sat}</p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleCheer(fac.id);
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black transition-all active:scale-95 shrink-0 ${
-                    hasCheered[fac.id]
-                      ? 'bg-rose-500 text-white shadow-xs'
-                      : 'bg-white hover:bg-rose-50 text-rose-600 border border-rose-200'
-                  }`}
-                  title="Beri Cheer untuk Fakultasmu!"
-                >
-                  <Heart className={`w-3.5 h-3.5 shrink-0 ${hasCheered[fac.id] ? 'fill-white' : 'fill-rose-500'}`} />
-                  <span>{cheers[fac.id]}</span>
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <Link
-            to="/leaderboard"
-            className="block text-center pt-2.5 text-xs sm:text-sm font-black text-eco-800 hover:underline border-t border-slate-100"
-          >
-            Buka Papan Peringkat Lengkap (BEKEN, SAT & Fakultas) →
-          </Link>
-        </Card>
+          )}
+        </div>
       </div>
     </div>
   );

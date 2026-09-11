@@ -2,7 +2,7 @@
 // I-CAN PLATFORM — CORE TYPES & DATA MODELS
 // ==============================================================================
 
-export type UserRole = 'STUDENT' | 'VERIFIER' | 'ADMIN';
+export type UserRole = 'MAHASISWA' | 'ORGANIZER' | 'SUPERADMIN';
 
 export interface UserProfile {
   id: string;
@@ -19,6 +19,8 @@ export interface UserProfile {
   streakDays: number;
   lastActionAt?: string;
   createdAt: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
 }
 
 export type ActionType = 
@@ -56,10 +58,12 @@ export interface GreenAction {
   categoryName?: string;
   categoryIcon?: string;
   submissionType?: ActionType;
-  photoUrl: string;
+  photoUrl: string; // Foto bukti aksi utama (dianalisis AI)
+  groupPhotoUrl?: string; // Foto bersama seluruh anggota tim di lokasi (validasi verifikator)
+  additionalPhotos?: string[]; // Foto dokumentasi tambahan (opsional)
   campaignUrl?: string; // Link postingan Instagram / TikTok
   videoUrl?: string; // Link Video YouTube / GDrive (VBL)
-  groupMembers?: string[]; // List NIM anggota (max 3 orang)
+  groupMembers?: string[]; // List NIM anggota kelompok (s.d. 20 orang)
   story?: string;
   gpsLat?: number;
   gpsLng?: number;
@@ -84,6 +88,58 @@ export interface GreenAction {
   verifiedAt?: string;
   verifiedBy?: string;
   rejectionReason?: string;
+  // Event-linked submission fields
+  eventId?: string;           // Set if this action is part of a Campus Event
+  eventActivityId?: string;   // ID of the specific event activity/station completed
+  eventOrganizerId?: string;  // Organizer user ID for filtering approval queues
+  // Daily Quest submission field
+  questId?: string;           // Set if this action is part of a Daily Quest
+  actionSource?: 'PROGRAM' | 'QUEST' | 'EVENT'; // Source discriminator
+  // Multimodal AI Vision & Anti-Fraud Details
+  detectedObjects?: string[];
+  isActivityMatch?: boolean;
+  activityMatchScore?: number; // 0.0 - 1.0
+  isAuthentic?: boolean;
+  authenticityScore?: number;  // 0.0 - 1.0
+  antiFraudFlags?: string[];
+}
+// ==============================================================================
+// EVENT-DRIVEN ARCHITECTURE — Campus Event & Activity Models
+// ==============================================================================
+
+export type EventStatus = 'DRAFT' | 'ACTIVE' | 'COMPLETED';
+export type EventTimelineCategory = 'TODAY' | 'UPCOMING' | 'PAST';
+
+export interface EventActivity {
+  id: string;
+  eventId: string;
+  name: string;             // e.g. "Tong 1 - Pemilahan Kertas/Kardus" or "Activity 1 - Bawa Kotak Makan"
+  description: string;
+  qrCodeValue: string;      // Unique QR token, e.g. "ican-evt01-act01"
+  coinsReward: number;      // Green Coins reward for completing this activity
+  satPointsReward?: number; // Optional: SAT Points if applicable
+  order: number;            // Display order within the event
+}
+
+export interface CampusEvent {
+  id: string;
+  organizerId: string;      // User ID of the organizer (SSO / ASD unit account)
+  organizerName: string;    // e.g. "Student Service Office (SSO)"
+  title: string;            // e.g. "Waste for Change", "Breakfest"
+  description: string;
+  bannerUrl: string;        // Event poster / banner image URL
+  mediaUrls?: string[];     // Additional event media (photos, videos)
+  startDate: string;        // ISO Date string
+  endDate: string;          // ISO Date string
+  timeRange?: string;       // e.g. "07.00 - 10.00 WIB"
+  location?: string;        // e.g. "BINUS @Bekasi"
+  dressCode?: string;       // e.g. "Kaos hitam & celana panjang"
+  status: EventStatus;
+  allowGroupMembers?: boolean; // Izinkan aksi kelompok
+  maxGroupMembers?: number;    // Batas maksimal anggota mahasiswa (1 - 20 orang)
+  activities: EventActivity[];
+  hashtags?: string[];      // Organizer-provided hashtags for the event
+  createdAt: string;
 }
 
 export interface SatRecognition {
@@ -128,3 +184,70 @@ export interface NotificationItem {
   read: boolean;
   actionUrl?: string;
 }
+
+// ==============================================================================
+// SUPER ADMIN MANAGEMENT — Daily Quests & Program Aksi Nyata Models
+// ==============================================================================
+
+export interface DailyQuest {
+  id: string;
+  title: string;
+  desc: string;
+  reward: string; // e.g., '+15 Green Coins'
+  coinsReward: number;
+  satReward?: number;
+  deadline: string; // e.g., 'Sisa 3 Jam', 'Sisa Hari Ini', '23:59 WIB'
+  completed?: boolean;
+  actionUrl?: string;
+  hashtags?: string[]; // Superadmin-provided hashtags
+  isActive: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ActionProgram {
+  id: string;
+  title: string;
+  category: string; // e.g. "Penyuluhan & Aksi Nyata", "Bina Lingkungan"
+  categoryType: ActionType; // 'PENYULUHAN_AKSI_NYATA' | 'BINA_DIRI' | 'BINA_LINGKUNGAN' | 'SELF_GREEN_CAMPAIGN' | 'VIDEO_BASED_LEARNING'
+  satPoints: number;
+  comservHours: number;
+  coins: number;
+  co2: string; // e.g. "5.0 kg", "0.5 kg"
+  icon: string; // Lucide icon identifier e.g. 'TreePine', 'Droplets', 'Leaf', 'Zap', 'CupSoda'
+  color: string; // Tailwind gradient e.g. 'from-emerald-600 to-eco-800'
+  tag: string; // e.g. 'SDG 15 & 13'
+  urgency: string; // e.g. 'Hot Program 🔥', 'Program Prioritas ⭐'
+  description?: string;
+  samplePhotos?: string[];
+  suggestedPrompt?: string;
+  hashtags?: string[]; // Superadmin-provided hashtags
+  isActive: boolean;
+  order?: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// ==============================================================================
+// AI CAPTION GENERATION TYPES
+// ==============================================================================
+
+export type CaptionTone = 'INSPIRATIONAL' | 'CASUAL' | 'FORMAL';
+
+export interface CaptionGenerationOptions {
+  actionTitle: string;
+  pillar: 'PROGRAM' | 'QUEST' | 'EVENT';
+  tone: CaptionTone;
+  detectedObjects?: string[];
+  userNotes?: string;
+  organizerHashtags?: string[];
+  photoBase64?: string;
+}
+
+export interface CaptionGenerationResult {
+  captionText: string;
+  tone: CaptionTone;
+  hashtagsUsed: string[];
+  sdgTag?: string;
+}
+

@@ -27,8 +27,10 @@ import {
   ChevronRight,
   History,
   AlertCircle,
-  Globe2
+  Globe2,
+  FileDown
 } from 'lucide-react';
+import { downloadActionPdfReport } from '@/services/pdfReportService';
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -37,13 +39,13 @@ export const ProfilePage: React.FC = () => {
   const [userActivities, setUserActivities] = useState<GreenAction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const canAccessAdmin = isDemoMode() || user?.role === 'ADMIN';
+  const canAccessAdmin = isDemoMode() || user?.role === 'SUPERADMIN';
 
   useEffect(() => {
     async function loadActivities() {
       setLoading(true);
       const allActions = await getActions();
-      if (user?.role === 'VERIFIER') {
+      if (user?.role === 'ORGANIZER') {
         // If verifier, show actions verified by verifier or all actions
         const verified = allActions.filter((a) => a.verifiedBy?.includes(user.fullName.split(' ')[0]) || a.status === 'APPROVED');
         setUserActivities(verified);
@@ -185,7 +187,7 @@ export const ProfilePage: React.FC = () => {
             </div>
             <div>
               <h3 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider">
-                {user?.role === 'VERIFIER' ? 'Log Riwayat Verifikasi Terkini' : 'Riwayat Aksi 2 Minggu Terakhir'}
+                {user?.role === 'ORGANIZER' ? 'Log Riwayat Verifikasi Terkini' : 'Riwayat Aksi 2 Minggu Terakhir'}
               </h3>
               <p className="text-xs text-text-secondary mt-0.5">
                 {userActivities.length} Kegiatan Terdata di Sistem
@@ -193,7 +195,7 @@ export const ProfilePage: React.FC = () => {
             </div>
           </div>
           <Link
-            to={user?.role === 'VERIFIER' ? '/verify' : '/wallet'}
+            to={user?.role === 'ORGANIZER' ? '/verify' : '/wallet'}
             className="text-xs font-black text-eco-800 hover:underline flex items-center gap-0.5"
           >
             Lihat Semua <ChevronRight className="w-3.5 h-3.5" />
@@ -250,6 +252,22 @@ export const ProfilePage: React.FC = () => {
                       <Clock className="w-3 h-3" />
                       {new Date(act.submittedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                     </span>
+                    {/* PDF download hidden until format finalized */}
+                    {false && (
+                      <button
+                        type="button"
+                        onClick={() => downloadActionPdfReport(act, {
+                          name: user?.fullName || act.userName || 'Mahasiswa BINUS',
+                          nim: user?.nim || '2602199841',
+                          faculty: user?.facultyName || 'School of Computer Science',
+                          campus: 'BINUS University',
+                        })}
+                        className="text-[10px] font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200"
+                        title="Unduh Laporan PDF"
+                      >
+                        <FileDown className="w-3 h-3" /> PDF
+                      </button>
+                    )}
                     <span className="font-bold text-slate-700">
                       {act.carbonImpactKg > 0 ? `-${act.carbonImpactKg} kg CO2e` : 'Survey Validated'}
                     </span>
@@ -264,36 +282,7 @@ export const ProfilePage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 3. Quick Links & SDG Banner */}
-      <div className="grid grid-cols-1 gap-3">
-        <Link
-          to="/sdg-guideline"
-          className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 hover:border-emerald-400 transition-all text-left shadow-xs space-y-1 block"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-emerald-900 bg-emerald-100 px-2.5 py-0.5 rounded-md border border-emerald-300">
-              UN SDGs
-            </span>
-          </div>
-          <h4 className="text-xs sm:text-sm font-black text-emerald-950">Panduan Target SDG BINUS</h4>
-          <p className="text-xs text-text-secondary leading-relaxed">8 Target prioritas & formula kuantifikasi emisi IPCC</p>
-        </Link>
-
-        <Link
-          to="/guide"
-          className="p-4 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-xs space-y-1 block"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-eco-800 bg-eco-50 px-2.5 py-0.5 rounded-md border border-eco-200">
-              Regulasi SSO
-            </span>
-          </div>
-          <h4 className="text-xs sm:text-sm font-black text-text-primary">Panduan & FAQ TFI</h4>
-          <p className="text-xs text-text-secondary leading-relaxed">Standar poin SAT & jam pengabdian masyarakat</p>
-        </Link>
-      </div>
-
-      {/* 4. Eco-Volunteer Application Card */}
+      {/* 3. Eco-Volunteer Application Card */}
       <Card variant="subtle" className="p-5 sm:p-6 border-eco-200/80 bg-gradient-to-r from-eco-50 via-emerald-50/70 to-teal-50/50 shadow-xs space-y-3">
         <div className="flex items-start gap-3.5">
           <div className="w-11 h-11 rounded-2xl bg-eco-700 text-white flex items-center justify-center shrink-0 shadow-sm">
@@ -314,18 +303,15 @@ export const ProfilePage: React.FC = () => {
                 Uji Coba Portal Verifikator →
               </Button>
             ) : (
-              <Link
-                to="/guide"
-                className="inline-flex items-center gap-1 mt-3 text-xs font-black text-eco-800 hover:underline"
-              >
-                Pelajari Syarat & Pendaftaran Volunteer TFI →
-              </Link>
+              <p className="mt-3 text-xs font-medium text-eco-800">
+                Pendaftaran volunteer dibuka tiap awal semester melalui Teach For Indonesia (TFI).
+              </p>
             )}
           </div>
         </div>
       </Card>
 
-      {/* 5. Switch Account & Logout Action Buttons */}
+      {/* 4. Switch Account & Logout Action Buttons */}
       <div className="pt-2">
         <Button
           variant="danger"

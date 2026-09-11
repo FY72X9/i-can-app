@@ -17,14 +17,17 @@ import {
   Coins,
   GraduationCap,
   Users,
+  User,
   AlertCircle,
   FileCheck2,
   Filter,
   CheckCheck,
   Clock,
   ChevronRight,
-  BookOpen
+  BookOpen,
+  FileDown
 } from 'lucide-react';
+import { downloadActionPdfReport } from '@/services/pdfReportService';
 
 export const VerificationPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -71,7 +74,7 @@ export const VerificationPage: React.FC = () => {
       const actions = await getActions();
       const pending = actions.filter((a) => a.status === 'PENDING');
       const completed = actions.filter((a) => a.status === 'APPROVED' || a.status === 'REJECTED');
-      setQueue(pending.length > 0 ? pending : defaultSampleQueue);
+      setQueue(pending);
       setHistory(completed);
       setLoading(false);
     }
@@ -98,38 +101,28 @@ export const VerificationPage: React.FC = () => {
       alert('Aksi Disetujui Penuh! Notifikasi Poin SAT & Jam Comserv telah dikirim ke mahasiswa.');
     } else if (decision === 'APPROVED_COINS_ONLY') {
       useNotificationStore.getState().addNotification({
-        title: 'Aksi Disetujui untuk Green Coins! ⚡',
-        desc: `Postingan "${target?.categoryName || 'Aksi Hijau'}" disetujui untuk reputasi BEKEN Award (+${target?.greenCoinsEarned || 10} GC).`,
+        title: 'Aksi Harian Disetujui! 🪙',
+        desc: `Bukti aksi harian "${target?.categoryName}" diverifikasi. +${target?.greenCoinsEarned || 10} GC ditambahkan ke wallet kamu.`,
         type: 'quest',
-        actionUrl: '/home',
+        actionUrl: '/wallet',
       });
-      alert('Postingan Disetujui untuk Green Coins (BEKEN Track). Notifikasi telah dikirim.');
+      alert('Aksi Disetujui (Coins Only)! Notifikasi dikirim ke mahasiswa.');
     }
   };
 
-  const confirmReject = async () => {
-    if (!rejectModalId) return;
-    const target = queue.find((a) => a.id === rejectModalId);
-    const reason = rejectionReason.trim() || 'Bukti belum memenuhi kelengkapan regulasi TFI.';
-    await updateActionVerification(
-      rejectModalId, 
-      'REJECTED', 
-      user?.id || 'usr-verifier-002', 
-      user?.fullName || 'Siska Amanda (SSO)', 
-      reason
-    );
-    
-    useNotificationStore.getState().addNotification({
-      title: 'Laporan Aksi Perlu Perbaikan ⚠️',
-      desc: `Catatan Verifikator SSO untuk "${target?.categoryName || 'Aksi TFI'}": ${reason}`,
-      type: 'rejection',
-      actionUrl: '/upload',
-    });
-
+  const submitRejection = async () => {
+    if (!rejectModalId || !rejectionReason.trim()) return;
+    await updateActionVerification(rejectModalId, 'REJECTED', rejectionReason);
     setQueue((prev) => prev.filter((a) => a.id !== rejectModalId));
     setRejectModalId(null);
     setRejectionReason('');
-    alert('Aksi Ditolak dan feedback perbaikan telah dikirim ke notifikasi mahasiswa.');
+    
+    useNotificationStore.getState().addNotification({
+      title: 'Aksi Ditolak ❌',
+      desc: `Mohon maaf, bukti aksi kamu ditolak karena: ${rejectionReason}`,
+      type: 'system',
+    });
+    alert('Aksi telah ditolak dan mahasiswa telah diinfokan.');
   };
 
   const filteredQueue = queue.filter((item) => {
@@ -147,6 +140,26 @@ export const VerificationPage: React.FC = () => {
     'Foto bukti buram atau tidak menunjukkan aktivitas nyata',
   ];
 
+  // Calculate dynamic stats
+  const tfiQueueCount = queue.filter(a => a.submissionType === 'PENYULUHAN_AKSI_NYATA').length;
+  
+  // Calculate today's approved users
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const approvedTodayCount = history.filter(a => {
+    if (a.status !== 'APPROVED' || !a.verifiedAt) return false;
+    const verifiedDate = new Date(a.verifiedAt);
+    return verifiedDate >= today;
+  }).length;
+  
+  // Calculate total SAT points given
+  const totalSatGiven = history.reduce((total, action) => {
+    if (action.status === 'APPROVED' && action.decision === 'APPROVED_FULL' && action.satPointsEarned) {
+      return total + action.satPointsEarned;
+    }
+    return total;
+  }, 0);
+
   return (
     <div className="space-y-6 sm:space-y-7 pb-8">
       {/* 1. Verifier Portal KPI Header */}
@@ -157,8 +170,8 @@ export const VerificationPage: React.FC = () => {
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-sm sm:text-base font-black text-white">Portal Verifikator SSO & TFI</h2>
-              <p className="text-xs text-eco-100 mt-0.5">Validasi Dual-Track (SAT Point & BEKEN Coins)</p>
+              <h2 className="text-sm sm:text-base font-black text-white">Portal Penyelenggara Event</h2>
+              <p className="text-xs text-eco-100 mt-0.5">Validasi Aksi Nyata & Approval</p>
             </div>
           </div>
 
@@ -171,15 +184,15 @@ export const VerificationPage: React.FC = () => {
         <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-white/15 text-center">
           <div className="bg-white/10 rounded-2xl p-3">
             <span className="text-xs text-eco-100 block mb-0.5">Antrean TFI</span>
-            <span className="text-base font-black text-white">2 Aksi</span>
+            <span className="text-base font-black text-white">{tfiQueueCount} Aksi</span>
           </div>
           <div className="bg-white/10 rounded-2xl p-3">
             <span className="text-xs text-eco-100 block mb-0.5">Disetujui Hari Ini</span>
-            <span className="text-base font-black text-gold-300">14 Mahasiswa</span>
+            <span className="text-base font-black text-gold-300">{approvedTodayCount} Aksi</span>
           </div>
           <div className="bg-white/10 rounded-2xl p-3">
             <span className="text-xs text-eco-100 block mb-0.5">SAT Diberikan</span>
-            <span className="text-base font-black text-white">48 SAT</span>
+            <span className="text-base font-black text-white">{totalSatGiven} SAT</span>
           </div>
         </div>
       </Card>
@@ -279,9 +292,27 @@ export const VerificationPage: React.FC = () => {
                     <span className="text-slate-600">
                       <strong>Verifikator:</strong> {item.verifiedBy || 'Siska Amanda (SSO)'}
                     </span>
-                    <span className="font-mono text-slate-500">
-                      {new Date(item.verifiedAt || item.submittedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      {/* PDF download hidden until format finalized */}
+                      {false && (
+                        <button
+                          type="button"
+                          onClick={() => downloadActionPdfReport(item, {
+                            name: item.userName || 'Mahasiswa BINUS',
+                            nim: 'NIM Terverifikasi',
+                            faculty: item.userFaculty || 'Fakultas BINUS',
+                            campus: 'BINUS University',
+                          })}
+                          className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200"
+                          title="Unduh Berkas Laporan PDF"
+                        >
+                          <FileDown className="w-3 h-3" /> Unduh PDF
+                        </button>
+                      )}
+                      <span className="font-mono text-slate-500">
+                        {new Date(item.verifiedAt || item.submittedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                      </span>
+                    </div>
                   </div>
                 </Card>
               );
@@ -342,17 +373,36 @@ export const VerificationPage: React.FC = () => {
                 </Badge>
               </div>
 
-              {/* Evidence Photo */}
-              <div className="relative rounded-3xl overflow-hidden aspect-[16/10] bg-slate-100 border border-slate-200">
-                <img
-                  src={action.photoUrl}
-                  alt={action.categoryName}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-md text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
-                  <MapPin className="w-3.5 h-3.5 text-eco-neon" />
-                  GPS Terverifikasi Kampus
+              {/* Evidence Photos (Action Photo + Group Presence Photo) */}
+              <div className="space-y-2.5">
+                <div className="relative rounded-3xl overflow-hidden aspect-[16/10] bg-slate-100 border border-slate-200">
+                  <img
+                    src={action.photoUrl}
+                    alt={action.categoryName}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-3 left-3 bg-black/75 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+                    🌱 Foto Aksi Utama
+                  </div>
+                  <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-md text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                    <MapPin className="w-3.5 h-3.5 text-eco-neon" />
+                    GPS Terverifikasi Kampus
+                  </div>
                 </div>
+
+                {action.groupPhotoUrl && (
+                  <div className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-purple-950/10 border border-purple-200">
+                    <img
+                      src={action.groupPhotoUrl}
+                      alt="Foto Bersama Anggota Kelompok"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2.5 left-2.5 bg-purple-950/85 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                      <Users className="w-3.5 h-3.5 text-purple-300" />
+                      Foto Bersama Seluruh Anggota di Lokasi ({action.groupMembers ? action.groupMembers.length + 1 : 1} Orang)
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Survey / Action Step Badge */}
@@ -387,9 +437,24 @@ export const VerificationPage: React.FC = () => {
 
               {/* Group Members Tag if available */}
               {action.groupMembers && action.groupMembers.length > 0 && (
-                <div className="flex items-center gap-2 text-xs text-text-secondary bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
-                  <Users className="w-4 h-4 text-eco-600 shrink-0" />
-                  <span>Anggota Tim: <strong>{action.groupMembers.join(', ')}</strong></span>
+                <div className="bg-purple-50/80 border border-purple-200/80 p-3 rounded-2xl space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-bold text-purple-900">
+                    <span className="flex items-center gap-1.5">
+                      <Users className="w-4 h-4 text-purple-700 shrink-0" />
+                      Anggota Tim ({action.groupMembers.length} Rekan Mahasiswa):
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-wider bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full">
+                      Aksi Berkelompok
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {action.groupMembers.map((nim) => (
+                      <span key={nim} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white border border-purple-200 text-purple-900 font-mono text-xs font-bold shadow-2xs">
+                        <User className="w-3 h-3 text-purple-600" />
+                        {nim}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -411,19 +476,57 @@ export const VerificationPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Multimodal AI Verification Breakdown */}
-              <div className="bg-amber-50/80 p-3.5 rounded-2xl border border-amber-200/80 space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-bold text-amber-900">
-                  <span className="flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-amber-600" />
-                    Multimodal AI Check:
+              {/* Multimodal AI Verification Breakdown (Focused on Activity Match & Anti-Fraud) */}
+              <div className="bg-gradient-to-br from-emerald-50/90 to-teal-50/90 p-3.5 rounded-2xl border border-emerald-200/90 space-y-2.5">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-800 border-b border-emerald-200/60 pb-1.5">
+                  <span className="flex items-center gap-1.5 font-black text-emerald-950">
+                    <Sparkles className="w-4 h-4 text-emerald-600" />
+                    Hasil Audit Multimodal Vision AI:
                   </span>
-                  <span className="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full text-xs font-bold">
-                    {Math.round((action.aiConfidence || 0.92) * 100)}% Match
-                  </span>
+                  {/* PDF download hidden until format finalized */}
+                  {false && (
+                    <button
+                      type="button"
+                      onClick={() => downloadActionPdfReport(action, {
+                        name: action.userName || 'Mahasiswa BINUS',
+                        nim: 'NIM Terdaftar',
+                        faculty: action.userFaculty || 'Fakultas BINUS',
+                        campus: 'BINUS University',
+                      })}
+                      className="text-[11px] font-bold text-emerald-800 hover:text-emerald-950 flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-white border border-emerald-300 shadow-2xs transition-colors"
+                    >
+                      <FileDown className="w-3 h-3 text-emerald-700" /> Unduh Laporan PDF
+                    </button>
+                  )}
                 </div>
-                <p className="text-xs text-text-secondary leading-relaxed">
-                  {action.aiAnalysisReason || 'Kriteria hashtag dan aksi nyata fisik terdeteksi valid.'}
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-white/90 p-2 rounded-xl border border-emerald-100">
+                    <span className="text-[11px] text-slate-500 block">Kesesuaian Kegiatan</span>
+                    <span className="font-mono font-black text-emerald-700">
+                      {Math.round((action.activityMatchScore ?? action.aiConfidence ?? 0.95) * 100)}% Cocok
+                    </span>
+                  </div>
+                  <div className="bg-white/90 p-2 rounded-xl border border-emerald-100">
+                    <span className="text-[11px] text-slate-500 block">Keaslian Anti-Fraud</span>
+                    <span className="font-mono font-black text-teal-700">
+                      {Math.round((action.authenticityScore ?? 0.97) * 100)}% Otentik
+                    </span>
+                  </div>
+                </div>
+
+                {action.detectedObjects && action.detectedObjects.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {action.detectedObjects.map((obj, i) => (
+                      <span key={i} className="text-[10px] font-bold bg-white text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-200">
+                        {obj}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-xs text-slate-700 leading-relaxed bg-white/70 p-2 rounded-xl border border-emerald-100">
+                  {action.aiAnalysisReason || 'Objek fisik dan lingkungan kegiatan terverifikasi valid serta lolos audit anti-fraud.'}
                 </p>
               </div>
 
@@ -526,7 +629,7 @@ export const VerificationPage: React.FC = () => {
                 variant="danger"
                 size="sm"
                 className="flex-1 text-xs font-bold py-2.5 rounded-xl"
-                onClick={confirmReject}
+                onClick={submitRejection}
               >
                 Konfirmasi Tolak
               </Button>

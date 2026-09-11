@@ -5,6 +5,7 @@
 export interface CompressionResult {
   file: File;
   previewUrl: string;
+  dataUrl: string;
   originalSizeBytes: number;
   compressedSizeBytes: number;
   width: number;
@@ -66,10 +67,12 @@ export async function compressImage(
             });
 
             const previewUrl = URL.createObjectURL(compressedFile);
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
 
             resolve({
               file: compressedFile,
               previewUrl,
+              dataUrl,
               originalSizeBytes: file.size,
               compressedSizeBytes: compressedFile.size,
               width,

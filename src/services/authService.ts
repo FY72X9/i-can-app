@@ -6,6 +6,13 @@
 import { supabase, isConfigured } from '@/services/supabase';
 import { UserProfile, UserRole } from '@/types';
 
+export function normalizeUserRole(role: string): UserRole {
+  const r = role?.toUpperCase();
+  if (r === 'ADMIN' || r === 'SUPERADMIN') return 'SUPERADMIN';
+  if (r === 'ORGANIZER') return 'ORGANIZER';
+  return 'MAHASISWA';
+}
+
 export interface RegisterParams {
   nim: string;
   fullName: string;
@@ -29,9 +36,11 @@ export interface StoredAuthAccount {
   totalCarbonSaved: number;
   streakDays: number;
   createdAt: string;
+  isDeleted?: boolean;
+  deletedAt?: string;
 }
 
-const STORAGE_ACCOUNTS_KEY = 'i_can_registered_accounts';
+const STORAGE_ACCOUNTS_KEY = 'i_can_registered_accounts_v2';
 
 /**
  * Computes SHA-256 hash using the native browser Web Crypto API
@@ -46,73 +55,51 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 /**
+ * Validates user identifier based on role:
+ * - MAHASISWA: NIM must be exactly 10 digits (^\d{10}$)
+ * - ORGANIZER/SUPERADMIN: Binus Number must start with BN followed by 1-9 digits (^BN\d{1,9}$)
+ */
+export function validateUserIdentifier(identifier: string, role: UserRole): { valid: boolean; error?: string } {
+  if (role === 'MAHASISWA') {
+    if (!/^\d{10}$/.test(identifier)) {
+      return { valid: false, error: 'NIM harus tepat 10 digit angka (contoh: 2602158890)' };
+    }
+  } else {
+    // ORGANIZER or SUPERADMIN → Binus Number (BN)
+    if (!/^BN\d{1,9}$/i.test(identifier)) {
+      return { valid: false, error: 'Binus Number harus diawali "BN" diikuti maksimal 9 digit angka (contoh: BN123456789)' };
+    }
+  }
+  return { valid: true };
+}
+
+export interface EditUserParams {
+  fullName?: string;
+  nim?: string;
+  email?: string;
+  facultyName?: string;
+  role?: UserRole;
+  newPassword?: string;
+}
+
+export function getNeutralAvatarUrl(name: string = 'User', identifier?: string, role?: UserRole): string {
+  const clean = encodeURIComponent((name || identifier || 'User').trim());
+  const bg = role === 'SUPERADMIN' ? '7c3aed' : role === 'ORGANIZER' ? 'd97706' : '059669';
+  return `https://ui-avatars.com/api/?name=${clean}&background=${bg}&color=fff&bold=true&size=150`;
+}
+
+/**
  * In-memory / localStorage seed accounts for instant demo & testing
  */
 const DEFAULT_SEEDED_ACCOUNTS: Omit<StoredAuthAccount, 'passwordHash'>[] = [
-  {
-    id: 'usr-student-001',
-    nim: '2602158890',
-    email: 'budi.santoso@binus.ac.id',
-    fullName: 'Budi Santoso',
-    facultyName: 'School of Computer Science',
-    role: 'STUDENT',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    totalGreenCoins: 450,
-    totalSatPoints: 45,
-    totalCarbonSaved: 12.50,
-    streakDays: 5,
-    createdAt: '2026-08-01T00:00:00Z',
-  },
-  {
-    id: 'usr-verifier-002',
-    nim: '2501987654',
-    email: 'siska.amanda@binus.ac.id',
-    fullName: 'Siska Amanda',
-    facultyName: 'School of Information Systems',
-    role: 'VERIFIER',
-    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-    totalGreenCoins: 1250,
-    totalSatPoints: 85,
-    totalCarbonSaved: 34.20,
-    streakDays: 14,
-    createdAt: '2026-07-15T00:00:00Z',
-  },
-  {
-    id: 'usr-student-003',
-    nim: '2602234567',
-    email: 'nadia.safira@binus.ac.id',
-    fullName: 'Nadia Safira',
-    facultyName: 'School of Design',
-    role: 'STUDENT',
-    avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
-    totalGreenCoins: 890,
-    totalSatPoints: 68,
-    totalCarbonSaved: 24.80,
-    streakDays: 9,
-    createdAt: '2026-07-28T00:00:00Z',
-  },
-  {
-    id: 'usr-student-004',
-    nim: '2602345678',
-    email: 'farhan.ramadhan@binus.ac.id',
-    fullName: 'Farhan Ramadhan',
-    facultyName: 'Faculty of Engineering',
-    role: 'STUDENT',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    totalGreenCoins: 110,
-    totalSatPoints: 8,
-    totalCarbonSaved: 3.20,
-    streakDays: 2,
-    createdAt: '2026-08-10T00:00:00Z',
-  },
   {
     id: 'usr-admin-005',
     nim: '1980010101',
     email: 'hendra.sso@binus.ac.id',
     fullName: 'Hendra Kusuma, M.Kom (Super Admin)',
     facultyName: 'Student Service Office (SSO)',
-    role: 'ADMIN',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    role: 'SUPERADMIN',
+    avatarUrl: getNeutralAvatarUrl('Hendra Kusuma, M.Kom', '1980010101', 'SUPERADMIN'),
     totalGreenCoins: 2400,
     totalSatPoints: 120,
     totalCarbonSaved: 62.00,
@@ -129,8 +116,24 @@ export async function getStoredAccounts(): Promise<StoredAuthAccount[]> {
   if (raw) {
     try {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length >= 5) {
-        return parsed;
+      if (Array.isArray(parsed) && parsed.length >= 1) {
+        // Auto-migrate legacy roles and male avatar photos to neutral avatars on read
+        let modified = false;
+        parsed.forEach((acc: any) => {
+          const norm = normalizeUserRole(acc.role);
+          if (acc.role !== norm) {
+            acc.role = norm;
+            modified = true;
+          }
+          if (!acc.avatarUrl || acc.avatarUrl.includes('photo-1535713875002-d1d0cf377fde') || acc.avatarUrl.includes('photo-1500648767791-00dcc994a43e')) {
+            acc.avatarUrl = getNeutralAvatarUrl(acc.fullName, acc.nim, acc.role);
+            modified = true;
+          }
+        });
+        if (modified) {
+          localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(parsed));
+        }
+        return parsed as StoredAuthAccount[];
       }
     } catch {
       // fallback
@@ -138,26 +141,77 @@ export async function getStoredAccounts(): Promise<StoredAuthAccount[]> {
   }
 
   // Pre-seed default accounts with hashed passwords (Default passwords: 'binus123' & 'admin123')
-  const defaultUserHash = await hashPassword('binus123');
   const defaultAdminHash = await hashPassword('admin123');
 
   const seeded: StoredAuthAccount[] = [
-    { ...DEFAULT_SEEDED_ACCOUNTS[0], passwordHash: defaultUserHash },
-    { ...DEFAULT_SEEDED_ACCOUNTS[1], passwordHash: defaultUserHash },
-    { ...DEFAULT_SEEDED_ACCOUNTS[2], passwordHash: defaultUserHash },
-    { ...DEFAULT_SEEDED_ACCOUNTS[3], passwordHash: defaultUserHash },
-    { ...DEFAULT_SEEDED_ACCOUNTS[4], passwordHash: defaultAdminHash },
+    { ...DEFAULT_SEEDED_ACCOUNTS[0], passwordHash: defaultAdminHash },
   ];
 
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(seeded));
   return seeded;
 }
 
+export async function resetLegacyAccounts(): Promise<void> {
+  localStorage.removeItem(STORAGE_ACCOUNTS_KEY);
+  await getStoredAccounts();
+}
+
+export async function createAccountByAdmin(params: RegisterParams): Promise<{ user?: UserProfile; error?: string }> {
+  const { nim, fullName, email, facultyName, password, role } = params;
+  if (!nim || !fullName || !email || !password || !role) {
+    return { error: 'Semua kolom wajib diisi' };
+  }
+
+  if (password.length < 6) {
+    return { error: 'Kata sandi minimal 6 karakter' };
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanNim = role === 'MAHASISWA' ? nim.trim() : nim.trim().toUpperCase();
+
+  // Validate identifier format (NIM or BN)
+  const identifierCheck = validateUserIdentifier(cleanNim, normalizeUserRole(role));
+  if (!identifierCheck.valid) {
+    return { error: identifierCheck.error };
+  }
+
+  const accounts = await getStoredAccounts();
+
+  if (accounts.find((a) => a.nim.toLowerCase() === cleanNim.toLowerCase() || a.email.toLowerCase() === cleanEmail)) {
+    return { error: 'NIM/BN atau Email sudah terdaftar dalam sistem' };
+  }
+
+  const passwordHash = await hashPassword(password);
+  const targetRole = normalizeUserRole(role);
+  const newAccount: StoredAuthAccount = {
+    id: `usr-${Date.now()}`,
+    nim: cleanNim,
+    email: cleanEmail,
+    fullName: fullName.trim(),
+    facultyName: facultyName || 'Universitas',
+    role: targetRole,
+    passwordHash,
+    avatarUrl: getNeutralAvatarUrl(fullName.trim(), cleanNim, targetRole),
+    totalGreenCoins: 50,
+    totalSatPoints: 0,
+    totalCarbonSaved: 0.0,
+    streakDays: 1,
+    createdAt: new Date().toISOString(),
+  };
+
+  accounts.push(newAccount);
+  localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+
+  const { passwordHash: _, ...userProfile } = newAccount;
+  return { user: userProfile };
+}
+
 /**
  * Register a new student or user
  */
 export async function registerUser(params: RegisterParams): Promise<{ user?: UserProfile; error?: string }> {
-  const { nim, fullName, email, facultyName, password, role = 'STUDENT' } = params;
+  let { nim, fullName, email, facultyName, password, role = 'MAHASISWA' } = params;
+  role = normalizeUserRole(role);
 
   if (!nim || !fullName || !email || !password) {
     return { error: 'Semua kolom wajib diisi' };
@@ -232,7 +286,7 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
     facultyName: facultyName || 'School of Computer Science',
     role,
     passwordHash,
-    avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+    avatarUrl: getNeutralAvatarUrl(fullName.trim(), cleanNim, role),
     totalGreenCoins: 50, // Welcome bonus
     totalSatPoints: 0,
     totalCarbonSaved: 0.0,
@@ -275,7 +329,7 @@ export async function loginWithCredentials(
           nim: metadata.nim || '2602158890',
           email: data.user.email || cleanIdentifier,
           fullName: metadata.full_name || 'Mahasiswa BINUS',
-          role: metadata.role || 'STUDENT',
+          role: normalizeUserRole(metadata.role),
           facultyName: metadata.faculty_name || 'School of Computer Science',
           totalGreenCoins: 50,
           totalSatPoints: 0,
@@ -306,6 +360,11 @@ export async function loginWithCredentials(
 
   if (matchedAccount.passwordHash !== inputHash) {
     return { error: 'Kata sandi tidak sesuai. Silakan periksa kembali.' };
+  }
+
+  // Reject login for deactivated (soft-deleted) accounts
+  if (matchedAccount.isDeleted) {
+    return { error: 'Akun Anda telah dinonaktifkan oleh Superadmin. Hubungi SSO untuk informasi lebih lanjut.' };
   }
 
   const { passwordHash: _, ...userProfile } = matchedAccount;
@@ -341,3 +400,249 @@ export async function updateStoredUserAccount(
   return profile;
 }
 
+/**
+ * Edit user account by Admin — validates NIM/BN format, checks for duplicates
+ */
+export async function editAccountByAdmin(
+  userId: string,
+  data: EditUserParams
+): Promise<{ user?: UserProfile; error?: string }> {
+  const accounts = await getStoredAccounts();
+  const index = accounts.findIndex((a) => a.id === userId);
+  if (index === -1) return { error: 'Akun tidak ditemukan' };
+
+  const account = accounts[index];
+  const targetRole = data.role ? normalizeUserRole(data.role) : account.role;
+
+  // Validate NIM/BN if changed
+  if (data.nim && data.nim.trim() !== account.nim) {
+    const cleanNim = targetRole === 'MAHASISWA' ? data.nim.trim() : data.nim.trim().toUpperCase();
+    const identifierCheck = validateUserIdentifier(cleanNim, targetRole);
+    if (!identifierCheck.valid) {
+      return { error: identifierCheck.error };
+    }
+    // Check for duplicate NIM/BN (excluding current account)
+    if (accounts.find((a) => a.id !== userId && a.nim.toLowerCase() === cleanNim.toLowerCase())) {
+      return { error: 'NIM/BN sudah digunakan oleh akun lain' };
+    }
+    account.nim = cleanNim;
+  }
+
+  // Validate email if changed
+  if (data.email && data.email.trim().toLowerCase() !== account.email) {
+    const cleanEmail = data.email.trim().toLowerCase();
+    if (!cleanEmail.includes('@')) {
+      return { error: 'Format alamat email tidak valid' };
+    }
+    if (accounts.find((a) => a.id !== userId && a.email.toLowerCase() === cleanEmail)) {
+      return { error: 'Email sudah digunakan oleh akun lain' };
+    }
+    account.email = cleanEmail;
+  }
+
+  // Update other fields
+  if (data.fullName) account.fullName = data.fullName.trim();
+  if (data.facultyName) account.facultyName = data.facultyName;
+  if (data.role) account.role = targetRole;
+
+  // Optional password reset
+  if (data.newPassword) {
+    if (data.newPassword.length < 6) {
+      return { error: 'Kata sandi baru minimal 6 karakter' };
+    }
+    account.passwordHash = await hashPassword(data.newPassword);
+  }
+
+  accounts[index] = account;
+  localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+  const { passwordHash: _, ...userProfile } = account;
+  return { user: userProfile };
+}
+
+/**
+ * Soft delete (deactivate) user account
+ */
+export async function softDeleteAccountByAdmin(userId: string): Promise<{ success?: boolean; error?: string }> {
+  const accounts = await getStoredAccounts();
+  const index = accounts.findIndex((a) => a.id === userId);
+  if (index === -1) return { error: 'Akun tidak ditemukan' };
+
+  accounts[index].isDeleted = true;
+  accounts[index].deletedAt = new Date().toISOString();
+  localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+  return { success: true };
+}
+
+/**
+ * Restore (reactivate) a soft-deleted user account
+ */
+export async function restoreAccountByAdmin(userId: string): Promise<{ success?: boolean; error?: string }> {
+  const accounts = await getStoredAccounts();
+  const index = accounts.findIndex((a) => a.id === userId);
+  if (index === -1) return { error: 'Akun tidak ditemukan' };
+
+  accounts[index].isDeleted = false;
+  accounts[index].deletedAt = undefined;
+  localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+  return { success: true };
+}
+
+export interface BatchImportUserItem {
+  nim: string;
+  fullName: string;
+  email: string;
+  facultyName: string;
+  password?: string;
+  role?: UserRole;
+}
+
+export interface BatchImportOptions {
+  defaultPassword?: string;
+  useNimAsPassword?: boolean;
+  duplicateAction?: 'skip' | 'update';
+  defaultRole?: UserRole;
+}
+
+export interface BatchImportResult {
+  total: number;
+  imported: number;
+  updated: number;
+  skipped: number;
+  failed: number;
+  errors: { row?: number; identifier: string; reason: string }[];
+}
+
+/**
+ * Batch import user accounts (e.g. from Excel)
+ */
+export async function batchImportAccounts(
+  items: BatchImportUserItem[],
+  options: BatchImportOptions = {}
+): Promise<BatchImportResult> {
+  const {
+    defaultPassword = 'binus123',
+    useNimAsPassword = false,
+    duplicateAction = 'skip',
+    defaultRole = 'MAHASISWA',
+  } = options;
+
+  const accounts = await getStoredAccounts();
+  const existingByNim = new Map<string, number>();
+  const existingByEmail = new Map<string, number>();
+
+  accounts.forEach((acc, idx) => {
+    if (acc.nim) existingByNim.set(acc.nim.toLowerCase().trim(), idx);
+    if (acc.email) existingByEmail.set(acc.email.toLowerCase().trim(), idx);
+  });
+
+  // Pre-calculate hash for default password to avoid computing SHA-256 for hundreds of identical passwords
+  let cachedDefaultHash: string | null = null;
+  if (!useNimAsPassword) {
+    cachedDefaultHash = await hashPassword(defaultPassword);
+  }
+
+  const result: BatchImportResult = {
+    total: items.length,
+    imported: 0,
+    updated: 0,
+    skipped: 0,
+    failed: 0,
+    errors: [],
+  };
+
+  const newAccounts: StoredAuthAccount[] = [];
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const cleanNim = item.nim.trim();
+    const cleanEmail = item.email.trim().toLowerCase();
+    const cleanName = item.fullName.trim();
+    const cleanFaculty = item.facultyName.trim() || 'School of Computer Science';
+    const role = normalizeUserRole(item.role || defaultRole);
+
+    // Validate identifier
+    const check = validateUserIdentifier(cleanNim, role);
+    if (!check.valid) {
+      result.failed++;
+      result.errors.push({
+        row: i + 1,
+        identifier: cleanNim || cleanName,
+        reason: check.error || 'Identifier tidak valid',
+      });
+      continue;
+    }
+
+    if (!cleanEmail.includes('@')) {
+      result.failed++;
+      result.errors.push({
+        row: i + 1,
+        identifier: cleanNim,
+        reason: 'Format email tidak valid',
+      });
+      continue;
+    }
+
+    const lowerNim = cleanNim.toLowerCase();
+    const existingIndex = existingByNim.has(lowerNim)
+      ? existingByNim.get(lowerNim)!
+      : existingByEmail.has(cleanEmail)
+      ? existingByEmail.get(cleanEmail)!
+      : -1;
+
+    if (existingIndex !== -1) {
+      if (duplicateAction === 'skip') {
+        result.skipped++;
+        continue;
+      } else if (duplicateAction === 'update') {
+        // Update existing record without touching coins / sat / password unless specified
+        accounts[existingIndex].fullName = cleanName;
+        accounts[existingIndex].facultyName = cleanFaculty;
+        accounts[existingIndex].email = cleanEmail;
+        accounts[existingIndex].role = role;
+        result.updated++;
+        continue;
+      }
+    }
+
+    // Determine password hash
+    let finalHash: string;
+    if (item.password) {
+      finalHash = await hashPassword(item.password);
+    } else if (useNimAsPassword) {
+      finalHash = await hashPassword(cleanNim);
+    } else {
+      if (!cachedDefaultHash) {
+        cachedDefaultHash = await hashPassword(defaultPassword);
+      }
+      finalHash = cachedDefaultHash;
+    }
+
+    const newAcc: StoredAuthAccount = {
+      id: `usr-imp-${Date.now()}-${i}`,
+      nim: cleanNim,
+      email: cleanEmail,
+      fullName: cleanName,
+      facultyName: cleanFaculty,
+      role,
+      passwordHash: finalHash,
+      avatarUrl: getNeutralAvatarUrl(cleanName, cleanNim, role),
+      totalGreenCoins: 50,
+      totalSatPoints: 0,
+      totalCarbonSaved: 0.0,
+      streakDays: 1,
+      createdAt: new Date().toISOString(),
+    };
+
+    newAccounts.push(newAcc);
+    existingByNim.set(lowerNim, accounts.length + newAccounts.length - 1);
+    existingByEmail.set(cleanEmail, accounts.length + newAccounts.length - 1);
+    result.imported++;
+  }
+
+  if (newAccounts.length > 0 || result.updated > 0) {
+    const merged = [...accounts, ...newAccounts];
+    localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(merged));
+  }
+
+  return result;
+}

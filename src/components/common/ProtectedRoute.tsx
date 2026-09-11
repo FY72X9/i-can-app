@@ -7,21 +7,28 @@ import { UserRole } from '@/types';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedRoles?: UserRole[];
+  fallbackPath?: string;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
+export function getRoleDefaultPath(role?: UserRole): string {
+  if (role === 'SUPERADMIN' || role === 'ORGANIZER') {
+    return '/admin';
+  }
+  return '/home';
+}
+
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles, fallbackPath }) => {
   const { isAuthenticated, user } = useAuthStore();
-  const { isPrototypeMode } = useAppModeStore();
   const location = useLocation();
 
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // In Prototype mode, enforce strict role access
+  // Enforce strict role access
   if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    // If user is trying to access an unauthorized route in Prototype Mode, redirect to home
-    return <Navigate to="/home" replace />;
+    const target = fallbackPath || getRoleDefaultPath(user.role);
+    return <Navigate to={target} replace />;
   }
 
   return <>{children}</>;

@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
+import { CampusEvent } from '@/types';
+import { getEvents, computeEventLeaderboard, EventLeaderboardEntry } from '@/services/eventService';
+import { getActions } from '@/services/actionService';
 import { 
   Trophy, 
   Award, 
@@ -47,7 +50,25 @@ interface LeaderboardUser {
 
 export const LeaderboardPage: React.FC = () => {
   const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'BEKEN' | 'SAT' | 'FACULTY'>('BEKEN');
+  const [activeTab, setActiveTab] = useState<'BEKEN' | 'SAT' | 'FACULTY' | 'EVENT'>('BEKEN');
+
+  const [events, setEvents] = useState<CampusEvent[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<string>('');
+  const [eventLeaderboard, setEventLeaderboard] = useState<EventLeaderboardEntry[]>([]);
+
+  useEffect(() => {
+    getEvents().then(setEvents);
+  }, []);
+
+  useEffect(() => {
+    if (selectedEventId) {
+      getActions().then((actions) => {
+        const eventActions = actions.filter((a) => a.eventId === selectedEventId);
+        const lb = computeEventLeaderboard(eventActions);
+        setEventLeaderboard(lb);
+      });
+    }
+  }, [selectedEventId]);
 
   const [cheers, setCheers] = useState<Record<string, number>>({
     socs: 342,
@@ -67,152 +88,81 @@ export const LeaderboardPage: React.FC = () => {
     }));
   };
 
-  const studentRankings: LeaderboardUser[] = [
-    {
-      id: 'usr-student-003',
-      rank: 1,
-      name: 'Nadia Safira',
-      nim: '2602234567',
-      faculty: 'School of Design (SOD)',
-      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
-      greenCoins: 890,
-      satPoints: 68,
-      carbonKg: 24.80,
-      streakDays: 9,
-      badge: '👑 #1 BEKEN Nominee',
-      topActionHighlight: {
-        title: 'Penanaman 5 Pohon Tabebuya & VBL Zero Waste',
-        category: 'Penyuluhan & Aksi Nyata TFI',
-        photo: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&auto=format&fit=crop&q=80',
-        impact: '10.5 kg CO2e / 8 SAT',
-      },
-      quote: 'Desain berkelanjutan bukan sekadar tren, tapi tanggung jawab masa depan.',
-    },
-    {
-      id: 'usr-student-001',
-      rank: 2,
-      name: 'Budi Santoso',
-      nim: '2602158890',
-      faculty: 'School of Computer Science (SOCS)',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      greenCoins: 450,
-      satPoints: 45,
-      carbonKg: 12.50,
-      streakDays: 5,
-      badge: '🥈 Top Contributor',
-      topActionHighlight: {
-        title: 'Pembuatan 5 Lubang Biopori RT 04 & Shuttle Bus',
-        category: 'Penyuluhan & Aksi Nyata TFI',
-        photo: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=600&auto=format&fit=crop&q=80',
-        impact: '5.5 kg CO2e / 4 SAT',
-      },
-      quote: 'Mulai dari langkah kecil: bawa tumbler dan buat biopori di lingkungan kampus.',
-    },
-    {
-      id: 'usr-student-002',
-      rank: 3,
-      name: 'Kevin Pratama',
-      nim: '2602188412',
-      faculty: 'School of Information Systems (SIS)',
-      avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
-      greenCoins: 380,
-      satPoints: 32,
-      carbonKg: 9.40,
-      streakDays: 7,
-      badge: '🥉 Bronze Eco-Star',
-      topActionHighlight: {
-        title: 'Drop Point Daur Ulang & Kampanye Hemat Listrik',
-        category: 'Self Green Campaign',
-        photo: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=600&auto=format&fit=crop&q=80',
-        impact: '4.2 kg CO2e / 0 SAT',
-      },
-    },
-    {
-      id: 'usr-student-006',
-      rank: 4,
-      name: 'Clarissa Putri',
-      nim: '2602199841',
-      faculty: 'School of Design (SOD)',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-      greenCoins: 310,
-      satPoints: 28,
-      carbonKg: 7.80,
-      streakDays: 4,
-      badge: 'Eco Warrior',
-      topActionHighlight: {
-        title: 'Video Based Learning Edukasi Zero Waste',
-        category: 'VBL TFI',
-        photo: 'https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?w=600&auto=format&fit=crop&q=80',
-        impact: '0.1 kg CO2e / 3 SAT',
-      },
-    },
-    {
-      id: 'usr-student-007',
-      rank: 5,
-      name: 'Maya Anggraini',
-      nim: '2602887711',
-      faculty: 'BINUS Business School (BBS)',
-      avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80',
-      greenCoins: 275,
-      satPoints: 24,
-      carbonKg: 6.20,
-      streakDays: 6,
-      badge: 'Green Ambassador',
-      topActionHighlight: {
-        title: 'Pengurangan Botol Plastik Kantin Kampus',
-        category: 'Self Campaign',
-        photo: 'https://images.unsplash.com/photo-1570554886111-e80fcca6a029?w=600&auto=format&fit=crop&q=80',
-        impact: '2.5 kg CO2e / 0 SAT',
-      },
-    },
-    {
-      id: 'usr-student-004',
-      rank: 6,
-      name: 'Farhan Ramadhan',
-      nim: '2602345678',
-      faculty: 'Faculty of Engineering',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-      greenCoins: 210,
-      satPoints: 16,
-      carbonKg: 5.10,
-      streakDays: 3,
-      badge: 'Eco Rising Star',
-      topActionHighlight: {
-        title: 'Pengelolaan Limbah E-Waste & Bike to Campus',
-        category: 'Self Campaign',
-        photo: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80',
-        impact: '1.8 kg CO2e / 0 SAT',
-      },
-    },
-    {
-      id: 'usr-student-008',
-      rank: 7,
-      name: 'Dimas Prakoso',
-      nim: '2602776655',
-      faculty: 'School of Computer Science',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-      greenCoins: 185,
-      satPoints: 12,
-      carbonKg: 4.30,
-      streakDays: 2,
-      badge: 'Eco Volunteer',
-      topActionHighlight: {
-        title: 'Pembersihan Sampah Drop Point Kampus Syahdan',
-        category: 'Self Campaign',
-        photo: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=600&auto=format&fit=crop&q=80',
-        impact: '1.2 kg CO2e / 0 SAT',
-      },
-    },
-  ];
+  const [studentRankings, setStudentRankings] = useState<LeaderboardUser[]>([]);
+  const [facultyLeaderboard, setFacultyLeaderboard] = useState<any[]>([]);
 
-  const facultyLeaderboard = [
-    { id: 'socs', rank: 1, name: 'School of Computer Science (SOCS)', carbon: '482.5 kg CO2e', coins: '4,850 GC', satTotal: '640 SAT', activeStudents: 148 },
-    { id: 'sod', rank: 2, name: 'School of Design (SOD)', carbon: '412.0 kg CO2e', coins: '4,120 GC', satTotal: '580 SAT', activeStudents: 124 },
-    { id: 'sis', rank: 3, name: 'School of Information Systems (SIS)', carbon: '356.8 kg CO2e', coins: '3,560 GC', satTotal: '490 SAT', activeStudents: 112 },
-    { id: 'eng', rank: 4, name: 'Faculty of Engineering', carbon: '298.4 kg CO2e', coins: '2,980 GC', satTotal: '390 SAT', activeStudents: 86 },
-    { id: 'bbs', rank: 5, name: 'BINUS Business School (BBS)', carbon: '245.0 kg CO2e', coins: '2,450 GC', satTotal: '310 SAT', activeStudents: 74 },
-    { id: 'hum', rank: 6, name: 'Faculty of Humanities', carbon: '180.2 kg CO2e', coins: '1,800 GC', satTotal: '220 SAT', activeStudents: 52 },
-  ];
+  useEffect(() => {
+    getActions().then((actions) => {
+      // Compute Student Rankings
+      const userMap = new Map<string, LeaderboardUser>();
+      actions.forEach(a => {
+        if (a.status !== 'APPROVED') return;
+        if (!userMap.has(a.userId)) {
+          userMap.set(a.userId, {
+            id: a.userId,
+            rank: 0,
+            name: a.userName || 'Anonim',
+            nim: 'N/A',
+            faculty: a.userFaculty || 'Bina Nusantara',
+            avatar: a.userAvatar || 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+            greenCoins: 0,
+            satPoints: 0,
+            carbonKg: 0,
+            streakDays: 0,
+            badge: 'Eco Warrior',
+            topActionHighlight: {
+              title: a.categoryName || 'Aksi Ramah Lingkungan',
+              category: a.submissionType || 'Aksi Harian',
+              photo: a.photoUrl,
+              impact: `${a.carbonImpactKg || 0} kg CO2e / ${a.satPointsEarned || 0} SAT`
+            }
+          });
+        }
+        const u = userMap.get(a.userId)!;
+        u.greenCoins += (a.greenCoinsEarned || 0);
+        u.satPoints += (a.satPointsEarned || 0);
+        u.carbonKg += (a.carbonImpactKg || 0);
+      });
+
+      const computedStudents = Array.from(userMap.values());
+      // Sort for rank assignment (default by GC)
+      computedStudents.sort((a, b) => b.greenCoins - a.greenCoins);
+      computedStudents.forEach((s, idx) => s.rank = idx + 1);
+
+      setStudentRankings(computedStudents);
+
+      // Compute Faculty Leaderboard
+      const facultyMap = new Map<string, any>();
+      computedStudents.forEach(s => {
+        if (!facultyMap.has(s.faculty)) {
+          facultyMap.set(s.faculty, {
+            id: s.faculty,
+            rank: 0,
+            name: s.faculty,
+            carbonNum: 0,
+            coinsNum: 0,
+            satNum: 0,
+            activeStudents: 0
+          });
+        }
+        const f = facultyMap.get(s.faculty)!;
+        f.carbonNum += s.carbonKg;
+        f.coinsNum += s.greenCoins;
+        f.satNum += s.satPoints;
+        f.activeStudents += 1;
+      });
+
+      const computedFaculties = Array.from(facultyMap.values());
+      computedFaculties.sort((a, b) => b.coinsNum - a.coinsNum);
+      computedFaculties.forEach((f, idx) => {
+        f.rank = idx + 1;
+        f.carbon = `${f.carbonNum.toFixed(1)} kg CO2e`;
+        f.coins = `${f.coinsNum} GC`;
+        f.satTotal = `${f.satNum} SAT`;
+      });
+      setFacultyLeaderboard(computedFaculties);
+    });
+  }, []);
 
   // Sorting logic based on active tab
   const sortedStudents = [...studentRankings].sort((a, b) => {
@@ -226,7 +176,7 @@ export const LeaderboardPage: React.FC = () => {
   const runnerUp = sortedStudents[1];
   const thirdPlace = sortedStudents[2];
 
-  const currentUserRank = sortedStudents.findIndex((s) => s.id === user?.id) + 1 || 2;
+  const currentUserRank = sortedStudents.findIndex((s) => s.id === user?.id) + 1 || '-';
 
   return (
     <div className="space-y-6 pb-8">
@@ -281,14 +231,27 @@ export const LeaderboardPage: React.FC = () => {
           >
             🏛️ Fakultas
           </button>
+
+          <button
+            onClick={() => setActiveTab('EVENT')}
+            className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-black transition-all ${
+              activeTab === 'EVENT'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-eco-100 hover:text-white'
+            }`}
+          >
+            🎪 Event
+          </button>
         </div>
       </Card>
 
       {/* 2. Podium Section for Top 3 (Shown for BEKEN and SAT tabs) */}
-      {activeTab !== 'FACULTY' && (
+      {activeTab !== 'FACULTY' && activeTab !== 'EVENT' && (
         <div className="space-y-5">
-          <div className="grid grid-cols-3 gap-2.5 sm:gap-4 items-end pt-5 pb-2">
-            {/* Rank 2 - Silver */}
+          {sortedStudents.length >= 3 ? (
+            <>
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-4 items-end pt-5 pb-2">
+              {/* Rank 2 - Silver */}
             <div className="bg-white rounded-3xl p-4 border border-slate-200 shadow-eco-sm text-center space-y-2 relative order-1">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center font-black text-xs text-slate-700 shadow-xs">
                 2
@@ -365,8 +328,8 @@ export const LeaderboardPage: React.FC = () => {
 
             <div className="flex items-start gap-4">
               <img
-                src={topStudent.topActionHighlight.photo}
-                alt={topStudent.topActionHighlight.title}
+                src={topStudent?.topActionHighlight?.photo}
+                alt={topStudent?.topActionHighlight?.title}
                 className="w-20 h-20 rounded-2xl object-cover border border-white/20 shrink-0 shadow-md"
               />
               <div className="space-y-1.5 min-w-0 flex-1">
@@ -374,18 +337,24 @@ export const LeaderboardPage: React.FC = () => {
                   Aksi Unggulan Terverifikasi:
                 </span>
                 <h3 className="text-xs sm:text-sm font-black text-white leading-snug truncate">
-                  {topStudent.topActionHighlight.title}
+                  {topStudent?.topActionHighlight?.title}
                 </h3>
                 <p className="text-xs text-eco-100/90 line-clamp-2 italic leading-relaxed">
-                  "{topStudent.quote}"
+                  "{topStudent?.quote || 'Menjaga bumi, satu langkah kecil setiap hari.'}"
                 </p>
                 <div className="pt-1 flex items-center gap-3 text-xs font-bold">
-                  <span className="text-eco-neon">🌿 {topStudent.carbonKg} kg CO2e Hemat</span>
-                  <span className="text-gold-neon">🏆 {topStudent.greenCoins} GC</span>
+                  <span className="text-eco-neon">🌿 {topStudent?.carbonKg} kg CO2e Hemat</span>
+                  <span className="text-gold-neon">🏆 {topStudent?.greenCoins} GC</span>
                 </div>
               </div>
             </div>
           </Card>
+          </>
+          ) : (
+            <div className="text-center p-8 text-text-muted text-sm font-bold bg-white rounded-3xl border border-surface-border shadow-eco-soft">
+              Belum ada cukup partisipan untuk menampilkan podium.
+            </div>
+          )}
         </div>
       )}
 
@@ -394,14 +363,58 @@ export const LeaderboardPage: React.FC = () => {
         <div className="flex items-center justify-between px-1">
           <h3 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-eco-700" />
-            {activeTab === 'FACULTY' ? 'Peringkat Seluruh Fakultas' : 'Daftar Peringkat Mahasiswa'}
+            {activeTab === 'FACULTY' ? 'Peringkat Seluruh Fakultas' : activeTab === 'EVENT' ? 'Leaderboard Event' : 'Daftar Peringkat Mahasiswa'}
           </h3>
           <span className="text-xs font-bold text-text-muted">
             Semester Ganjil 2026/2027
           </span>
         </div>
 
-        {activeTab === 'FACULTY' ? (
+        {activeTab === 'EVENT' ? (
+          <div className="space-y-4">
+            <select
+              value={selectedEventId}
+              onChange={(e) => setSelectedEventId(e.target.value)}
+              className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-surface-border bg-white focus:outline-none focus:border-eco-500 font-bold"
+            >
+              <option value="">Pilih Event...</option>
+              {events.map((evt) => (
+                <option key={evt.id} value={evt.id}>
+                  {evt.title} — {evt.organizerName}
+                </option>
+              ))}
+            </select>
+
+            {selectedEventId && eventLeaderboard.length === 0 && (
+              <div className="text-center py-10 space-y-2">
+                <Trophy className="w-10 h-10 text-text-muted mx-auto" />
+                <p className="text-sm font-bold text-text-secondary">Belum ada peserta di event ini.</p>
+              </div>
+            )}
+
+            {eventLeaderboard.map((entry) => {
+              const medal = entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : entry.rank === 3 ? '🥉' : null;
+              return (
+                <div
+                  key={entry.userId}
+                  className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-surface-border shadow-eco-soft"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-sm font-black text-slate-700 shrink-0">
+                    {medal || `#${entry.rank}`}
+                  </div>
+                  {entry.userAvatar && (
+                    <img src={entry.userAvatar} alt={entry.userName} className="w-8 h-8 rounded-xl object-cover shrink-0" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-black text-text-primary truncate">{entry.userName}</div>
+                    <div className="text-[10px] text-text-muted">{entry.userFaculty} • {entry.totalActions} aksi</div>
+                  </div>
+                  <div className="text-xs font-black text-amber-700 font-mono shrink-0">{entry.totalCoins} GC</div>
+                </div>
+              );
+            })}
+          </div>
+        ) : activeTab === 'FACULTY' ? (
           /* Faculty List */
           <div className="space-y-3">
             {facultyLeaderboard.map((fac) => (
@@ -489,7 +502,7 @@ export const LeaderboardPage: React.FC = () => {
       </div>
 
       {/* 5. Sticky Bottom User Standing Bar (when not in faculty tab) */}
-      {activeTab !== 'FACULTY' && (
+      {activeTab !== 'FACULTY' && activeTab !== 'EVENT' && (
         <Card className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 to-eco-900 text-white rounded-3xl border border-white/20 shadow-eco-float flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div className="w-10 h-10 rounded-2xl bg-eco-neon/20 border border-eco-neon/40 text-eco-neon flex items-center justify-center font-black text-xs sm:text-sm shrink-0">

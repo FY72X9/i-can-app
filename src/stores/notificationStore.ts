@@ -69,7 +69,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => {
       const allActions = await getActions();
       const generatedNotifs: NotificationItem[] = [];
 
-      if (user.role === 'VERIFIER') {
+      if (user.role === 'ORGANIZER') {
         const pendingCount = allActions.filter((a) => a.status === 'PENDING').length;
         if (pendingCount > 0) {
           generatedNotifs.push({
