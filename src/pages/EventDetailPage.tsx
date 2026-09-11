@@ -294,9 +294,17 @@ export const EventDetailPage: React.FC = () => {
                       <h4 className="text-sm font-black text-text-primary">{activity.name}</h4>
                       <p className="text-xs text-text-secondary mt-0.5 line-clamp-2">{activity.description}</p>
                     </div>
-                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 shrink-0">
-                      <Coins className="w-3 h-3 text-amber-600" />
-                      <span className="text-[11px] font-black text-amber-800">+{activity.coinsReward} GC</span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200">
+                        <Coins className="w-3 h-3 text-amber-600" />
+                        <span className="text-[11px] font-black text-amber-800">+{activity.coinsReward} GC</span>
+                      </div>
+                      {activity.satPointsReward !== undefined && activity.satPointsReward > 0 && (
+                        <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200">
+                          <Star className="w-3 h-3 text-blue-600" />
+                          <span className="text-[11px] font-black text-blue-800">+{activity.satPointsReward} SAT</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 

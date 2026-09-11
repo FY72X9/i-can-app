@@ -181,8 +181,9 @@ export const AdminLtePage: React.FC = () => {
     timeRange: '',
     location: '',
     dressCode: '',
-    activities: [{ name: '', description: '', coinsReward: 10 }] as Array<{ name: string; description: string; coinsReward: number }>,
+    activities: [{ name: '', description: '', coinsReward: 10, satPointsReward: 0 }] as Array<{ name: string; description: string; coinsReward: number; satPointsReward?: number }>,
   });
+  const [showRewardGuide, setShowRewardGuide] = useState(false);
   const [bannerInputMode, setBannerInputMode] = useState<'upload' | 'url'>('upload');
   const [isCompressingBanner, setIsCompressingBanner] = useState(false);
   const [bannerUploadError, setBannerUploadError] = useState<string | null>(null);
@@ -719,6 +720,7 @@ export const AdminLtePage: React.FC = () => {
         description: act.description.trim(),
         qrCodeValue: `ican-evt-${Date.now().toString(36)}-act${idx + 1}`,
         coinsReward: Number(act.coinsReward) || 10,
+        satPointsReward: Number(act.satPointsReward) || 0,
         order: idx,
       }));
 
@@ -763,7 +765,7 @@ export const AdminLtePage: React.FC = () => {
       timeRange: '',
       location: '',
       dressCode: '',
-      activities: [{ name: '', description: '', coinsReward: 10 }],
+      activities: [{ name: '', description: '', coinsReward: 10, satPointsReward: 0 }],
     });
     await loadData();
   };
@@ -795,7 +797,12 @@ export const AdminLtePage: React.FC = () => {
       timeRange: event.timeRange || '',
       location: event.location || '',
       dressCode: event.dressCode || '',
-      activities: (event.activities || []).map((a) => ({ name: a.name, description: a.description, coinsReward: a.coinsReward })),
+      activities: (event.activities || []).map((a) => ({
+        name: a.name,
+        description: a.description,
+        coinsReward: a.coinsReward,
+        satPointsReward: a.satPointsReward || 0,
+      })),
     });
     setShowEventForm(true);
   };
@@ -803,7 +810,16 @@ export const AdminLtePage: React.FC = () => {
   const addActivityField = () => {
     setEventFormData((prev) => ({
       ...prev,
-      activities: [...prev.activities, { name: '', description: '', coinsReward: 10 }],
+      activities: [...prev.activities, { name: '', description: '', coinsReward: 10, satPointsReward: 0 }],
+    }));
+  };
+
+  const applyActivityPreset = (idx: number, coins: number) => {
+    setEventFormData((prev) => ({
+      ...prev,
+      activities: prev.activities.map((a, i) =>
+        i === idx ? { ...a, coinsReward: coins, satPointsReward: 0 } : a
+      ),
     }));
   };
 
@@ -1713,7 +1729,7 @@ export const AdminLtePage: React.FC = () => {
                       timeRange: '',
                       location: '',
                       dressCode: '',
-                      activities: [{ name: '', description: '', coinsReward: 10 }],
+                      activities: [{ name: '', description: '', coinsReward: 10, satPointsReward: 0 }],
                     });
                     setShowEventForm(true);
                   }}
@@ -2110,6 +2126,50 @@ export const AdminLtePage: React.FC = () => {
                         </button>
                       </div>
 
+                      {/* Panduan Keadilan Gamifikasi Reward */}
+                      <div className="rounded-2xl border border-amber-200/80 bg-amber-50/70 p-3 text-xs space-y-2">
+                        <div
+                          className="flex items-center justify-between cursor-pointer select-none"
+                          onClick={() => setShowRewardGuide(!showRewardGuide)}
+                        >
+                          <span className="font-black text-amber-900 flex items-center gap-1.5">
+                            <Award className="w-4 h-4 text-amber-600" />
+                            Panduan Keadilan Gamifikasi Reward Pos
+                          </span>
+                          <span className="text-[11px] font-bold text-amber-700 hover:underline">
+                            {showRewardGuide ? 'Sembunyikan ▲' : 'Lihat Rekomendasi ▼'}
+                          </span>
+                        </div>
+                        {showRewardGuide && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-amber-200/60 text-[11px]">
+                            <div className="p-2 rounded-xl bg-white/90 border border-amber-100 space-y-0.5 shadow-2xs">
+                              <p className="font-bold text-slate-800">
+                                🌱 Minimal (&lt; 5 mnt): <span className="text-amber-700 font-mono font-black">10 GC</span>
+                              </p>
+                              <p className="text-slate-500">Usaha cepat &amp; bersih. Cth: Memilah sampah, buang botol ke drop-box, foto tumbler.</p>
+                            </div>
+                            <div className="p-2 rounded-xl bg-white/90 border border-amber-100 space-y-0.5 shadow-2xs">
+                              <p className="font-bold text-slate-800">
+                                🌿 Sedang (10-20 mnt): <span className="text-amber-700 font-mono font-black">15 - 20 GC</span>
+                              </p>
+                              <p className="text-slate-500">Keterlibatan aktif ringan. Cth: Pemanfaatan Biopori, pengomposan, survei stan.</p>
+                            </div>
+                            <div className="p-2 rounded-xl bg-white/90 border border-amber-100 space-y-0.5 shadow-2xs">
+                              <p className="font-bold text-slate-800">
+                                🧹 Fisik / Kolektif (20-30 mnt): <span className="text-amber-700 font-mono font-black">25 - 30 GC</span>
+                              </p>
+                              <p className="text-slate-500">Tenaga fisik gotong royong. Cth: Membersihkan fasilitas kampus, sapu selasar.</p>
+                            </div>
+                            <div className="p-2 rounded-xl bg-white/90 border border-amber-100 space-y-0.5 shadow-2xs">
+                              <p className="font-bold text-slate-800">
+                                🏆 Berat / Ekstra (&gt; 30 mnt): <span className="text-amber-700 font-mono font-black">35 - 50 GC</span>
+                              </p>
+                              <p className="text-slate-500">Tenaga fisik berat/kotor/basah. Cth: Bersih-bersih kolam ikan, kuras lumpur/selokan.</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
                       {eventFormData.activities.length === 0 ? (
                         <div className="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-4 text-center space-y-1.5">
                           <p className="text-xs font-bold text-slate-700">Event ini tidak memiliki pos aktivitas terpisah.</p>
@@ -2126,41 +2186,98 @@ export const AdminLtePage: React.FC = () => {
                         </div>
                       ) : (
                         eventFormData.activities.map((act, idx) => (
-                          <div key={idx} className="flex gap-2 items-start bg-slate-50 p-3 rounded-xl border border-slate-200">
-                            <div className="flex-1 space-y-2">
+                          <div key={idx} className="flex gap-2 items-start bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                            <div className="flex-1 space-y-2.5">
                               <input
                                 type="text"
-                                placeholder={`Nama Pos ${idx + 1}`}
+                                placeholder={`Nama Pos ${idx + 1} (cth: Bersih kolam ikan)`}
                                 value={act.name}
                                 onChange={(e) => updateActivityField(idx, 'name', e.target.value)}
-                                className="w-full text-xs p-2 rounded-xl border border-slate-300 bg-white focus:outline-none"
+                                className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-white focus:outline-none font-bold"
                                 required
                               />
                               <input
                                 type="text"
-                                placeholder="Deskripsi singkat pos"
+                                placeholder="Deskripsi singkat pos aktivitas..."
                                 value={act.description}
                                 onChange={(e) => updateActivityField(idx, 'description', e.target.value)}
                                 className="w-full text-xs p-2 rounded-xl border border-slate-300 bg-white focus:outline-none"
                               />
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-slate-500">Reward:</span>
-                                <input
-                                  type="number"
-                                  min={1}
-                                  max={100}
-                                  value={act.coinsReward}
-                                  onChange={(e) => updateActivityField(idx, 'coinsReward', Number(e.target.value))}
-                                  className="w-20 text-xs p-2 rounded-xl border border-slate-300 bg-white focus:outline-none font-mono"
-                                />
-                                <span className="text-xs text-amber-700 font-bold">GC</span>
+
+                              {/* Quick Effort Presets (Green Coins Only) */}
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="text-[10px] text-slate-400 font-bold">Preset GC:</span>
+                                <button
+                                  type="button"
+                                  onClick={() => applyActivityPreset(idx, 10)}
+                                  className={`px-2 py-0.5 text-[10px] font-bold rounded-lg border transition-colors ${
+                                    act.coinsReward === 10
+                                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                  }`}
+                                  title="Minimal: Usaha cepat & bersih (cth: pilah sampah)"
+                                >
+                                  🌱 10 GC
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => applyActivityPreset(idx, 15)}
+                                  className={`px-2 py-0.5 text-[10px] font-bold rounded-lg border transition-colors ${
+                                    act.coinsReward === 15
+                                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                  }`}
+                                  title="Sedang: Keterlibatan aktif (cth: biopori)"
+                                >
+                                  🌿 15 GC
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => applyActivityPreset(idx, 25)}
+                                  className={`px-2 py-0.5 text-[10px] font-bold rounded-lg border transition-colors ${
+                                    act.coinsReward === 25
+                                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                  }`}
+                                  title="Fisik: Gotong royong (cth: bersih fasilitas)"
+                                >
+                                  🧹 25 GC
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => applyActivityPreset(idx, 40)}
+                                  className={`px-2 py-0.5 text-[10px] font-bold rounded-lg border transition-colors ${
+                                    act.coinsReward === 40
+                                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                  }`}
+                                  title="Berat: Tenaga ekstra/kotor/basah (cth: bersih kolam)"
+                                >
+                                  🏆 40 GC
+                                </button>
+                              </div>
+
+                              {/* Manual Coins Number Input */}
+                              <div className="pt-0.5">
+                                <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 w-fit">
+                                  <span className="text-[11px] text-slate-600 font-bold">Reward Koin:</span>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={100}
+                                    value={act.coinsReward}
+                                    onChange={(e) => updateActivityField(idx, 'coinsReward', Number(e.target.value))}
+                                    className="w-16 text-xs p-1 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none font-mono text-center font-bold"
+                                  />
+                                  <span className="text-xs text-amber-700 font-black">GC</span>
+                                </div>
                               </div>
                             </div>
                             <button
                               type="button"
                               onClick={() => removeActivityField(idx)}
                               title="Hapus pos ini"
-                              className="p-1.5 rounded-lg hover:bg-rose-100 text-rose-500 hover:text-rose-700 transition-colors"
+                              className="p-1.5 rounded-lg hover:bg-rose-100 text-rose-500 hover:text-rose-700 transition-colors shrink-0"
                             >
                               <X className="w-4 h-4" />
                             </button>

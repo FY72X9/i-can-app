@@ -364,9 +364,13 @@ export const UploadPage: React.FC = () => {
         story: story || (isSurvey ? `Pengajuan survei lokasi ${selectedCategory.name}` : 'Aksi nyata keberlanjutan kampus BINUS'),
         campaignUrl: campaignUrl || undefined,
         groupMembers: groupMembers.length > 0 ? groupMembers : undefined,
-        greenCoinsEarned: isSurvey ? 10 : selectedCategory.defaultCoins,
+        greenCoinsEarned: isSurvey ? 10 : (linkedActivity?.coinsReward ?? selectedCategory.defaultCoins),
         carbonImpactKg: isSurvey ? 0 : selectedCategory.carbonKg,
-        satPointsEarned: isSurvey ? 0 : selectedCategory.defaultSat,
+        satPointsEarned: isSurvey
+          ? 0
+          : (linkedActivity?.satPointsReward !== undefined && linkedActivity?.satPointsReward > 0
+            ? linkedActivity.satPointsReward
+            : selectedCategory.defaultSat),
         comservHoursEarned: isSurvey ? 0 : selectedCategory.defaultComservHours,
         status: 'PENDING',
         aiGuidelineScore: aiResult?.guidelineScore || 0.94,
@@ -539,7 +543,10 @@ Dampak: ${selectedCategory.carbonKg} kg CO2e
             <span className="text-xs font-black text-eco-900">Aksi Event: {linkedEvent.title}</span>
           </div>
           {linkedActivity && (
-            <p className="text-xs text-eco-700 font-bold">📍 Pos: {linkedActivity.name} • +{linkedActivity.coinsReward} GC</p>
+            <p className="text-xs text-eco-700 font-bold">
+              📍 Pos: {linkedActivity.name} • +{linkedActivity.coinsReward} GC
+              {linkedActivity.satPointsReward !== undefined && linkedActivity.satPointsReward > 0 && ` • +${linkedActivity.satPointsReward} SAT`}
+            </p>
           )}
         </div>
       )}
