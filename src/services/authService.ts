@@ -642,7 +642,60 @@ export async function batchImportAccounts(
   if (newAccounts.length > 0 || result.updated > 0) {
     const merged = [...accounts, ...newAccounts];
     localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(merged));
+
+    // Auto-sync newly imported accounts to Supabase if configured
+    if (isConfigured) {
+      try {
+        await syncAccountsToSupabase(merged);
+      } catch (err) {
+        console.warn('Auto-sync to Supabase failed:', err);
+      }
+    }
   }
 
   return result;
+}
+
+/**
+ * Synchronize local user accounts to Supabase public.users table
+ */
+export async function syncAccountsToSupabase(
+  accountsToSync?: StoredAuthAccount[]
+): Promise<{ count: number; error?: string }> {
+  if (!isConfigured) {
+    return { count: 0, error: 'Koneksi Supabase belum dikonfigurasi di file .env' };
+  }
+
+  try {
+    const list = accountsToSync || (await getStoredAccounts());
+    if (!list || list.length === 0) return { count: 0 };
+
+    const rows = list.map((acc) => ({
+      nim: acc.nim,
+      email: acc.email,
+      full_name: acc.fullName,
+      role: acc.role === 'SUPERADMIN' ? 'ADMIN' : acc.role === 'ORGANIZER' ? 'VERIFIER' : 'STUDENT',
+      avatar_url: acc.avatarUrl || null,
+      total_green_coins: acc.totalGreenCoins || 0,
+      total_sat_points: acc.totalSatPoints || 0,
+      total_carbon_saved: acc.totalCarbonSaved || 0.0,
+      streak_days: acc.streakDays || 1,
+      created_at: acc.createdAt || new Date().toISOString(),
+    }));
+
+    const { data, error } = await supabase
+      .from('users')
+      .upsert(rows, { onConflict: 'nim' })
+      .select();
+
+    if (error) {
+      console.warn('Supabase upsert error:', error);
+      return { count: 0, error: error.message };
+    }
+
+    return { count: data?.length || rows.length };
+  } catch (err: any) {
+    console.error('Error saat sync ke Supabase:', err);
+    return { count: 0, error: err.message };
+  }
 }
