@@ -19,23 +19,22 @@ export const SEEDED_INITIAL_ACTIONS: GreenAction[] = [];
 export async function getActions(): Promise<GreenAction[]> {
   if (isConfigured) {
     try {
+      // No embedded relationship joins — user_id/category_id are plain text
+      // with no FK (see fix_actions_schema_mismatch.sql), so name/icon are
+      // read from the denormalized columns written at submission time.
       const { data, error } = await supabase
         .from('actions')
-        .select(`
-          *,
-          users (full_name, nim),
-          action_categories (name, icon, emission_factor, base_coins)
-        `)
+        .select('*')
         .order('submitted_at', { ascending: false });
 
       if (!error && data) {
         return data.map((item: any) => ({
           id: item.id,
           userId: item.user_id,
-          userName: item.users?.full_name || 'Mahasiswa BINUS',
+          userName: item.user_name || 'Mahasiswa BINUS',
           categoryId: item.category_id,
-          categoryName: item.action_categories?.name || 'Aksi Hijau',
-          categoryIcon: item.action_categories?.icon || 'Leaf',
+          categoryName: item.category_name || 'Aksi Hijau',
+          categoryIcon: item.category_icon || 'Leaf',
           submissionType: item.submission_type,
           isSurveyProposal: item.is_survey_proposal,
           actionStep: item.action_step,
@@ -140,7 +139,10 @@ export async function submitGreenAction(
         .insert({
           id: newAction.id,
           user_id: newAction.userId,
+          user_name: newAction.userName,
           category_id: newAction.categoryId,
+          category_name: newAction.categoryName,
+          category_icon: newAction.categoryIcon,
           submission_type: newAction.submissionType,
           event_id: newAction.eventId,
           event_activity_id: newAction.eventActivityId,

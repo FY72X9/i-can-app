@@ -1,4 +1,6 @@
 -- ============================================================
+-- SUPERSEDED by schema_final.sql — do not run this file anymore, kept for history.
+-- ============================================================
 -- FIX: Allow INSERT into public.users for imported students
 -- Run this in Supabase Dashboard > SQL Editor
 -- ============================================================

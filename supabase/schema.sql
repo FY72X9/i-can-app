@@ -1,4 +1,6 @@
 -- ==============================================================================
+-- SUPERSEDED by schema_final.sql — do not run this file anymore, kept for history.
+-- ==============================================================================
 -- I-CAN PLATFORM — POSTGRESQL 15 DATABASE SCHEMA (SUPABASE)
 -- Execute this script in Supabase SQL Editor (https://supabase.com/dashboard)
 -- ==============================================================================

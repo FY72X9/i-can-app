@@ -106,7 +106,9 @@ export const getEvents = async (statusFilter?: EventStatus): Promise<CampusEvent
         query = query.eq('status', statusFilter);
       }
       const { data, error } = await query;
-      if (!error && data && data.length > 0) {
+      // Trust Supabase's result even when it's an empty array — that is a valid
+      // "no events yet" state and must not be silently replaced by stale/local data.
+      if (!error && data) {
         return data.map(mapDbEventToModel);
       }
     } catch (err) {

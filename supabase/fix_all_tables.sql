@@ -1,4 +1,6 @@
 -- ==============================================================================
+-- SUPERSEDED by schema_final.sql — do not run this file anymore, kept for history.
+-- ==============================================================================
 -- I-CAN PLATFORM — RECREATE ALL TABLES (users table was deleted)
 -- Run this in Supabase Dashboard > SQL Editor
 -- ==============================================================================

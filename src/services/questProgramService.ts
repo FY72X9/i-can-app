@@ -218,7 +218,15 @@ export const getDailyQuests = async (): Promise<DailyQuest[]> => {
         .from('daily_quests')
         .select('*')
         .order('created_at', { ascending: false });
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
+        if (data.length === 0) {
+          // Table genuinely empty (first run) — seed centrally so every user sees the same defaults
+          try {
+            await supabase.from('daily_quests').upsert(DEFAULT_DAILY_QUESTS.map(mapQuestToDbRow), { onConflict: 'id' });
+          } catch { /* ignore */ }
+          localStorage.setItem(LOCAL_QUESTS_KEY, JSON.stringify(DEFAULT_DAILY_QUESTS));
+          return DEFAULT_DAILY_QUESTS;
+        }
         const quests = data.map(mapDbRowToQuest);
         // Mirror to localStorage
         localStorage.setItem(LOCAL_QUESTS_KEY, JSON.stringify(quests));
@@ -369,7 +377,15 @@ export const getActionPrograms = async (): Promise<ActionProgram[]> => {
         .from('action_programs')
         .select('*')
         .order('order', { ascending: true });
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
+        if (data.length === 0) {
+          // Table genuinely empty (first run) — seed centrally so every user sees the same defaults
+          try {
+            await supabase.from('action_programs').upsert(DEFAULT_ACTION_PROGRAMS.map(mapProgramToDbRow), { onConflict: 'id' });
+          } catch { /* ignore */ }
+          localStorage.setItem(LOCAL_PROGRAMS_KEY, JSON.stringify(DEFAULT_ACTION_PROGRAMS));
+          return DEFAULT_ACTION_PROGRAMS;
+        }
         const programs = data.map(mapDbRowToProgram);
         // Mirror to localStorage
         localStorage.setItem(LOCAL_PROGRAMS_KEY, JSON.stringify(programs));
