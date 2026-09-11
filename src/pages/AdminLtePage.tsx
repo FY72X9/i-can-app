@@ -70,10 +70,14 @@ import {
   Tag,
   Upload,
   MapPin,
-  Shirt
+  Shirt,
+  FileSpreadsheet,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { compressImage } from '@/utils/imageCompressor';
 import { FormattedText } from '@/components/common/FormattedText';
+import { ImportUsersModal } from '@/components/admin/ImportUsersModal';
 
 const PROGRAM_ICONS_LIST = [
   { id: 'TreePine', label: 'Pohon', icon: TreePine },
@@ -141,6 +145,7 @@ export const AdminLtePage: React.FC = () => {
   const [eventTimelineFilter, setEventTimelineFilter] = useState<'ALL' | 'TODAY' | 'UPCOMING' | 'PAST'>('ALL');
   const [showEventForm, setShowEventForm] = useState(false);
   const [showUserForm, setShowUserForm] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [showUserPassword, setShowUserPassword] = useState(false);
   const [userFormError, setUserFormError] = useState<string | null>(null);
   const [isCreatingUser, setIsCreatingUser] = useState(false);
@@ -168,8 +173,14 @@ export const AdminLtePage: React.FC = () => {
   const [isEditingUser, setIsEditingUser] = useState(false);
   const [showEditPassword, setShowEditPassword] = useState(false);
 
-  // Status filter for user list
+  // Status filter and Pagination for user list
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [usersCurrentPage, setUsersCurrentPage] = useState<number>(1);
+  const [usersItemsPerPage, setUsersItemsPerPage] = useState<number>(10);
+
+  useEffect(() => {
+    setUsersCurrentPage(1);
+  }, [searchTerm, statusFilter]);
 
   const [editingEvent, setEditingEvent] = useState<CampusEvent | null>(null);
   const [descPreviewMode, setDescPreviewMode] = useState<'write' | 'preview'>('write');
@@ -890,6 +901,13 @@ export const AdminLtePage: React.FC = () => {
     );
   });
 
+  // Paginate Users List
+  const usersTotalPages = Math.max(1, Math.ceil(filteredUsersList.length / usersItemsPerPage));
+  const paginatedUsersList = filteredUsersList.slice(
+    (usersCurrentPage - 1) * usersItemsPerPage,
+    usersCurrentPage * usersItemsPerPage
+  );
+
   // Count active superadmins for guardrail logic
   const activeSuperadminsCount = usersList.filter((u) => u.role === 'SUPERADMIN' && !u.isDeleted).length;
 
@@ -966,7 +984,7 @@ export const AdminLtePage: React.FC = () => {
           {/* User Profile Bar */}
           <div className="flex items-center gap-2.5 pb-3 border-b border-[#4f5962]">
             <img
-              src={user?.avatarUrl || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80"}
+              src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'Admin')}&background=7c3aed&color=fff&bold=true&size=150`}
               alt={user?.fullName || "User"}
               className={`w-9 h-9 rounded-full object-cover ring-2 ${user?.role === 'SUPERADMIN' ? 'ring-[#007bff]' : 'ring-amber-500'}`}
             />
@@ -1271,17 +1289,31 @@ export const AdminLtePage: React.FC = () => {
                     />
                   </div>
                   {user?.role === 'SUPERADMIN' && (
-                    <button
-                      onClick={() => {
-                        setShowUserForm(true);
-                        setUserFormError(null);
-                      }}
-                      className="px-3 py-1.5 rounded-xl bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs shrink-0"
-                      title="Tambah Pengguna Baru (Khusus Superadmin)"
-                    >
-                      <UserPlus className="w-3.5 h-3.5" />
-                      <span>Tambah Pengguna</span>
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          console.log('[AdminLTE] Opening Import Excel Modal');
+                          setShowImportModal(true);
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs shrink-0 cursor-pointer"
+                        title="Import Pengguna Mahasiswa dari Excel / CSV (Khusus Superadmin)"
+                      >
+                        <FileSpreadsheet className="w-3.5 h-3.5" />
+                        <span>Import Excel</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowUserForm(true);
+                          setUserFormError(null);
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-[#28a745] hover:bg-[#218838] text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs shrink-0"
+                        title="Tambah Pengguna Baru (Khusus Superadmin)"
+                      >
+                        <UserPlus className="w-3.5 h-3.5" />
+                        <span>Tambah Pengguna</span>
+                      </button>
+                    </>
                   )}
               </div>
               </div>
@@ -1335,7 +1367,7 @@ export const AdminLtePage: React.FC = () => {
                         </td>
                       </tr>
                     ) : (
-                      filteredUsersList.map((u) => {
+                      paginatedUsersList.map((u) => {
                         const isDeactivated = u.isDeleted === true;
                         const isSelf = user?.id === u.id;
                         const isLastSuperadmin = u.role === 'SUPERADMIN' && activeSuperadminsCount <= 1;
@@ -1347,7 +1379,11 @@ export const AdminLtePage: React.FC = () => {
                             <td className="p-3 font-mono text-xs text-slate-600 font-semibold">{u.nim}</td>
                             <td className="p-3 font-bold text-slate-900">
                               <div className="flex items-center gap-2.5">
-                                <img src={u.avatarUrl} alt={u.fullName} className="w-7 h-7 rounded-full object-cover" />
+                                <img
+                                  src={u.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName || 'User')}&background=059669&color=fff&bold=true&size=150`}
+                                  alt={u.fullName}
+                                  className="w-7 h-7 rounded-full object-cover"
+                                />
                                 <div>
                                   <span className="block">{u.fullName}</span>
                                   <span className="block text-[10px] font-medium text-slate-400">{u.email}</span>
@@ -1446,6 +1482,101 @@ export const AdminLtePage: React.FC = () => {
                     )}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Users Pagination Controls */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-xs font-medium text-slate-500">
+                    Menampilkan{' '}
+                    <strong className="text-slate-800 font-bold">
+                      {filteredUsersList.length === 0 ? 0 : (usersCurrentPage - 1) * usersItemsPerPage + 1}
+                    </strong>
+                    {' '}-{' '}
+                    <strong className="text-slate-800 font-bold">
+                      {Math.min(usersCurrentPage * usersItemsPerPage, filteredUsersList.length)}
+                    </strong>
+                    {' '}dari{' '}
+                    <strong className="text-slate-800 font-bold">{filteredUsersList.length}</strong> Akun
+                  </span>
+
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <span className="text-[11px] text-slate-400 font-medium">Tampilkan:</span>
+                    <select
+                      value={usersItemsPerPage}
+                      onChange={(e) => {
+                        setUsersItemsPerPage(Number(e.target.value));
+                        setUsersCurrentPage(1);
+                      }}
+                      className="text-xs font-bold border border-slate-200 rounded-lg px-2 py-1 bg-slate-50 focus:bg-white focus:outline-none cursor-pointer"
+                    >
+                      <option value={5}>5 / hal</option>
+                      <option value={10}>10 / hal</option>
+                      <option value={20}>20 / hal</option>
+                      <option value={50}>50 / hal</option>
+                      <option value={100}>100 / hal</option>
+                    </select>
+                  </div>
+                </div>
+
+                {usersTotalPages > 1 && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setUsersCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={usersCurrentPage === 1}
+                      className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 text-slate-700"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                      <span className="hidden xs:inline">Prev</span>
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: usersTotalPages }, (_, i) => i + 1)
+                        .filter((p) => {
+                          if (p === 1 || p === usersTotalPages) return true;
+                          return Math.abs(p - usersCurrentPage) <= 1;
+                        })
+                        .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                          if (idx > 0 && p - (arr[idx - 1] as number) > 1) {
+                            acc.push('...');
+                          }
+                          acc.push(p);
+                          return acc;
+                        }, [])
+                        .map((item, idx) =>
+                          item === '...' ? (
+                            <span key={`ellipsis-${idx}`} className="px-1 text-xs text-slate-400 font-bold">
+                              ...
+                            </span>
+                          ) : (
+                            <button
+                              key={`page-${item}`}
+                              type="button"
+                              onClick={() => setUsersCurrentPage(Number(item))}
+                              className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+                                usersCurrentPage === item
+                                  ? 'bg-[#007bff] text-white shadow-xs'
+                                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                              }`}
+                            >
+                              {item}
+                            </button>
+                          )
+                        )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setUsersCurrentPage((p) => Math.min(usersTotalPages, p + 1))}
+                      disabled={usersCurrentPage === usersTotalPages}
+                      className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 text-slate-700"
+                    >
+                      <span className="hidden xs:inline">Next</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -3027,6 +3158,16 @@ export const AdminLtePage: React.FC = () => {
           )}
         </main>
       </div>
+
+      {/* Import Users from Excel Modal (Superadmin) */}
+      <ImportUsersModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onSuccess={() => {
+          loadData();
+        }}
+        existingUsers={usersList}
+      />
 
       {/* User Creation Modal (Superadmin) */}
       {showUserForm && (

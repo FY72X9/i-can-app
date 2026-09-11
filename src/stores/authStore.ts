@@ -12,7 +12,12 @@ import {
   restoreAccountByAdmin,
   normalizeUserRole,
   EditUserParams,
-  validateUserIdentifier
+  validateUserIdentifier,
+  batchImportAccounts,
+  BatchImportUserItem,
+  BatchImportOptions,
+  BatchImportResult,
+  getNeutralAvatarUrl
 } from '@/services/authService';
 
 // Default initial seeded profiles
@@ -25,7 +30,7 @@ export const DEMO_PROFILES: Record<string, UserProfile> = {
     role: 'SUPERADMIN',
     facultyId: 'fac-sso',
     facultyName: 'Student Service Office (SSO)',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    avatarUrl: getNeutralAvatarUrl('Hendra Kusuma, M.Kom', '1980010101', 'SUPERADMIN'),
     totalGreenCoins: 2400,
     totalSatPoints: 120,
     totalCarbonSaved: 62.00,
@@ -53,6 +58,7 @@ interface AuthState {
   editUserAccount: (userId: string, data: EditUserParams) => Promise<{ user?: UserProfile; error?: string }>;
   softDeleteUserAccount: (userId: string) => Promise<{ success?: boolean; error?: string }>;
   restoreUserAccount: (userId: string) => Promise<{ success?: boolean; error?: string }>;
+  batchImportUsers: (items: BatchImportUserItem[], options?: BatchImportOptions) => Promise<BatchImportResult>;
   setUser: (user: UserProfile | null) => void;
 }
 
@@ -65,6 +71,10 @@ export const useAuthStore = create<AuthState>((set, get) => {
       initialUser = JSON.parse(savedUser);
       if (initialUser) {
         initialUser.role = normalizeUserRole(initialUser.role);
+        if (!initialUser.avatarUrl || initialUser.avatarUrl.includes('photo-1535713875002-d1d0cf377fde') || initialUser.avatarUrl.includes('photo-1500648767791-00dcc994a43e')) {
+          initialUser.avatarUrl = getNeutralAvatarUrl(initialUser.fullName, initialUser.nim, initialUser.role);
+          localStorage.setItem('i_can_user', JSON.stringify(initialUser));
+        }
       }
     } catch {
       initialUser = null;
@@ -315,6 +325,22 @@ export const useAuthStore = create<AuthState>((set, get) => {
       } catch (err: any) {
         set({ isLoading: false });
         return { error: err.message || 'Gagal memulihkan akun' };
+      }
+    },
+
+    batchImportUsers: async (items, options) => {
+      if (get().user?.role !== 'SUPERADMIN') {
+        throw new Error('Akses ditolak. Hanya Superadmin yang dapat melakukan import massal.');
+      }
+      set({ isLoading: true, authError: null });
+      try {
+        const result = await batchImportAccounts(items, options);
+        await get().loadUsersList();
+        set({ isLoading: false });
+        return result;
+      } catch (err: any) {
+        set({ isLoading: false, authError: err?.message || 'Gagal import pengguna' });
+        throw err;
       }
     },
 

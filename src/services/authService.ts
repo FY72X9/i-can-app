@@ -82,6 +82,12 @@ export interface EditUserParams {
   newPassword?: string;
 }
 
+export function getNeutralAvatarUrl(name: string = 'User', identifier?: string, role?: UserRole): string {
+  const clean = encodeURIComponent((name || identifier || 'User').trim());
+  const bg = role === 'SUPERADMIN' ? '7c3aed' : role === 'ORGANIZER' ? 'd97706' : '059669';
+  return `https://ui-avatars.com/api/?name=${clean}&background=${bg}&color=fff&bold=true&size=150`;
+}
+
 /**
  * In-memory / localStorage seed accounts for instant demo & testing
  */
@@ -93,7 +99,7 @@ const DEFAULT_SEEDED_ACCOUNTS: Omit<StoredAuthAccount, 'passwordHash'>[] = [
     fullName: 'Hendra Kusuma, M.Kom (Super Admin)',
     facultyName: 'Student Service Office (SSO)',
     role: 'SUPERADMIN',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    avatarUrl: getNeutralAvatarUrl('Hendra Kusuma, M.Kom', '1980010101', 'SUPERADMIN'),
     totalGreenCoins: 2400,
     totalSatPoints: 120,
     totalCarbonSaved: 62.00,
@@ -111,12 +117,16 @@ export async function getStoredAccounts(): Promise<StoredAuthAccount[]> {
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length >= 1) {
-        // Auto-migrate legacy roles on read
+        // Auto-migrate legacy roles and male avatar photos to neutral avatars on read
         let modified = false;
         parsed.forEach((acc: any) => {
           const norm = normalizeUserRole(acc.role);
           if (acc.role !== norm) {
             acc.role = norm;
+            modified = true;
+          }
+          if (!acc.avatarUrl || acc.avatarUrl.includes('photo-1535713875002-d1d0cf377fde') || acc.avatarUrl.includes('photo-1500648767791-00dcc994a43e')) {
+            acc.avatarUrl = getNeutralAvatarUrl(acc.fullName, acc.nim, acc.role);
             modified = true;
           }
         });
@@ -172,15 +182,16 @@ export async function createAccountByAdmin(params: RegisterParams): Promise<{ us
   }
 
   const passwordHash = await hashPassword(password);
+  const targetRole = normalizeUserRole(role);
   const newAccount: StoredAuthAccount = {
     id: `usr-${Date.now()}`,
     nim: cleanNim,
     email: cleanEmail,
     fullName: fullName.trim(),
     facultyName: facultyName || 'Universitas',
-    role: normalizeUserRole(role),
+    role: targetRole,
     passwordHash,
-    avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+    avatarUrl: getNeutralAvatarUrl(fullName.trim(), cleanNim, targetRole),
     totalGreenCoins: 50,
     totalSatPoints: 0,
     totalCarbonSaved: 0.0,
@@ -275,7 +286,7 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
     facultyName: facultyName || 'School of Computer Science',
     role,
     passwordHash,
-    avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+    avatarUrl: getNeutralAvatarUrl(fullName.trim(), cleanNim, role),
     totalGreenCoins: 50, // Welcome bonus
     totalSatPoints: 0,
     totalCarbonSaved: 0.0,
@@ -474,4 +485,164 @@ export async function restoreAccountByAdmin(userId: string): Promise<{ success?:
   accounts[index].deletedAt = undefined;
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
   return { success: true };
+}
+
+export interface BatchImportUserItem {
+  nim: string;
+  fullName: string;
+  email: string;
+  facultyName: string;
+  password?: string;
+  role?: UserRole;
+}
+
+export interface BatchImportOptions {
+  defaultPassword?: string;
+  useNimAsPassword?: boolean;
+  duplicateAction?: 'skip' | 'update';
+  defaultRole?: UserRole;
+}
+
+export interface BatchImportResult {
+  total: number;
+  imported: number;
+  updated: number;
+  skipped: number;
+  failed: number;
+  errors: { row?: number; identifier: string; reason: string }[];
+}
+
+/**
+ * Batch import user accounts (e.g. from Excel)
+ */
+export async function batchImportAccounts(
+  items: BatchImportUserItem[],
+  options: BatchImportOptions = {}
+): Promise<BatchImportResult> {
+  const {
+    defaultPassword = 'binus123',
+    useNimAsPassword = false,
+    duplicateAction = 'skip',
+    defaultRole = 'MAHASISWA',
+  } = options;
+
+  const accounts = await getStoredAccounts();
+  const existingByNim = new Map<string, number>();
+  const existingByEmail = new Map<string, number>();
+
+  accounts.forEach((acc, idx) => {
+    if (acc.nim) existingByNim.set(acc.nim.toLowerCase().trim(), idx);
+    if (acc.email) existingByEmail.set(acc.email.toLowerCase().trim(), idx);
+  });
+
+  // Pre-calculate hash for default password to avoid computing SHA-256 for hundreds of identical passwords
+  let cachedDefaultHash: string | null = null;
+  if (!useNimAsPassword) {
+    cachedDefaultHash = await hashPassword(defaultPassword);
+  }
+
+  const result: BatchImportResult = {
+    total: items.length,
+    imported: 0,
+    updated: 0,
+    skipped: 0,
+    failed: 0,
+    errors: [],
+  };
+
+  const newAccounts: StoredAuthAccount[] = [];
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const cleanNim = item.nim.trim();
+    const cleanEmail = item.email.trim().toLowerCase();
+    const cleanName = item.fullName.trim();
+    const cleanFaculty = item.facultyName.trim() || 'School of Computer Science';
+    const role = normalizeUserRole(item.role || defaultRole);
+
+    // Validate identifier
+    const check = validateUserIdentifier(cleanNim, role);
+    if (!check.valid) {
+      result.failed++;
+      result.errors.push({
+        row: i + 1,
+        identifier: cleanNim || cleanName,
+        reason: check.error || 'Identifier tidak valid',
+      });
+      continue;
+    }
+
+    if (!cleanEmail.includes('@')) {
+      result.failed++;
+      result.errors.push({
+        row: i + 1,
+        identifier: cleanNim,
+        reason: 'Format email tidak valid',
+      });
+      continue;
+    }
+
+    const lowerNim = cleanNim.toLowerCase();
+    const existingIndex = existingByNim.has(lowerNim)
+      ? existingByNim.get(lowerNim)!
+      : existingByEmail.has(cleanEmail)
+      ? existingByEmail.get(cleanEmail)!
+      : -1;
+
+    if (existingIndex !== -1) {
+      if (duplicateAction === 'skip') {
+        result.skipped++;
+        continue;
+      } else if (duplicateAction === 'update') {
+        // Update existing record without touching coins / sat / password unless specified
+        accounts[existingIndex].fullName = cleanName;
+        accounts[existingIndex].facultyName = cleanFaculty;
+        accounts[existingIndex].email = cleanEmail;
+        accounts[existingIndex].role = role;
+        result.updated++;
+        continue;
+      }
+    }
+
+    // Determine password hash
+    let finalHash: string;
+    if (item.password) {
+      finalHash = await hashPassword(item.password);
+    } else if (useNimAsPassword) {
+      finalHash = await hashPassword(cleanNim);
+    } else {
+      if (!cachedDefaultHash) {
+        cachedDefaultHash = await hashPassword(defaultPassword);
+      }
+      finalHash = cachedDefaultHash;
+    }
+
+    const newAcc: StoredAuthAccount = {
+      id: `usr-imp-${Date.now()}-${i}`,
+      nim: cleanNim,
+      email: cleanEmail,
+      fullName: cleanName,
+      facultyName: cleanFaculty,
+      role,
+      passwordHash: finalHash,
+      avatarUrl: getNeutralAvatarUrl(cleanName, cleanNim, role),
+      totalGreenCoins: 50,
+      totalSatPoints: 0,
+      totalCarbonSaved: 0.0,
+      streakDays: 1,
+      createdAt: new Date().toISOString(),
+    };
+
+    newAccounts.push(newAcc);
+    existingByNim.set(lowerNim, accounts.length + newAccounts.length - 1);
+    existingByEmail.set(cleanEmail, accounts.length + newAccounts.length - 1);
+    result.imported++;
+  }
+
+  if (newAccounts.length > 0 || result.updated > 0) {
+    const merged = [...accounts, ...newAccounts];
+    localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(merged));
+  }
+
+  return result;
 }
