@@ -232,7 +232,7 @@ export const HomePage: React.FC = () => {
 
             {/* Cards Carousel or Empty State */}
             {displayedEvents.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 no-scrollbar snap-x snap-mandatory">
+              <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 no-scrollbar">
                 {displayedEvents.slice(0, 6).map((evt) => {
                   const category = getEventTimelineCategory(evt);
                   const startDateFormatted = new Date(evt.startDate).toLocaleDateString('id-ID', {
@@ -248,50 +248,50 @@ export const HomePage: React.FC = () => {
                     <Link
                       key={evt.id}
                       to={`/events/${evt.id}`}
-                      className="shrink-0 w-full sm:w-72 bg-white rounded-3xl border border-surface-border shadow-eco-soft overflow-hidden hover:shadow-eco-card transition-all active:scale-[0.98] group flex flex-col justify-between snap-center"
+                      className="shrink-0 w-64 bg-white rounded-2xl border border-surface-border shadow-eco-soft overflow-hidden hover:shadow-eco-card transition-all active:scale-[0.97] group flex flex-col justify-between"
                     >
                       <div>
                         {evt.bannerUrl && (
-                          <div className="h-44 sm:h-36 overflow-hidden relative bg-slate-100">
+                          <div className="h-28 overflow-hidden relative">
                             <img
                               src={evt.bannerUrl}
                               alt={evt.title}
-                              className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
                             {/* Timeline Status Pill */}
-                            <div className="absolute top-2.5 left-2.5">
+                            <div className="absolute top-2 left-2">
                               {category === 'TODAY' && (
-                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-white shadow-md flex items-center gap-1">
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500 text-white shadow-xs flex items-center gap-1">
                                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
                                   Hari Ini
                                 </span>
                               )}
                               {category === 'UPCOMING' && (
-                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-600 text-white shadow-md">
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-600 text-white shadow-xs">
                                   🗓️ Akan Datang
                                 </span>
                               )}
                               {category === 'PAST' && (
-                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-700/80 text-white shadow-md">
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-700/80 text-white shadow-xs">
                                   Selesai
                                 </span>
                               )}
                             </div>
                           </div>
                         )}
-                        <div className="p-4 space-y-1.5">
-                          <h4 className="text-sm sm:text-base font-black text-text-primary truncate group-hover:text-eco-700 transition-colors">
+                        <div className="p-3 space-y-1">
+                          <h4 className="text-xs font-black text-text-primary truncate group-hover:text-eco-700 transition-colors">
                             {evt.title}
                           </h4>
-                          <p className="text-xs text-text-muted truncate">{evt.organizerName}</p>
-                          <div className="flex items-center justify-between text-xs text-text-secondary pt-1 font-semibold">
+                          <p className="text-[10px] text-text-muted truncate">{evt.organizerName}</p>
+                          <div className="flex items-center justify-between text-[10px] text-text-secondary pt-1 font-semibold">
                             <span className="flex items-center gap-1">
-                              <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                              <Calendar className="w-3 h-3 text-amber-500" />
                               {startDateFormatted === endDateFormatted
                                 ? startDateFormatted
                                 : `${startDateFormatted} - ${endDateFormatted}`}
                             </span>
-                            <span className="text-eco-700 font-bold bg-eco-50 px-2.5 py-0.5 rounded-full">
+                            <span className="text-eco-700 font-bold">
                               {evt.activities.length} Pos
                             </span>
                           </div>
