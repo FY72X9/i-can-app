@@ -1,8 +1,9 @@
 // ==============================================================================
 // I-CAN PLATFORM — DAILY QUESTS & PROGRAM AKSI NYATA SERVICE
-// Manages Super Admin configuration with persistent local storage and fresh seed data
+// Manages Super Admin configuration with Supabase-first, localStorage fallback
 // ==============================================================================
 
+import { supabase, isConfigured } from '@/services/supabase';
 import { DailyQuest, ActionProgram } from '@/types';
 
 const LOCAL_QUESTS_KEY = 'i_can_daily_quests_v2';
@@ -112,14 +113,133 @@ export const DEFAULT_ACTION_PROGRAMS: ActionProgram[] = [
 ];
 
 // ============================================================
-// DAILY QUESTS CRUD
+// DB MAPPING HELPERS — DailyQuest
+// ============================================================
+
+function mapDbRowToQuest(row: any): DailyQuest {
+  return {
+    id: row.id,
+    title: row.title,
+    desc: row.desc,
+    reward: row.reward || '',
+    coinsReward: row.coins_reward ?? 0,
+    satReward: row.sat_reward ?? 0,
+    deadline: row.deadline || 'Sisa Hari Ini',
+    completed: row.completed ?? false,
+    actionUrl: row.action_url,
+    hashtags: row.hashtags || [],
+    isActive: row.is_active ?? true,
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at,
+  };
+}
+
+function mapQuestToDbRow(quest: DailyQuest): any {
+  return {
+    id: quest.id,
+    title: quest.title,
+    desc: quest.desc,
+    reward: quest.reward,
+    coins_reward: quest.coinsReward,
+    sat_reward: quest.satReward || 0,
+    deadline: quest.deadline,
+    completed: quest.completed || false,
+    action_url: quest.actionUrl,
+    hashtags: quest.hashtags || [],
+    is_active: quest.isActive,
+    created_at: quest.createdAt,
+    updated_at: quest.updatedAt,
+  };
+}
+
+// ============================================================
+// DB MAPPING HELPERS — ActionProgram
+// ============================================================
+
+function mapDbRowToProgram(row: any): ActionProgram {
+  return {
+    id: row.id,
+    title: row.title,
+    category: row.category || '',
+    categoryType: row.category_type || 'SELF_GREEN_CAMPAIGN',
+    satPoints: row.sat_points ?? 0,
+    comservHours: Number(row.comserv_hours ?? 0),
+    coins: row.coins ?? 0,
+    co2: row.co2 || '0.0 kg',
+    icon: row.icon || 'Leaf',
+    color: row.color || 'from-emerald-600 to-eco-800',
+    tag: row.tag || '',
+    urgency: row.urgency || '',
+    description: row.description || '',
+    samplePhotos: row.sample_photos || [],
+    suggestedPrompt: row.suggested_prompt,
+    hashtags: row.hashtags || [],
+    isActive: row.is_active ?? true,
+    order: row.order ?? 0,
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at,
+  };
+}
+
+function mapProgramToDbRow(prog: ActionProgram): any {
+  return {
+    id: prog.id,
+    title: prog.title,
+    category: prog.category,
+    category_type: prog.categoryType,
+    sat_points: prog.satPoints,
+    comserv_hours: prog.comservHours,
+    coins: prog.coins,
+    co2: prog.co2,
+    icon: prog.icon,
+    color: prog.color,
+    tag: prog.tag,
+    urgency: prog.urgency,
+    description: prog.description,
+    sample_photos: prog.samplePhotos || [],
+    suggested_prompt: prog.suggestedPrompt,
+    hashtags: prog.hashtags || [],
+    is_active: prog.isActive,
+    order: prog.order ?? 0,
+    created_at: prog.createdAt,
+    updated_at: prog.updatedAt,
+  };
+}
+
+// ============================================================
+// DAILY QUESTS CRUD — Supabase-first, localStorage fallback
 // ============================================================
 
 export const getDailyQuests = async (): Promise<DailyQuest[]> => {
+  // Try Supabase first
+  if (isConfigured) {
+    try {
+      const { data, error } = await supabase
+        .from('daily_quests')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (!error && data && data.length > 0) {
+        const quests = data.map(mapDbRowToQuest);
+        // Mirror to localStorage
+        localStorage.setItem(LOCAL_QUESTS_KEY, JSON.stringify(quests));
+        return quests;
+      }
+    } catch (err) {
+      console.warn('[questService] Supabase read failed, falling back to localStorage:', err);
+    }
+  }
+
+  // Fallback: localStorage
   try {
     const raw = localStorage.getItem(LOCAL_QUESTS_KEY);
     if (!raw) {
       localStorage.setItem(LOCAL_QUESTS_KEY, JSON.stringify(DEFAULT_DAILY_QUESTS));
+      // Seed to Supabase
+      if (isConfigured) {
+        try {
+          await supabase.from('daily_quests').upsert(DEFAULT_DAILY_QUESTS.map(mapQuestToDbRow), { onConflict: 'id' });
+        } catch { /* ignore */ }
+      }
       return DEFAULT_DAILY_QUESTS;
     }
     return JSON.parse(raw);
@@ -140,6 +260,17 @@ export const createDailyQuest = async (
   };
   const updated = [newQuest, ...quests];
   localStorage.setItem(LOCAL_QUESTS_KEY, JSON.stringify(updated));
+
+  // Sync to Supabase
+  if (isConfigured) {
+    try {
+      const { error } = await supabase.from('daily_quests').insert(mapQuestToDbRow(newQuest));
+      if (error) console.warn('[questService] Supabase insert quest error:', error.message);
+    } catch (err) {
+      console.warn('[questService] Supabase insert quest failed:', err);
+    }
+  }
+
   return newQuest;
 };
 
@@ -158,6 +289,20 @@ export const updateDailyQuest = async (
   };
   quests[index] = updatedQuest;
   localStorage.setItem(LOCAL_QUESTS_KEY, JSON.stringify(quests));
+
+  // Sync to Supabase
+  if (isConfigured) {
+    try {
+      const { error } = await supabase
+        .from('daily_quests')
+        .update(mapQuestToDbRow(updatedQuest))
+        .eq('id', id);
+      if (error) console.warn('[questService] Supabase update quest error:', error.message);
+    } catch (err) {
+      console.warn('[questService] Supabase update quest failed:', err);
+    }
+  }
+
   return updatedQuest;
 };
 
@@ -166,6 +311,17 @@ export const deleteDailyQuest = async (id: string): Promise<boolean> => {
   const filtered = quests.filter((q) => q.id !== id);
   if (filtered.length === quests.length) return false;
   localStorage.setItem(LOCAL_QUESTS_KEY, JSON.stringify(filtered));
+
+  // Delete from Supabase
+  if (isConfigured) {
+    try {
+      const { error } = await supabase.from('daily_quests').delete().eq('id', id);
+      if (error) console.warn('[questService] Supabase delete quest error:', error.message);
+    } catch (err) {
+      console.warn('[questService] Supabase delete quest failed:', err);
+    }
+  }
+
   return true;
 };
 
@@ -187,18 +343,54 @@ export const completeDailyQuest = async (id: string): Promise<DailyQuest | null>
 
 export const resetDailyQuestsToDefault = async (): Promise<DailyQuest[]> => {
   localStorage.setItem(LOCAL_QUESTS_KEY, JSON.stringify(DEFAULT_DAILY_QUESTS));
+
+  // Reset in Supabase too
+  if (isConfigured) {
+    try {
+      await supabase.from('daily_quests').delete().neq('id', '');
+      await supabase.from('daily_quests').insert(DEFAULT_DAILY_QUESTS.map(mapQuestToDbRow));
+    } catch (err) {
+      console.warn('[questService] Supabase reset quests failed:', err);
+    }
+  }
+
   return DEFAULT_DAILY_QUESTS;
 };
 
 // ============================================================
-// PROGRAM AKSI NYATA CRUD
+// PROGRAM AKSI NYATA CRUD — Supabase-first, localStorage fallback
 // ============================================================
 
 export const getActionPrograms = async (): Promise<ActionProgram[]> => {
+  // Try Supabase first
+  if (isConfigured) {
+    try {
+      const { data, error } = await supabase
+        .from('action_programs')
+        .select('*')
+        .order('order', { ascending: true });
+      if (!error && data && data.length > 0) {
+        const programs = data.map(mapDbRowToProgram);
+        // Mirror to localStorage
+        localStorage.setItem(LOCAL_PROGRAMS_KEY, JSON.stringify(programs));
+        return programs;
+      }
+    } catch (err) {
+      console.warn('[programService] Supabase read failed, falling back to localStorage:', err);
+    }
+  }
+
+  // Fallback: localStorage
   try {
     const raw = localStorage.getItem(LOCAL_PROGRAMS_KEY);
     if (!raw) {
       localStorage.setItem(LOCAL_PROGRAMS_KEY, JSON.stringify(DEFAULT_ACTION_PROGRAMS));
+      // Seed to Supabase
+      if (isConfigured) {
+        try {
+          await supabase.from('action_programs').upsert(DEFAULT_ACTION_PROGRAMS.map(mapProgramToDbRow), { onConflict: 'id' });
+        } catch { /* ignore */ }
+      }
       return DEFAULT_ACTION_PROGRAMS;
     }
     return JSON.parse(raw);
@@ -223,6 +415,17 @@ export const createActionProgram = async (
   };
   const updated = [...programs, newProgram];
   localStorage.setItem(LOCAL_PROGRAMS_KEY, JSON.stringify(updated));
+
+  // Sync to Supabase
+  if (isConfigured) {
+    try {
+      const { error } = await supabase.from('action_programs').insert(mapProgramToDbRow(newProgram));
+      if (error) console.warn('[programService] Supabase insert program error:', error.message);
+    } catch (err) {
+      console.warn('[programService] Supabase insert program failed:', err);
+    }
+  }
+
   return newProgram;
 };
 
@@ -241,6 +444,20 @@ export const updateActionProgram = async (
   };
   programs[index] = updatedProgram;
   localStorage.setItem(LOCAL_PROGRAMS_KEY, JSON.stringify(programs));
+
+  // Sync to Supabase
+  if (isConfigured) {
+    try {
+      const { error } = await supabase
+        .from('action_programs')
+        .update(mapProgramToDbRow(updatedProgram))
+        .eq('id', id);
+      if (error) console.warn('[programService] Supabase update program error:', error.message);
+    } catch (err) {
+      console.warn('[programService] Supabase update program failed:', err);
+    }
+  }
+
   return updatedProgram;
 };
 
@@ -249,6 +466,17 @@ export const deleteActionProgram = async (id: string): Promise<boolean> => {
   const filtered = programs.filter((p) => p.id !== id);
   if (filtered.length === programs.length) return false;
   localStorage.setItem(LOCAL_PROGRAMS_KEY, JSON.stringify(filtered));
+
+  // Delete from Supabase
+  if (isConfigured) {
+    try {
+      const { error } = await supabase.from('action_programs').delete().eq('id', id);
+      if (error) console.warn('[programService] Supabase delete program error:', error.message);
+    } catch (err) {
+      console.warn('[programService] Supabase delete program failed:', err);
+    }
+  }
+
   return true;
 };
 
@@ -261,6 +489,16 @@ export const toggleActionProgramStatus = async (id: string): Promise<ActionProgr
 
 export const resetActionProgramsToDefault = async (): Promise<ActionProgram[]> => {
   localStorage.setItem(LOCAL_PROGRAMS_KEY, JSON.stringify(DEFAULT_ACTION_PROGRAMS));
+
+  // Reset in Supabase too
+  if (isConfigured) {
+    try {
+      await supabase.from('action_programs').delete().neq('id', '');
+      await supabase.from('action_programs').insert(DEFAULT_ACTION_PROGRAMS.map(mapProgramToDbRow));
+    } catch (err) {
+      console.warn('[programService] Supabase reset programs failed:', err);
+    }
+  }
+
   return DEFAULT_ACTION_PROGRAMS;
 };
-

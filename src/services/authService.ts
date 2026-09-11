@@ -156,6 +156,54 @@ export async function resetLegacyAccounts(): Promise<void> {
   await getStoredAccounts();
 }
 
+/**
+ * Upsert a single user account to Supabase public.users table.
+ * Called internally by all CRUD operations to keep Supabase in sync.
+ */
+async function syncSingleAccountToSupabase(acc: StoredAuthAccount): Promise<void> {
+  if (!isConfigured) return;
+  try {
+    const row = {
+      nim: acc.nim.trim(),
+      email: acc.email.trim().toLowerCase(),
+      full_name: acc.fullName.trim(),
+      role: mapRoleToSupabase(acc.role),
+      avatar_url: acc.avatarUrl || null,
+      total_green_coins: acc.totalGreenCoins || 0,
+      total_sat_points: acc.totalSatPoints || 0,
+      total_carbon_saved: acc.totalCarbonSaved || 0.0,
+      streak_days: acc.streakDays || 1,
+      created_at: acc.createdAt || new Date().toISOString(),
+    };
+    const { error } = await supabase
+      .from('users')
+      .upsert(row, { onConflict: 'nim' });
+    if (error) {
+      console.warn('[authService] Supabase sync single account error:', error.message);
+    }
+  } catch (err) {
+    console.warn('[authService] Supabase sync single account failed:', err);
+  }
+}
+
+/**
+ * Delete a user from Supabase public.users by NIM.
+ */
+async function deleteAccountFromSupabase(nim: string): Promise<void> {
+  if (!isConfigured) return;
+  try {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('nim', nim.trim());
+    if (error) {
+      console.warn('[authService] Supabase delete account error:', error.message);
+    }
+  } catch (err) {
+    console.warn('[authService] Supabase delete account failed:', err);
+  }
+}
+
 export async function createAccountByAdmin(params: RegisterParams): Promise<{ user?: UserProfile; error?: string }> {
   const { nim, fullName, email, facultyName, password, role } = params;
   if (!nim || !fullName || !email || !password || !role) {
@@ -201,6 +249,9 @@ export async function createAccountByAdmin(params: RegisterParams): Promise<{ us
 
   accounts.push(newAccount);
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+
+  // Sync to Supabase
+  await syncSingleAccountToSupabase(newAccount);
 
   const { passwordHash: _, ...userProfile } = newAccount;
   return { user: userProfile };
@@ -396,6 +447,10 @@ export async function updateStoredUserAccount(
   };
   accounts[index] = updated;
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+
+  // Sync to Supabase
+  await syncSingleAccountToSupabase(updated);
+
   const { passwordHash: _, ...profile } = updated;
   return profile;
 }
@@ -455,6 +510,10 @@ export async function editAccountByAdmin(
 
   accounts[index] = account;
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+
+  // Sync to Supabase
+  await syncSingleAccountToSupabase(account);
+
   const { passwordHash: _, ...userProfile } = account;
   return { user: userProfile };
 }
@@ -470,6 +529,10 @@ export async function softDeleteAccountByAdmin(userId: string): Promise<{ succes
   accounts[index].isDeleted = true;
   accounts[index].deletedAt = new Date().toISOString();
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+
+  // Delete from Supabase
+  await deleteAccountFromSupabase(accounts[index].nim);
+
   return { success: true };
 }
 
@@ -484,6 +547,10 @@ export async function restoreAccountByAdmin(userId: string): Promise<{ success?:
   accounts[index].isDeleted = false;
   accounts[index].deletedAt = undefined;
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+
+  // Re-sync to Supabase
+  await syncSingleAccountToSupabase(accounts[index]);
+
   return { success: true };
 }
 
