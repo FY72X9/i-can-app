@@ -318,11 +318,13 @@ export const LoginPage: React.FC = () => {
               </div>
 
               <div className="flex justify-between items-center text-[10px] text-text-muted pt-0.5">
-                <span className="font-mono">Default Demo: binus123</span>
+                {!isPrototypeMode() && import.meta.env.VITE_APP_MODE !== 'production' && (
+                  <span className="font-mono">Default Demo: binus123</span>
+                )}
                 <button
                   type="button"
                   onClick={() => handleTabSwitch('REGISTER')}
-                  className="text-eco-800 hover:underline font-bold"
+                  className="text-eco-800 hover:underline font-bold ml-auto"
                 >
                   Belum punya akun?
                 </button>
@@ -477,102 +479,104 @@ export const LoginPage: React.FC = () => {
           )}
         </Card>
 
-        {/* 1-Click Simulation Account Switcher */}
-        <div className="space-y-2.5">
-          <div className="flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() => setShowDemoAccounts(!showDemoAccounts)}
-              className="w-full flex items-center justify-between px-3 py-2 bg-surface-subtle hover:bg-slate-100 rounded-xl border border-surface-border transition-all text-left"
-            >
-              <div className="flex items-center gap-2">
-                <Sliders className="w-3.5 h-3.5 text-eco-700" />
-                <span className="text-[10px] font-black text-text-primary uppercase tracking-wider">
-                  Simulasi Akun ({usersList.length} Akun • {isPrototypeMode() ? 'Mode Prototype' : 'Mode Dev'})
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[10px] text-text-secondary font-bold">
-                <span>{showDemoAccounts ? 'Sembunyikan' : 'Buka Akses'}</span>
-                {showDemoAccounts ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-              </div>
-            </button>
-          </div>
-
-          {showDemoAccounts && (
-            <div className="space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
-              {/* Dynamic Students & Verifiers Grid */}
-              <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
-                {usersList
-                  .filter((u) => u.role !== 'SUPERADMIN')
-                  .map((u) => {
-                    const isOrganizer = u.role === 'ORGANIZER';
-                    const isTopStudent = u.id === 'usr-student-003' || (u.totalSatPoints && u.totalSatPoints >= 60);
-
-                    return (
-                      <button
-                        key={u.id}
-                        type="button"
-                        onClick={async () => {
-                          await loginAs(u.id);
-                          navigate(getRoleDefaultPath(u.role));
-                        }}
-                        className="p-2.5 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-2xs flex items-center gap-2 group active:scale-95"
-                      >
-                        <img
-                          src={u.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                          alt={u.fullName}
-                          className="w-8 h-8 rounded-xl object-cover ring-1 ring-surface-border shrink-0"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <h4 className="text-[11px] font-black text-text-primary truncate flex items-center gap-1">
-                            {u.fullName.split(' ')[0]}
-                            <span className={`text-[8px] font-bold px-1 rounded ${
-                              isOrganizer ? 'bg-amber-100 text-amber-900' :
-                              isTopStudent ? 'bg-emerald-100 text-emerald-900' :
-                              'bg-slate-100 text-slate-700'
-                            }`}>
-                              {isOrganizer ? 'Organizer' : isTopStudent ? 'Top' : 'Student'}
-                            </span>
-                          </h4>
-                          <p className="text-[9px] text-text-secondary truncate font-mono">
-                            {isOrganizer ? 'SSO / TFI' : `${u.totalSatPoints || 0} SAT • ${u.totalGreenCoins || 0} GC`}
-                          </p>
-                        </div>
-                      </button>
-                    );
-                  })}
-              </div>
-
-              {/* Dynamic Super Admin Buttons */}
-              {usersList
-                .filter((u) => u.role === 'SUPERADMIN')
-                .map((adminUser) => (
-                  <button
-                    key={adminUser.id}
-                    type="button"
-                    onClick={async () => {
-                      await loginAs(adminUser.id);
-                      navigate('/admin');
-                    }}
-                    className="w-full p-2.5 rounded-2xl bg-gradient-to-r from-purple-50 via-slate-50 to-purple-50 border border-purple-200 hover:border-purple-400 text-left shadow-2xs flex items-center justify-between group active:scale-98 transition-all"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <img
-                        src={adminUser.avatarUrl || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'}
-                        alt={adminUser.fullName}
-                        className="w-8 h-8 rounded-xl object-cover ring-1 ring-purple-300 shrink-0"
-                      />
-                      <div>
-                        <h4 className="text-xs font-black text-purple-950">{adminUser.fullName}</h4>
-                        <p className="text-[9px] text-purple-700 font-medium">Buka Dashboard AdminLTE & Manajemen Kuota SAT</p>
-                      </div>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-purple-700 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                ))}
+        {/* 1-Click Simulation Account Switcher (Only in Demo Mode, strictly hidden in Production / Prototype) */}
+        {!isPrototypeMode() && import.meta.env.VITE_APP_MODE !== 'production' && (
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setShowDemoAccounts(!showDemoAccounts)}
+                className="w-full flex items-center justify-between px-3 py-2 bg-surface-subtle hover:bg-slate-100 rounded-xl border border-surface-border transition-all text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <Sliders className="w-3.5 h-3.5 text-eco-700" />
+                  <span className="text-[10px] font-black text-text-primary uppercase tracking-wider">
+                    Simulasi Akun ({usersList.length} Akun • Mode Dev)
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[10px] text-text-secondary font-bold">
+                  <span>{showDemoAccounts ? 'Sembunyikan' : 'Buka Akses'}</span>
+                  {showDemoAccounts ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </div>
+              </button>
             </div>
-          )}
-        </div>
+
+            {showDemoAccounts && (
+              <div className="space-y-2.5 animate-in fade-in zoom-in-95 duration-150">
+                {/* Dynamic Students & Verifiers Grid */}
+                <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
+                  {usersList
+                    .filter((u) => u.role !== 'SUPERADMIN')
+                    .map((u) => {
+                      const isOrganizer = u.role === 'ORGANIZER';
+                      const isTopStudent = u.id === 'usr-student-003' || (u.totalSatPoints && u.totalSatPoints >= 60);
+
+                      return (
+                        <button
+                          key={u.id}
+                          type="button"
+                          onClick={async () => {
+                            await loginAs(u.id);
+                            navigate(getRoleDefaultPath(u.role));
+                          }}
+                          className="p-2.5 rounded-2xl bg-white border border-surface-border hover:border-eco-500 hover:bg-eco-50/50 transition-all text-left shadow-2xs flex items-center gap-2 group active:scale-95"
+                        >
+                          <img
+                            src={u.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+                            alt={u.fullName}
+                            className="w-8 h-8 rounded-xl object-cover ring-1 ring-surface-border shrink-0"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <h4 className="text-[11px] font-black text-text-primary truncate flex items-center gap-1">
+                              {u.fullName.split(' ')[0]}
+                              <span className={`text-[8px] font-bold px-1 rounded ${
+                                isOrganizer ? 'bg-amber-100 text-amber-900' :
+                                isTopStudent ? 'bg-emerald-100 text-emerald-900' :
+                                'bg-slate-100 text-slate-700'
+                              }`}>
+                                {isOrganizer ? 'Organizer' : isTopStudent ? 'Top' : 'Student'}
+                              </span>
+                            </h4>
+                            <p className="text-[9px] text-text-secondary truncate font-mono">
+                              {isOrganizer ? 'SSO / TFI' : `${u.totalSatPoints || 0} SAT • ${u.totalGreenCoins || 0} GC`}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                </div>
+
+                {/* Dynamic Super Admin Buttons */}
+                {usersList
+                  .filter((u) => u.role === 'SUPERADMIN')
+                  .map((adminUser) => (
+                    <button
+                      key={adminUser.id}
+                      type="button"
+                      onClick={async () => {
+                        await loginAs(adminUser.id);
+                        navigate('/admin');
+                      }}
+                      className="w-full p-2.5 rounded-2xl bg-gradient-to-r from-purple-50 via-slate-50 to-purple-50 border border-purple-200 hover:border-purple-400 text-left shadow-2xs flex items-center justify-between group active:scale-98 transition-all"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <img
+                          src={adminUser.avatarUrl || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'}
+                          alt={adminUser.fullName}
+                          className="w-8 h-8 rounded-xl object-cover ring-1 ring-purple-300 shrink-0"
+                        />
+                        <div>
+                          <h4 className="text-xs font-black text-purple-950">{adminUser.fullName}</h4>
+                          <p className="text-[9px] text-purple-700 font-medium">Buka Dashboard AdminLTE & Manajemen Kuota SAT</p>
+                        </div>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-purple-700 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Footer & Guide Link */}
