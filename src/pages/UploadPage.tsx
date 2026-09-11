@@ -9,7 +9,8 @@ import { useNotificationStore } from '@/stores/notificationStore';
 import { submitGreenAction } from '@/services/actionService';
 import { verifyActionWithGemini } from '@/services/gemini';
 import { getEventById } from '@/services/eventService';
-import { CampusEvent, EventActivity } from '@/types';
+import { getActionPrograms } from '@/services/questProgramService';
+import { CampusEvent, EventActivity, ActionProgram, ActionType } from '@/types';
 import { 
   Camera, 
   Upload, 
@@ -37,13 +38,18 @@ import {
   Globe2,
   ExternalLink,
   ShieldCheck,
-  QrCode
+  QrCode,
+  Trash2,
+  Leaf,
+  Heart,
+  Award,
+  BookOpen
 } from 'lucide-react';
 
 interface CategoryOption {
   id: string;
   name: string;
-  categoryType: 'PENYULUHAN_AKSI_NYATA' | 'VIDEO_BASED_LEARNING' | 'SELF_GREEN_CAMPAIGN';
+  categoryType: ActionType;
   defaultSat: number;
   defaultComservHours: number;
   defaultCoins: number;
@@ -55,7 +61,40 @@ interface CategoryOption {
   suggestedPrompt: string;
 }
 
-const CATEGORIES: CategoryOption[] = [
+const resolveCategoryIcon = (iconName: string) => {
+  switch (iconName) {
+    case 'TreePine': return TreePine;
+    case 'Droplets': return Droplets;
+    case 'Trash2': return Trash2;
+    case 'Leaf': return Leaf;
+    case 'Zap': return Zap;
+    case 'CupSoda': return CupSoda;
+    case 'Heart': return Heart;
+    case 'Award': return Award;
+    case 'BookOpen': return BookOpen;
+    case 'Video': return Video;
+    default: return TreePine;
+  }
+};
+
+const mapProgramToCategoryOption = (p: ActionProgram): CategoryOption => ({
+  id: p.id,
+  name: p.title,
+  categoryType: p.categoryType,
+  defaultSat: p.satPoints,
+  defaultComservHours: p.comservHours,
+  defaultCoins: p.coins,
+  carbonKg: parseFloat(p.co2?.replace(/[^0-9.]/g, '') || '1.0') || 1.0,
+  icon: resolveCategoryIcon(p.icon),
+  sdg: p.tag || 'SDG 13',
+  description: p.description || p.category,
+  samplePhotos: p.samplePhotos && p.samplePhotos.length > 0 ? p.samplePhotos : [
+    'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&auto=format&fit=crop&q=80'
+  ],
+  suggestedPrompt: p.suggestedPrompt || `${p.title} bersama warga untuk keberlanjutan kampus BINUS.`
+});
+
+const DEFAULT_CATEGORIES: CategoryOption[] = [
   {
     id: 'tree',
     name: 'Penanaman Pohon Keras',
@@ -153,8 +192,9 @@ export const UploadPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'FINAL_REPORT' | 'SURVEY_PROPOSAL'>('FINAL_REPORT');
 
   // Core Form States
-  const [selectedCategory, setSelectedCategory] = useState<CategoryOption>(CATEGORIES[0]);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(CATEGORIES[0].samplePhotos[0]);
+  const [categoriesList, setCategoriesList] = useState<CategoryOption[]>(DEFAULT_CATEGORIES);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryOption>(DEFAULT_CATEGORIES[0]);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(DEFAULT_CATEGORIES[0].samplePhotos[0]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiResult, setAiResult] = useState<{
     guidelineScore: number;
@@ -165,11 +205,11 @@ export const UploadPage: React.FC = () => {
     guidelineScore: 0.95,
     confidence: 0.94,
     detectedHashtag: true,
-    feedback: 'Multimodal AI mendeteksi 5 bibit pohon fisik, atribut TFI lengkap & lokasi kampus tervalidasi.',
+    feedback: 'Multimodal AI mendeteksi bibit pohon fisik / aksi lingkungan, atribut TFI lengkap & tervalidasi.',
   });
 
   // Story & Meta
-  const [story, setStory] = useState(CATEGORIES[0].suggestedPrompt);
+  const [story, setStory] = useState(DEFAULT_CATEGORIES[0].suggestedPrompt);
   const [campaignUrl, setCampaignUrl] = useState('https://instagram.com/reel/C_binusEcoSample123');
   const [groupNimInput, setGroupNimInput] = useState('');
   const [groupMembers, setGroupMembers] = useState<string[]>(['2602199841']);
@@ -178,6 +218,25 @@ export const UploadPage: React.FC = () => {
   const [surveyLocation, setSurveyLocation] = useState('Taman Kota Palmerah, Jakarta Barat');
   const [partnerName, setPartnerName] = useState('Bpk. Sutrisno (Pengelola Taman)');
   const [safetyChecked, setSafetyChecked] = useState(true);
+
+  // Dynamic program loading from Superadmin configuration
+  useEffect(() => {
+    getActionPrograms().then((progs) => {
+      const active = progs.filter((p) => p.isActive);
+      if (active.length > 0) {
+        const mapped = active.map(mapProgramToCategoryOption);
+        setCategoriesList(mapped);
+
+        const targetId = searchParams.get('programId') || searchParams.get('category');
+        const found = targetId ? mapped.find((c) => c.id === targetId) : mapped[0];
+        if (found) {
+          setSelectedCategory(found);
+          if (found.samplePhotos[0]) setPhotoPreview(found.samplePhotos[0]);
+          if (found.suggestedPrompt) setStory(found.suggestedPrompt);
+        }
+      }
+    });
+  }, [searchParams]);
 
   // Submission Status
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -203,10 +262,10 @@ export const UploadPage: React.FC = () => {
 
   const handleSelectCategory = (cat: CategoryOption) => {
     setSelectedCategory(cat);
-    if (!photoPreview || CATEGORIES.some((c) => c.samplePhotos.includes(photoPreview))) {
+    if (!photoPreview || categoriesList.some((c) => c.samplePhotos.includes(photoPreview))) {
       setPhotoPreview(cat.samplePhotos[0] || null);
     }
-    if (!story || CATEGORIES.some((c) => c.suggestedPrompt === story)) {
+    if (!story || categoriesList.some((c) => c.suggestedPrompt === story)) {
       setStory(cat.suggestedPrompt);
     }
     runAiAnalysis(cat.samplePhotos[0]);
@@ -449,8 +508,8 @@ Dampak: ${selectedCategory.carbonKg} kg CO2e
             className="flex-1 text-xs sm:text-sm font-bold py-3 rounded-2xl"
             onClick={() => {
               setSubmittedSuccess(false);
-              setPhotoPreview(CATEGORIES[0].samplePhotos[0]);
-              setStory(CATEGORIES[0].suggestedPrompt);
+              setPhotoPreview(categoriesList[0]?.samplePhotos[0] || null);
+              setStory(categoriesList[0]?.suggestedPrompt || '');
               setCampaignUrl('https://instagram.com/reel/C_binusEcoSample123');
               setSurveyLocation('');
               setPartnerName('');
@@ -697,7 +756,7 @@ Dampak: ${selectedCategory.carbonKg} kg CO2e
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {CATEGORIES.filter((c) => activeTab === 'FINAL_REPORT' || c.categoryType === 'PENYULUHAN_AKSI_NYATA').map((cat) => {
+            {categoriesList.filter((c) => activeTab === 'FINAL_REPORT' || c.categoryType === 'PENYULUHAN_AKSI_NYATA').map((cat) => {
               const isSelected = selectedCategory.id === cat.id;
               const Icon = cat.icon;
 

@@ -3,8 +3,22 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore, DEMO_PROFILES } from '@/stores/authStore';
 import { getActions, updateActionVerification } from '@/services/actionService';
 import { getStoredAccounts } from '@/services/authService';
-import { GreenAction, UserProfile, UserRole, CampusEvent, EventActivity, EventStatus } from '@/types';
+import { GreenAction, UserProfile, UserRole, CampusEvent, EventActivity, EventStatus, DailyQuest, ActionProgram, ActionType } from '@/types';
 import { getEvents, getEventsByOrganizer, createEvent, updateEvent, deleteEvent } from '@/services/eventService';
+import {
+  getDailyQuests,
+  createDailyQuest,
+  updateDailyQuest,
+  deleteDailyQuest,
+  toggleDailyQuestStatus,
+  resetDailyQuestsToDefault,
+  getActionPrograms,
+  createActionProgram,
+  updateActionProgram,
+  deleteActionProgram,
+  toggleActionProgramStatus,
+  resetActionProgramsToDefault
+} from '@/services/questProgramService';
 import { 
   LayoutDashboard, 
   Users, 
@@ -40,14 +54,64 @@ import {
   RotateCcw,
   UserX,
   Shield,
-  Filter
+  Filter,
+  Zap,
+  TreePine,
+  Droplets,
+  Video,
+  CupSoda,
+  Leaf,
+  Sparkles,
+  Heart,
+  Globe2,
+  BookOpen,
+  Clock,
+  Tag
 } from 'lucide-react';
+
+const PROGRAM_ICONS_LIST = [
+  { id: 'TreePine', label: 'Pohon', icon: TreePine },
+  { id: 'Droplets', label: 'Air/Biopori', icon: Droplets },
+  { id: 'Trash2', label: 'Sampah', icon: Trash2 },
+  { id: 'Leaf', label: 'Daun', icon: Leaf },
+  { id: 'Zap', label: 'Energi', icon: Zap },
+  { id: 'CupSoda', label: 'Tumbler', icon: CupSoda },
+  { id: 'Heart', label: 'Sosial', icon: Heart },
+  { id: 'Award', label: 'Prestasi', icon: Award },
+  { id: 'BookOpen', label: 'Edukasi', icon: BookOpen },
+  { id: 'Video', label: 'Video VBL', icon: Video },
+];
+
+const PROGRAM_COLORS_LIST = [
+  { label: 'Emerald Eco', value: 'from-emerald-600 to-eco-800' },
+  { label: 'Cyan Ocean', value: 'from-cyan-600 to-blue-800' },
+  { label: 'Amber Sun', value: 'from-amber-500 to-orange-700' },
+  { label: 'Purple Royal', value: 'from-purple-600 to-indigo-800' },
+  { label: 'Rose Vibrant', value: 'from-rose-500 to-pink-700' },
+  { label: 'Slate Dark', value: 'from-slate-700 to-slate-900' },
+];
+
+const renderProgramIconHelper = (iconName: string, className = "w-5 h-5") => {
+  switch (iconName) {
+    case 'TreePine': return <TreePine className={className} />;
+    case 'Droplets': return <Droplets className={className} />;
+    case 'Trash2': return <Trash2 className={className} />;
+    case 'Leaf': return <Leaf className={className} />;
+    case 'Zap': return <Zap className={className} />;
+    case 'CupSoda': return <CupSoda className={className} />;
+    case 'Heart': return <Heart className={className} />;
+    case 'Award': return <Award className={className} />;
+    case 'BookOpen': return <BookOpen className={className} />;
+    case 'Video': return <Video className={className} />;
+    default: return <TreePine className={className} />;
+  }
+};
 
 export const AdminLtePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, loginAs, updateUserStats } = useAuthStore();
 
-  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'users' | 'actions' | 'grant' | 'sdg' | 'events'>('dashboard');
+  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'users' | 'actions' | 'grant' | 'sdg' | 'events' | 'quests' | 'programs'>('dashboard');
   const [actionsList, setActionsList] = useState<GreenAction[]>([]);
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
   const [isWideView, setIsWideView] = useState(true);
@@ -111,6 +175,46 @@ export const AdminLtePage: React.FC = () => {
   });
   const [showQrModal, setShowQrModal] = useState<{ eventTitle: string; activity: EventActivity } | null>(null);
 
+  // Daily Quests Management State
+  const [questsList, setQuestsList] = useState<DailyQuest[]>([]);
+  const [showQuestModal, setShowQuestModal] = useState(false);
+  const [editingQuest, setEditingQuest] = useState<DailyQuest | null>(null);
+  const [questSearch, setQuestSearch] = useState('');
+  const [questStatusFilter, setQuestStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [questFormData, setQuestFormData] = useState({
+    title: '',
+    desc: '',
+    reward: '+15 Green Coins',
+    coinsReward: 15,
+    satReward: 0,
+    deadline: 'Sisa Hari Ini',
+    actionUrl: '/upload',
+    isActive: true,
+  });
+
+  // Program Aksi Nyata Management State
+  const [programsList, setProgramsList] = useState<ActionProgram[]>([]);
+  const [showProgramModal, setShowProgramModal] = useState(false);
+  const [editingProgram, setEditingProgram] = useState<ActionProgram | null>(null);
+  const [programSearch, setProgramSearch] = useState('');
+  const [programStatusFilter, setProgramStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [programFormData, setProgramFormData] = useState({
+    title: '',
+    category: 'Penyuluhan & Aksi Nyata',
+    categoryType: 'PENYULUHAN_AKSI_NYATA' as ActionType,
+    satPoints: 4,
+    comservHours: 2.0,
+    coins: 25,
+    co2: '5.0 kg',
+    icon: 'TreePine',
+    color: 'from-emerald-600 to-eco-800',
+    tag: 'SDG 15 & 13',
+    urgency: 'Hot Program 🔥',
+    description: '',
+    suggestedPrompt: '',
+    isActive: true,
+  });
+
   useEffect(() => {
     loadData();
   }, []);
@@ -133,6 +237,176 @@ export const AdminLtePage: React.FC = () => {
     } else if (user?.role === 'ORGANIZER' && user?.id) {
       const myEvents = await getEventsByOrganizer(user.id);
       setEventsList(myEvents);
+    }
+
+    // Load Daily Quests & Program Aksi Nyata
+    const quests = await getDailyQuests();
+    setQuestsList(quests);
+    const progs = await getActionPrograms();
+    setProgramsList(progs);
+  };
+
+  // Quest Handlers
+  const handleOpenCreateQuest = () => {
+    setEditingQuest(null);
+    setQuestFormData({
+      title: '',
+      desc: '',
+      reward: '+15 Green Coins',
+      coinsReward: 15,
+      satReward: 0,
+      deadline: 'Sisa Hari Ini',
+      actionUrl: '/upload',
+      isActive: true,
+    });
+    setShowQuestModal(true);
+  };
+
+  const handleOpenEditQuest = (quest: DailyQuest) => {
+    setEditingQuest(quest);
+    setQuestFormData({
+      title: quest.title,
+      desc: quest.desc,
+      reward: quest.reward,
+      coinsReward: quest.coinsReward || 15,
+      satReward: quest.satReward || 0,
+      deadline: quest.deadline,
+      actionUrl: quest.actionUrl || '/upload',
+      isActive: quest.isActive,
+    });
+    setShowQuestModal(true);
+  };
+
+  const handleSaveQuest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!questFormData.title.trim() || !questFormData.desc.trim()) {
+      alert('Judul dan deskripsi misi wajib diisi!');
+      return;
+    }
+    const rewardText = questFormData.satReward && questFormData.satReward > 0
+      ? `+${questFormData.coinsReward} GC & +${questFormData.satReward} SAT`
+      : `+${questFormData.coinsReward} Green Coins`;
+
+    if (editingQuest) {
+      await updateDailyQuest(editingQuest.id, {
+        ...questFormData,
+        reward: rewardText,
+      });
+      alert('Daily quest berhasil diperbarui!');
+    } else {
+      await createDailyQuest({
+        ...questFormData,
+        reward: rewardText,
+      });
+      alert('Daily quest baru berhasil dibuat!');
+    }
+    setShowQuestModal(false);
+    const updated = await getDailyQuests();
+    setQuestsList(updated);
+  };
+
+  const handleToggleQuest = async (id: string) => {
+    await toggleDailyQuestStatus(id);
+    const updated = await getDailyQuests();
+    setQuestsList(updated);
+  };
+
+  const handleDeleteQuest = async (id: string, title: string) => {
+    if (window.confirm(`Yakin ingin menghapus daily quest "${title}"?`)) {
+      await deleteDailyQuest(id);
+      const updated = await getDailyQuests();
+      setQuestsList(updated);
+    }
+  };
+
+  const handleResetQuests = async () => {
+    if (window.confirm('Reset daftar Daily Quests ke data awal standar?')) {
+      const reset = await resetDailyQuestsToDefault();
+      setQuestsList(reset);
+      alert('Daily Quests di-reset ke standar.');
+    }
+  };
+
+  // Program Handlers
+  const handleOpenCreateProgram = () => {
+    setEditingProgram(null);
+    setProgramFormData({
+      title: '',
+      category: 'Penyuluhan & Aksi Nyata',
+      categoryType: 'PENYULUHAN_AKSI_NYATA',
+      satPoints: 4,
+      comservHours: 2.0,
+      coins: 25,
+      co2: '5.0 kg',
+      icon: 'TreePine',
+      color: 'from-emerald-600 to-eco-800',
+      tag: 'SDG 15 & 13',
+      urgency: 'Hot Program 🔥',
+      description: '',
+      suggestedPrompt: '',
+      isActive: true,
+    });
+    setShowProgramModal(true);
+  };
+
+  const handleOpenEditProgram = (prog: ActionProgram) => {
+    setEditingProgram(prog);
+    setProgramFormData({
+      title: prog.title,
+      category: prog.category,
+      categoryType: prog.categoryType,
+      satPoints: prog.satPoints,
+      comservHours: prog.comservHours,
+      coins: prog.coins,
+      co2: prog.co2,
+      icon: prog.icon,
+      color: prog.color,
+      tag: prog.tag,
+      urgency: prog.urgency,
+      description: prog.description || '',
+      suggestedPrompt: prog.suggestedPrompt || '',
+      isActive: prog.isActive,
+    });
+    setShowProgramModal(true);
+  };
+
+  const handleSaveProgram = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!programFormData.title.trim() || !programFormData.category.trim()) {
+      alert('Judul dan kategori program wajib diisi!');
+      return;
+    }
+    if (editingProgram) {
+      await updateActionProgram(editingProgram.id, programFormData);
+      alert('Program Aksi Nyata berhasil diperbarui!');
+    } else {
+      await createActionProgram(programFormData);
+      alert('Program Aksi Nyata baru berhasil dibuat!');
+    }
+    setShowProgramModal(false);
+    const updated = await getActionPrograms();
+    setProgramsList(updated);
+  };
+
+  const handleToggleProgram = async (id: string) => {
+    await toggleActionProgramStatus(id);
+    const updated = await getActionPrograms();
+    setProgramsList(updated);
+  };
+
+  const handleDeleteProgram = async (id: string, title: string) => {
+    if (window.confirm(`Yakin ingin menghapus program "${title}"?`)) {
+      await deleteActionProgram(id);
+      const updated = await getActionPrograms();
+      setProgramsList(updated);
+    }
+  };
+
+  const handleResetPrograms = async () => {
+    if (window.confirm('Reset daftar Program Aksi Nyata ke data awal standar?')) {
+      const reset = await resetActionProgramsToDefault();
+      setProgramsList(reset);
+      alert('Program Aksi Nyata di-reset ke standar.');
     }
   };
 
@@ -655,6 +929,40 @@ export const AdminLtePage: React.FC = () => {
               </button>
             )}
 
+            {user?.role === 'SUPERADMIN' && (
+              <>
+                <button
+                  onClick={() => setActiveMenu('quests')}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
+                    activeMenu === 'quests' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Zap className="w-4 h-4 text-amber-400" />
+                    <span>Daily Quests</span>
+                  </div>
+                  <span className="bg-amber-500 text-slate-900 text-[9px] px-1.5 py-0.2 rounded-full font-black">
+                    {questsList.filter((q) => q.isActive).length}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveMenu('programs')}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
+                    activeMenu === 'programs' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <TreePine className="w-4 h-4 text-emerald-400" />
+                    <span>Program Aksi Nyata</span>
+                  </div>
+                  <span className="bg-emerald-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-black">
+                    {programsList.filter((p) => p.isActive).length}
+                  </span>
+                </button>
+              </>
+            )}
+
             <button
               onClick={() => setActiveMenu('events')}
               className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
@@ -703,6 +1011,8 @@ export const AdminLtePage: React.FC = () => {
                 {activeMenu === 'users' && 'Manajemen Pengguna & Pengaturan Role'}
                 {activeMenu === 'actions' && 'Log & Validasi Aksi Nyata Mahasiswa'}
                 {activeMenu === 'grant' && 'Pemberian Poin SAT & Jam Comserv Manual'}
+                {activeMenu === 'quests' && 'Manajemen Daily Quests (Misi Kampus)'}
+                {activeMenu === 'programs' && 'Manajemen Program Aksi Nyata'}
                 {activeMenu === 'sdg' && 'Metrik & Dampak Berkelanjutan SDG Kampus'}
                 {activeMenu === 'events' && 'Manajemen Event Kampus & QR Pos'}
               </h1>
@@ -1553,6 +1863,405 @@ export const AdminLtePage: React.FC = () => {
               )}
             </div>
           )}
+
+          {/* 9. Tab Content: Daily Quests Management (Superadmin) */}
+          {activeMenu === 'quests' && user?.role === 'SUPERADMIN' && (
+            <div className="space-y-4">
+              {/* Header & Action Buttons */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                      <Zap className="w-4 h-4 fill-amber-500" />
+                    </div>
+                    <h3 className="text-sm sm:text-base font-black text-slate-800">
+                      Manajemen Daily Quests (Misi Kampus)
+                    </h3>
+                    <span className="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">
+                      {questsList.length} Misi
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Atur misi kebiasaan hijau mikro harian untuk mahasiswa di lingkungan kampus BINUS.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResetQuests}
+                    className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                    title="Reset ke data awal default"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Reset Default</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleOpenCreateQuest}
+                    className="px-4 py-2 rounded-xl bg-[#007bff] hover:bg-[#0069d9] text-white text-xs font-black flex items-center gap-1.5 shadow-xs transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Tambah Misi Baru</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Filter & Search Bar */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={questSearch}
+                    onChange={(e) => setQuestSearch(e.target.value)}
+                    placeholder="Cari daily quest berdasarkan judul atau deskripsi..."
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-2xl border border-slate-200 bg-white text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#007bff]"
+                  />
+                </div>
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setQuestStatusFilter('all')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      questStatusFilter === 'all' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Semua ({questsList.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuestStatusFilter('active')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      questStatusFilter === 'active' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Aktif ({questsList.filter((q) => q.isActive).length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuestStatusFilter('inactive')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      questStatusFilter === 'inactive' ? 'bg-slate-700 text-white shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Nonaktif ({questsList.filter((q) => !q.isActive).length})
+                  </button>
+                </div>
+              </div>
+
+              {/* Quest List Cards / Table */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {questsList
+                  .filter((q) => {
+                    const match = q.title.toLowerCase().includes(questSearch.toLowerCase()) || q.desc.toLowerCase().includes(questSearch.toLowerCase());
+                    if (questStatusFilter === 'active') return match && q.isActive;
+                    if (questStatusFilter === 'inactive') return match && !q.isActive;
+                    return match;
+                  })
+                  .map((quest) => (
+                    <div
+                      key={quest.id}
+                      className={`p-4 sm:p-5 rounded-3xl border transition-all space-y-3 relative ${
+                        quest.isActive ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-50/70 border-slate-200/60 opacity-70'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                            quest.isActive ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-500'
+                          }`}>
+                            <Zap className="w-5 h-5 fill-current" />
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="text-xs sm:text-sm font-black text-slate-800 truncate">{quest.title}</h4>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[10px] font-mono text-slate-400 font-bold">{quest.id}</span>
+                              <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-slate-400" /> {quest.deadline}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <span
+                          className={`text-[10px] font-black px-2 py-0.5 rounded-full border shrink-0 ${
+                            quest.isActive
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-slate-100 text-slate-500 border-slate-200'
+                          }`}
+                        >
+                          {quest.isActive ? '● Aktif' : '○ Nonaktif'}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-slate-600 leading-relaxed">{quest.desc}</p>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <div className="flex items-center gap-1.5 text-xs font-black">
+                          <span className="text-amber-800 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
+                            {quest.reward}
+                          </span>
+                          {quest.satReward && quest.satReward > 0 ? (
+                            <span className="text-blue-700 bg-blue-50 px-2 py-1 rounded-xl border border-blue-200 text-[10px]">
+                              +{quest.satReward} SAT
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleQuest(quest.id)}
+                            title={quest.isActive ? 'Nonaktifkan misi' : 'Aktifkan misi'}
+                            className={`p-2 rounded-xl text-xs font-bold transition-colors ${
+                              quest.isActive
+                                ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                            }`}
+                          >
+                            {quest.isActive ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditQuest(quest)}
+                            title="Edit misi"
+                            className="p-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteQuest(quest.id, quest.title)}
+                            title="Hapus misi"
+                            className="p-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                {questsList.length === 0 && (
+                  <div className="col-span-full py-12 text-center bg-white rounded-3xl border border-slate-200 space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 mx-auto flex items-center justify-center">
+                      <Zap className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-sm font-black text-slate-700">Belum ada Daily Quests</h4>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                      Mulai buat misi kebiasaan hijau harian atau klik Reset Default untuk memuat template awal.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleOpenCreateQuest}
+                      className="px-4 py-2 rounded-xl bg-[#007bff] text-white text-xs font-bold inline-flex items-center gap-1.5"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Tambah Misi
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 10. Tab Content: Program Aksi Nyata Management (Superadmin) */}
+          {activeMenu === 'programs' && user?.role === 'SUPERADMIN' && (
+            <div className="space-y-4">
+              {/* Header & Action Buttons */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                      <TreePine className="w-4 h-4" />
+                    </div>
+                    <h3 className="text-sm sm:text-base font-black text-slate-800">
+                      Manajemen Program Aksi Nyata
+                    </h3>
+                    <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                      {programsList.length} Program
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Pengaturan program pengabdian masyarakat mandiri resmi TFI untuk pemenuhan Poin SAT & Jam Comserv.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResetPrograms}
+                    className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                    title="Reset ke data awal default"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Reset Default</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleOpenCreateProgram}
+                    className="px-4 py-2 rounded-xl bg-[#007bff] hover:bg-[#0069d9] text-white text-xs font-black flex items-center gap-1.5 shadow-xs transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Tambah Program Baru</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Filter & Search Bar */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={programSearch}
+                    onChange={(e) => setProgramSearch(e.target.value)}
+                    placeholder="Cari program aksi berdasarkan nama atau kategori..."
+                    className="w-full pl-9 pr-3.5 py-2.5 rounded-2xl border border-slate-200 bg-white text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#007bff]"
+                  />
+                </div>
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setProgramStatusFilter('all')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      programStatusFilter === 'all' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Semua ({programsList.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProgramStatusFilter('active')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      programStatusFilter === 'active' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Aktif ({programsList.filter((p) => p.isActive).length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProgramStatusFilter('inactive')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      programStatusFilter === 'inactive' ? 'bg-slate-700 text-white shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Nonaktif ({programsList.filter((p) => !p.isActive).length})
+                  </button>
+                </div>
+              </div>
+
+              {/* Program List Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {programsList
+                  .filter((p) => {
+                    const match = p.title.toLowerCase().includes(programSearch.toLowerCase()) || p.category.toLowerCase().includes(programSearch.toLowerCase());
+                    if (programStatusFilter === 'active') return match && p.isActive;
+                    if (programStatusFilter === 'inactive') return match && !p.isActive;
+                    return match;
+                  })
+                  .map((prog) => (
+                    <div
+                      key={prog.id}
+                      className={`p-4 sm:p-5 rounded-3xl border transition-all space-y-3.5 relative ${
+                        prog.isActive ? 'bg-white border-slate-200 shadow-xs' : 'bg-slate-50/70 border-slate-200/60 opacity-70'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${prog.color} text-white flex items-center justify-center shadow-xs shrink-0`}>
+                            {renderProgramIconHelper(prog.icon, "w-6 h-6")}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-900 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block mb-1">
+                              {prog.urgency}
+                            </span>
+                            <h4 className="text-xs sm:text-sm font-black text-slate-800 truncate">{prog.title}</h4>
+                            <p className="text-[11px] text-slate-500 font-bold truncate mt-0.5">{prog.category}</p>
+                          </div>
+                        </div>
+
+                        <span
+                          className={`text-[10px] font-black px-2 py-0.5 rounded-full border shrink-0 ${
+                            prog.isActive
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-slate-100 text-slate-500 border-slate-200'
+                          }`}
+                        >
+                          {prog.isActive ? '● Aktif' : '○ Nonaktif'}
+                        </span>
+                      </div>
+
+                      {/* Rewards Bar */}
+                      <div className="bg-slate-50 p-3 rounded-2xl flex items-center justify-between text-xs font-black border border-slate-200/70">
+                        <span className="text-blue-700 flex items-center gap-1">
+                          <GraduationCap className="w-3.5 h-3.5" />
+                          +{prog.satPoints} SAT ({prog.comservHours} Jam Comserv)
+                        </span>
+                        <span className="text-amber-800">
+                          +{prog.coins} Green Coins
+                        </span>
+                      </div>
+
+                      {/* Tag & CO2 Impact */}
+                      <div className="flex items-center justify-between text-xs text-slate-600 pt-1 border-t border-slate-100">
+                        <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold border border-slate-200 text-[10px]">
+                          {prog.tag} • Reduksi CO2: {prog.co2}
+                        </span>
+
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleProgram(prog.id)}
+                            title={prog.isActive ? 'Nonaktifkan program' : 'Aktifkan program'}
+                            className={`p-2 rounded-xl text-xs font-bold transition-colors ${
+                              prog.isActive
+                                ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                            }`}
+                          >
+                            {prog.isActive ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditProgram(prog)}
+                            title="Edit program"
+                            className="p-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteProgram(prog.id, prog.title)}
+                            title="Hapus program"
+                            className="p-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                {programsList.length === 0 && (
+                  <div className="col-span-full py-12 text-center bg-white rounded-3xl border border-slate-200 space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center">
+                      <TreePine className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-sm font-black text-slate-700">Belum ada Program Aksi Nyata</h4>
+                    <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                      Buat program aksi pengabdian mandiri resmi TFI atau klik Reset Default untuk memuat template awal.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleOpenCreateProgram}
+                      className="px-4 py-2 rounded-xl bg-[#007bff] text-white text-xs font-bold inline-flex items-center gap-1.5"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Tambah Program
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </main>
       </div>
 
@@ -1976,6 +2685,410 @@ export const AdminLtePage: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Daily Quest Modal (Superadmin) */}
+      {showQuestModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => setShowQuestModal(false)}
+        >
+          <div
+            className="bg-white rounded-3xl p-6 max-w-lg w-full space-y-4 shadow-2xl relative my-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shadow-xs">
+                  <Zap className="w-5 h-5 fill-amber-500" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-800">
+                    {editingQuest ? 'Edit Daily Quest' : 'Tambah Daily Quest Baru'}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Misi kebiasaan mikro ramah lingkungan harian mahasiswa
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowQuestModal(false)}
+                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveQuest} className="space-y-3.5">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Judul Misi (dengan Emoji)</label>
+                <input
+                  type="text"
+                  value={questFormData.title}
+                  onChange={(e) => setQuestFormData((p) => ({ ...p, title: e.target.value }))}
+                  placeholder="Contoh: Campus Tumbler Boost 🥤"
+                  className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Deskripsi Instruksi Misi</label>
+                <textarea
+                  value={questFormData.desc}
+                  onChange={(e) => setQuestFormData((p) => ({ ...p, desc: e.target.value }))}
+                  placeholder="Jelaskan aksi yang harus dilakukan mahasiswa secara ringkas..."
+                  rows={3}
+                  className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] resize-none"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Reward Green Coins</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={questFormData.coinsReward}
+                    onChange={(e) => setQuestFormData((p) => ({ ...p, coinsReward: Number(e.target.value) }))}
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Reward Poin SAT (Opsional)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={10}
+                    value={questFormData.satReward}
+                    onChange={(e) => setQuestFormData((p) => ({ ...p, satReward: Number(e.target.value) }))}
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Tenggat Waktu / Deadline</label>
+                  <input
+                    type="text"
+                    value={questFormData.deadline}
+                    onChange={(e) => setQuestFormData((p) => ({ ...p, deadline: e.target.value }))}
+                    placeholder="Contoh: Sisa Hari Ini / 23:59 WIB"
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Tautan Aksi (Route)</label>
+                  <input
+                    type="text"
+                    value={questFormData.actionUrl}
+                    onChange={(e) => setQuestFormData((p) => ({ ...p, actionUrl: e.target.value }))}
+                    placeholder="/upload"
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-1 flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                <div>
+                  <p className="text-xs font-bold text-slate-800">Status Publikasi</p>
+                  <p className="text-[10px] text-slate-500">Misi langsung muncul di beranda mahasiswa jika aktif</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={questFormData.isActive}
+                    onChange={(e) => setQuestFormData((p) => ({ ...p, isActive: e.target.checked }))}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-[#007bff] hover:bg-[#0069d9] text-white rounded-2xl text-xs font-black shadow-xs transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{editingQuest ? 'Simpan Perubahan' : 'Buat Daily Quest'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowQuestModal(false)}
+                  className="px-5 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-2xl text-xs font-bold transition-colors"
+                >
+                  Batal
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Program Aksi Nyata Modal (Superadmin) */}
+      {showProgramModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => setShowProgramModal(false)}
+        >
+          <div
+            className="bg-white rounded-3xl p-6 max-w-xl w-full space-y-4 shadow-2xl relative my-8 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-xs">
+                  <TreePine className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-800">
+                    {editingProgram ? 'Edit Program Aksi Nyata' : 'Tambah Program Aksi Nyata Baru'}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    Program aksi mandiri resmi TFI dengan rekognisi Poin SAT & Jam Comserv
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowProgramModal(false)}
+                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProgram} className="space-y-3.5">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Nama / Judul Program Aksi</label>
+                <input
+                  type="text"
+                  value={programFormData.title}
+                  onChange={(e) => setProgramFormData((p) => ({ ...p, title: e.target.value }))}
+                  placeholder="Contoh: Penanaman Pohon Pelindung"
+                  className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Kategori Tampilan</label>
+                  <input
+                    type="text"
+                    value={programFormData.category}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, category: e.target.value }))}
+                    placeholder="Contoh: Penyuluhan & Aksi Nyata"
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Tipe Aksi Resmi TFI</label>
+                  <select
+                    value={programFormData.categoryType}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, categoryType: e.target.value as ActionType }))}
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] font-bold"
+                  >
+                    <option value="PENYULUHAN_AKSI_NYATA">Penyuluhan & Aksi Nyata</option>
+                    <option value="BINA_LINGKUNGAN">Bina Lingkungan</option>
+                    <option value="BINA_DIRI">Bina Diri</option>
+                    <option value="SELF_GREEN_CAMPAIGN">Self Green Campaign</option>
+                    <option value="VIDEO_BASED_LEARNING">Video Based Learning</option>
+                    <option value="VIRTUAL_VOLUNTEER">Virtual Volunteer</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Poin SAT Riil</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={20}
+                    value={programFormData.satPoints}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, satPoints: Number(e.target.value) }))}
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Jam Comserv (Jam)</label>
+                  <input
+                    type="number"
+                    step={0.5}
+                    min={0}
+                    max={50}
+                    value={programFormData.comservHours}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, comservHours: Number(e.target.value) }))}
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Green Coins</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={200}
+                    value={programFormData.coins}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, coins: Number(e.target.value) }))}
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Reduksi CO2e</label>
+                  <input
+                    type="text"
+                    value={programFormData.co2}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, co2: e.target.value }))}
+                    placeholder="Contoh: 5.0 kg"
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Tag SDG</label>
+                  <input
+                    type="text"
+                    value={programFormData.tag}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, tag: e.target.value }))}
+                    placeholder="Contoh: SDG 15 & 13"
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Badge Urgensi</label>
+                  <input
+                    type="text"
+                    value={programFormData.urgency}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, urgency: e.target.value }))}
+                    placeholder="Contoh: Hot Program 🔥"
+                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Icon Picker */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Pilih Ikon Representatif</label>
+                <div className="grid grid-cols-5 gap-2">
+                  {PROGRAM_ICONS_LIST.map((item) => {
+                    const IconComp = item.icon;
+                    const isSelected = programFormData.icon === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setProgramFormData((p) => ({ ...p, icon: item.id }))}
+                        className={`p-2.5 rounded-2xl border flex flex-col items-center gap-1 transition-all ${
+                          isSelected
+                            ? 'bg-emerald-50 border-emerald-600 text-emerald-700 shadow-xs scale-105'
+                            : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        <IconComp className="w-4 h-4" />
+                        <span className="text-[10px] font-bold truncate max-w-full">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Color Gradient Picker */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1.5">Pilih Tema Gradasi Warna</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {PROGRAM_COLORS_LIST.map((c) => {
+                    const isSelected = programFormData.color === c.value;
+                    return (
+                      <button
+                        key={c.value}
+                        type="button"
+                        onClick={() => setProgramFormData((p) => ({ ...p, color: c.value }))}
+                        className={`p-2 rounded-2xl border flex items-center gap-2 transition-all text-left ${
+                          isSelected ? 'border-slate-800 bg-slate-100 ring-2 ring-slate-800/20' : 'border-slate-200 bg-white hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-lg bg-gradient-to-tr ${c.value} shrink-0`} />
+                        <span className="text-[11px] font-bold text-slate-700 truncate">{c.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Deskripsi / Petunjuk Pelaksanaan (Opsional)</label>
+                <textarea
+                  value={programFormData.description}
+                  onChange={(e) => setProgramFormData((p) => ({ ...p, description: e.target.value }))}
+                  placeholder="Kriteria minimal aksi, jumlah partisipan warga, lokasi..."
+                  rows={2}
+                  className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Saran Prompt Cerita / Template Laporan Mahasiswa</label>
+                <textarea
+                  value={programFormData.suggestedPrompt}
+                  onChange={(e) => setProgramFormData((p) => ({ ...p, suggestedPrompt: e.target.value }))}
+                  placeholder="Template teks deskripsi yang disarankan untuk memandu mahasiswa melapor..."
+                  rows={2}
+                  className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] resize-none"
+                />
+              </div>
+
+              <div className="pt-1 flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                <div>
+                  <p className="text-xs font-bold text-slate-800">Status Program</p>
+                  <p className="text-[10px] text-slate-500">Program dapat dipilih mahasiswa untuk pelaporan jika aktif</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={programFormData.isActive}
+                    onChange={(e) => setProgramFormData((p) => ({ ...p, isActive: e.target.checked }))}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-[#007bff] hover:bg-[#0069d9] text-white rounded-2xl text-xs font-black shadow-xs transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{editingProgram ? 'Simpan Perubahan' : 'Buat Program Aksi'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowProgramModal(false)}
+                  className="px-5 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-2xl text-xs font-bold transition-colors"
+                >
+                  Batal
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Evidence Modal */}
       {evidenceModal && (
         <div 

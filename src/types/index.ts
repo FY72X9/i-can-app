@@ -165,3 +165,44 @@ export interface NotificationItem {
   read: boolean;
   actionUrl?: string;
 }
+
+// ==============================================================================
+// SUPER ADMIN MANAGEMENT — Daily Quests & Program Aksi Nyata Models
+// ==============================================================================
+
+export interface DailyQuest {
+  id: string;
+  title: string;
+  desc: string;
+  reward: string; // e.g., '+15 Green Coins'
+  coinsReward: number;
+  satReward?: number;
+  deadline: string; // e.g., 'Sisa 3 Jam', 'Sisa Hari Ini', '23:59 WIB'
+  completed?: boolean;
+  actionUrl?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ActionProgram {
+  id: string;
+  title: string;
+  category: string; // e.g. "Penyuluhan & Aksi Nyata", "Bina Lingkungan"
+  categoryType: ActionType; // 'PENYULUHAN_AKSI_NYATA' | 'BINA_DIRI' | 'BINA_LINGKUNGAN' | 'SELF_GREEN_CAMPAIGN' | 'VIDEO_BASED_LEARNING'
+  satPoints: number;
+  comservHours: number;
+  coins: number;
+  co2: string; // e.g. "5.0 kg", "0.5 kg"
+  icon: string; // Lucide icon identifier e.g. 'TreePine', 'Droplets', 'Leaf', 'Zap', 'CupSoda'
+  color: string; // Tailwind gradient e.g. 'from-emerald-600 to-eco-800'
+  tag: string; // e.g. 'SDG 15 & 13'
+  urgency: string; // e.g. 'Hot Program 🔥', 'Program Prioritas ⭐'
+  description?: string;
+  samplePhotos?: string[];
+  suggestedPrompt?: string;
+  isActive: boolean;
+  order?: number;
+  createdAt: string;
+  updatedAt?: string;
+}

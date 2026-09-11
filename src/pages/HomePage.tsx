@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
-import { getActions } from '@/services/actionService';
 import { getActiveEvents } from '@/services/eventService';
-import { GreenAction, CampusEvent } from '@/types';
+import { CampusEvent, DailyQuest, ActionProgram } from '@/types';
+import { getDailyQuests, getActionPrograms } from '@/services/questProgramService';
 import { 
   TreePine, 
   Droplets, 
@@ -24,118 +24,47 @@ import {
   Heart,
   BookOpen,
   ArrowRight,
-  Trophy,
-  History,
   ShieldCheck,
   Globe2,
-  Calendar
+  Calendar,
+  Trash2,
+  Leaf
 } from 'lucide-react';
+
+const resolveProgramIcon = (iconName: string) => {
+  switch (iconName) {
+    case 'TreePine': return TreePine;
+    case 'Droplets': return Droplets;
+    case 'Trash2': return Trash2;
+    case 'Leaf': return Leaf;
+    case 'Zap': return Zap;
+    case 'CupSoda': return CupSoda;
+    case 'Heart': return Heart;
+    case 'Award': return Award;
+    case 'BookOpen': return BookOpen;
+    case 'Video': return Video;
+    default: return TreePine;
+  }
+};
 
 export const HomePage: React.FC = () => {
   const { user } = useAuthStore();
-  const [recentActivities, setRecentActivities] = useState<GreenAction[]>([]);
   const [activeEvents, setActiveEvents] = useState<CampusEvent[]>([]);
-  const [cheers, setCheers] = useState<Record<string, number>>({
-    socs: 148,
-    sis: 112,
-    sod: 95
-  });
-  const [hasCheered, setHasCheered] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    async function loadRecent() {
-      const actions = await getActions();
-      const approved = actions.filter((a) => a.status === 'APPROVED').slice(0, 5);
-      setRecentActivities(approved);
-    }
-    loadRecent();
-  }, []);
+  const [dailyQuests, setDailyQuests] = useState<DailyQuest[]>([]);
+  const [actionPrograms, setActionPrograms] = useState<ActionProgram[]>([]);
 
   useEffect(() => {
     getActiveEvents().then(setActiveEvents);
   }, []);
 
-  const handleCheer = (facultyId: string) => {
-    setHasCheered((prev) => ({ ...prev, [facultyId]: !prev[facultyId] }));
-    setCheers((prev) => ({
-      ...prev,
-      [facultyId]: prev[facultyId] + (hasCheered[facultyId] ? -1 : 1)
-    }));
-  };
-
-  const programs = [
-    {
-      id: 'tree',
-      title: 'Penanaman Pohon Keras',
-      category: 'Penyuluhan & Aksi Nyata',
-      satPoints: 4,
-      comservHours: 2.0,
-      coins: 25,
-      co2: '5.0 kg',
-      icon: TreePine,
-      color: 'from-emerald-600 to-eco-800',
-      tag: 'SDG 15 & 13',
-      urgency: 'Hot Program 🔥',
-    },
-    {
-      id: 'biopori',
-      title: 'Pembuatan Lubang Biopori',
-      category: 'Penyuluhan & Aksi Nyata',
-      satPoints: 4,
-      comservHours: 2.0,
-      coins: 20,
-      co2: '0.5 kg',
-      icon: Droplets,
-      color: 'from-cyan-600 to-blue-800',
-      tag: 'SDG 6 & 15',
-      urgency: 'Musim Hujan 💧',
-    },
-    {
-      id: 'vbl',
-      title: 'Video Based Learning (VBL)',
-      category: 'Edukasi Digital 5-10 Min',
-      satPoints: 3,
-      comservHours: 1.5,
-      coins: 25,
-      co2: '0.1 kg',
-      icon: Video,
-      color: 'from-purple-600 to-indigo-800',
-      tag: 'SDG 4 Quality Edu',
-      urgency: 'Format APA 🎓',
-    },
-    {
-      id: 'tumbler',
-      title: 'Bawa Tumbler & Zero Waste',
-      category: 'Self Green Campaign',
-      satPoints: 0,
-      comservHours: 0,
-      coins: 10,
-      co2: '0.05 kg',
-      icon: CupSoda,
-      color: 'from-amber-500 to-orange-700',
-      tag: 'SDG 12 Sirkular',
-      urgency: 'Daily Quest ⚡',
-    },
-  ];
-
-  const flashQuests = [
-    {
-      id: 'q1',
-      title: 'Campus Tumbler Boost 🥤',
-      desc: 'Isi ulang air minum di Water Station Gedung Anggrek lantai 2.',
-      reward: '+15 Green Coins',
-      deadline: 'Sisa 3 Jam',
-      completed: true,
-    },
-    {
-      id: 'q2',
-      title: 'VBL 5-Min Sprint 🎬',
-      desc: 'Unggah video edukasi singkat berjaket almamater BINUS.',
-      reward: '+25 GC & +3 SAT',
-      deadline: 'Sisa Hari Ini',
-      completed: false,
-    },
-  ];
+  useEffect(() => {
+    getDailyQuests().then((quests) => {
+      setDailyQuests(quests.filter((q) => q.isActive));
+    });
+    getActionPrograms().then((progs) => {
+      setActionPrograms(progs.filter((p) => p.isActive));
+    });
+  }, []);
 
   return (
     <div className="space-y-6 sm:space-y-7 pb-8">
@@ -301,12 +230,12 @@ export const HomePage: React.FC = () => {
         </Link>
       </div>
 
-      {/* 3. ⚡ Daily Flash Quests Section */}
+      {/* 3. ⚡ Daily Quests Section */}
       <div className="space-y-3.5">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
             <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
-            Daily Flash Quests (Misi Kampus)
+            Daily Quests (Misi Kampus)
           </h2>
           <span className="text-xs font-black text-eco-900 bg-eco-neon/20 px-2.5 py-0.5 rounded-full border border-eco-neon/40">
             Bonus Aktif
@@ -314,7 +243,7 @@ export const HomePage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-3.5">
-          {flashQuests.map((quest) => (
+          {dailyQuests.map((quest) => (
             <Card 
               key={quest.id} 
               className={`p-4 sm:p-5 space-y-3 border transition-all ${
@@ -339,13 +268,19 @@ export const HomePage: React.FC = () => {
               <div className="flex items-center justify-between pt-1 text-xs font-black border-t border-black/5">
                 <span className="text-amber-800">{quest.reward}</span>
                 {!quest.completed && (
-                  <Link to="/upload" className="text-eco-800 hover:underline flex items-center gap-0.5 font-bold">
+                  <Link to={quest.actionUrl || '/upload'} className="text-eco-800 hover:underline flex items-center gap-0.5 font-bold">
                     Kerjakan Misi →
                   </Link>
                 )}
               </div>
             </Card>
           ))}
+
+          {dailyQuests.length === 0 && (
+            <div className="p-4 bg-white rounded-2xl border border-dashed border-slate-200 text-center text-xs text-slate-500">
+              Belum ada Daily Quests aktif saat ini.
+            </div>
+          )}
         </div>
       </div>
 
@@ -355,20 +290,22 @@ export const HomePage: React.FC = () => {
           <div>
             <h2 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
               <TreePine className="w-4 h-4 text-eco-700" />
-              Pilihan Program Aksi Nyata & VBL
+              Pilihan Program Aksi Nyata
             </h2>
             <p className="text-xs text-text-secondary mt-0.5">Pilih program, unggah bukti fisik & klaim SAT resmi</p>
           </div>
-          <Link to="/upload" className="text-xs font-black text-eco-800 hover:text-eco-950 flex items-center gap-0.5">
-            Unggah <ChevronRight className="w-4 h-4" />
-          </Link>
+          {actionPrograms.length > 0 && (
+            <Link to="/upload" className="text-xs font-black text-eco-800 hover:text-eco-950 flex items-center gap-0.5">
+              Unggah <ChevronRight className="w-4 h-4" />
+            </Link>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-3.5">
-          {programs.map((prog) => {
-            const Icon = prog.icon;
+          {actionPrograms.map((prog) => {
+            const Icon = resolveProgramIcon(prog.icon);
             return (
-              <Link key={prog.id} to="/upload" className="block">
+              <Link key={prog.id} to={`/upload?programId=${prog.id}`} className="block">
                 <Card className="p-4 sm:p-5 bg-white border-surface-border shadow-eco-sm hover:shadow-eco-card hover:border-eco-400 transition-all duration-200 group active:scale-[0.98] space-y-3.5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3.5 min-w-0">
@@ -405,153 +342,13 @@ export const HomePage: React.FC = () => {
               </Link>
             );
           })}
-        </div>
-      </div>
 
-      {/* 4.5. Live Recent Activity Stream */}
-      <div className="space-y-3.5">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
-            <History className="w-4 h-4 text-eco-700" />
-            Aktivitas Terkini Mahasiswa & Verifikator
-          </h2>
-          <Link to="/feed" className="text-xs font-black text-eco-800 hover:text-eco-950 flex items-center gap-0.5">
-            Feed Komunitas <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        <div className="space-y-2.5">
-          {recentActivities.map((act) => (
-            <Link key={act.id} to="/feed" className="block">
-              <Card className="p-3.5 sm:p-4 bg-white border-surface-border hover:border-eco-400 transition-all shadow-xs flex items-center gap-3.5">
-                <img
-                  src={act.userAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                  alt={act.userName}
-                  className="w-11 h-11 rounded-2xl object-cover ring-1 ring-surface-border shrink-0"
-                />
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <h4 className="text-xs sm:text-sm font-black text-text-primary truncate">
-                      {act.userName}
-                    </h4>
-                    <span className="text-[10px] font-bold text-slate-500 font-mono shrink-0">
-                      {new Date(act.submittedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-eco-900 font-bold truncate mt-0.5">
-                    {act.categoryName}
-                  </p>
-
-                  <div className="flex items-center gap-2.5 text-[11px] text-text-muted mt-1">
-                    {act.satPointsEarned > 0 && (
-                      <span className="text-blue-700 font-black">+{act.satPointsEarned} SAT</span>
-                    )}
-                    <span className="text-amber-800 font-black">+{act.greenCoinsEarned} GC</span>
-                    {act.verifiedBy && (
-                      <span className="text-slate-500 font-mono truncate">
-                        ✓ {act.verifiedBy.split(' ')[0]}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* 5. Campus SDG Leaderboard & Top Student Highlight */}
-      <div className="space-y-3.5">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
-            <Trophy className="w-4 h-4 text-gold-500 fill-gold-500" />
-            Top Student & BEKEN Leaderboard
-          </h2>
-          <Link to="/leaderboard" className="text-xs font-black text-eco-800 hover:text-eco-950 flex items-center gap-0.5">
-            Lihat Semua <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        {/* Top 1 Student Spotlight Mini Card */}
-        <Link to="/leaderboard" className="block">
-          <Card className="p-4 sm:p-5 bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-amber-500/10 border-amber-300/80 hover:border-amber-400 transition-all shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider bg-gold-neon/30 text-amber-950 px-2.5 py-0.5 rounded-full border border-gold-neon/60">
-                👑 #1 BEKEN Nominee
-              </span>
-              <span className="text-xs font-black text-amber-900">
-                890 GC • 68 SAT
-              </span>
+          {actionPrograms.length === 0 && (
+            <div className="p-4 bg-white rounded-2xl border border-dashed border-slate-200 text-center text-xs text-slate-500">
+              Belum ada Program Aksi Nyata aktif saat ini.
             </div>
-
-            <div className="flex items-center gap-3.5">
-              <img
-                src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80"
-                alt="Nadia Safira"
-                className="w-12 h-12 rounded-2xl object-cover ring-2 ring-gold-neon shadow-xs shrink-0"
-              />
-              <div className="min-w-0 flex-1">
-                <h4 className="text-xs sm:text-sm font-black text-text-primary truncate">Nadia Safira (SOD)</h4>
-                <p className="text-xs text-text-secondary truncate italic mt-0.5">
-                  "Penanaman 5 Pohon Tabebuya & VBL Zero Waste"
-                </p>
-                <div className="text-[11px] font-bold text-eco-800 mt-1">
-                  🌿 24.8 kg CO2e Hemat • 9 Hari Streak 🔥
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-amber-700 shrink-0" />
-            </div>
-          </Card>
-        </Link>
-
-        {/* Faculty Standing Mini List */}
-        <Card className="p-4 sm:p-5 bg-white space-y-3 border-surface-border shadow-eco-soft">
-          <div className="space-y-2">
-            {[
-              { id: 'socs', rank: '🥇 1', name: 'School of Computer Science', points: '4,850 GC', sat: '640 SAT' },
-              { id: 'sod', rank: '🥈 2', name: 'School of Design (SOD)', points: '4,120 GC', sat: '580 SAT' },
-              { id: 'sis', rank: '🥉 3', name: 'School of Information Systems', points: '3,560 GC', sat: '490 SAT' },
-            ].map((fac) => (
-              <div
-                key={fac.id}
-                className="p-3 rounded-2xl bg-surface-subtle hover:bg-eco-50/60 transition-colors flex items-center justify-between border border-surface-border/60"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-sm font-black">{fac.rank}</span>
-                  <div className="min-w-0">
-                    <h4 className="text-xs sm:text-sm font-black text-text-primary truncate">{fac.name}</h4>
-                    <p className="text-[11px] text-text-muted font-mono mt-0.5">{fac.points} • {fac.sat}</p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleCheer(fac.id);
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black transition-all active:scale-95 shrink-0 ${
-                    hasCheered[fac.id]
-                      ? 'bg-rose-500 text-white shadow-xs'
-                      : 'bg-white hover:bg-rose-50 text-rose-600 border border-rose-200'
-                  }`}
-                  title="Beri Cheer untuk Fakultasmu!"
-                >
-                  <Heart className={`w-3.5 h-3.5 shrink-0 ${hasCheered[fac.id] ? 'fill-white' : 'fill-rose-500'}`} />
-                  <span>{cheers[fac.id]}</span>
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <Link
-            to="/leaderboard"
-            className="block text-center pt-2.5 text-xs sm:text-sm font-black text-eco-800 hover:underline border-t border-slate-100"
-          >
-            Buka Papan Peringkat Lengkap (BEKEN, SAT & Fakultas) →
-          </Link>
-        </Card>
+          )}
+        </div>
       </div>
     </div>
   );
