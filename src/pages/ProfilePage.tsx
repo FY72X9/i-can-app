@@ -27,8 +27,10 @@ import {
   ChevronRight,
   History,
   AlertCircle,
-  Globe2
+  Globe2,
+  FileDown
 } from 'lucide-react';
+import { downloadActionPdfReport } from '@/services/pdfReportService';
 
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -250,6 +252,22 @@ export const ProfilePage: React.FC = () => {
                       <Clock className="w-3 h-3" />
                       {new Date(act.submittedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                     </span>
+                    {/* PDF download hidden until format finalized */}
+                    {false && (
+                      <button
+                        type="button"
+                        onClick={() => downloadActionPdfReport(act, {
+                          name: user?.fullName || act.userName || 'Mahasiswa BINUS',
+                          nim: user?.nim || '2602199841',
+                          faculty: user?.facultyName || 'School of Computer Science',
+                          campus: 'BINUS University',
+                        })}
+                        className="text-[10px] font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200"
+                        title="Unduh Laporan PDF"
+                      >
+                        <FileDown className="w-3 h-3" /> PDF
+                      </button>
+                    )}
                     <span className="font-bold text-slate-700">
                       {act.carbonImpactKg > 0 ? `-${act.carbonImpactKg} kg CO2e` : 'Survey Validated'}
                     </span>

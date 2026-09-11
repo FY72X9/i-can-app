@@ -93,6 +93,13 @@ export interface GreenAction {
   // Daily Quest submission field
   questId?: string;           // Set if this action is part of a Daily Quest
   actionSource?: 'PROGRAM' | 'QUEST' | 'EVENT'; // Source discriminator
+  // Multimodal AI Vision & Anti-Fraud Details
+  detectedObjects?: string[];
+  isActivityMatch?: boolean;
+  activityMatchScore?: number; // 0.0 - 1.0
+  isAuthentic?: boolean;
+  authenticityScore?: number;  // 0.0 - 1.0
+  antiFraudFlags?: string[];
 }
 // ==============================================================================
 // EVENT-DRIVEN ARCHITECTURE — Campus Event & Activity Models
@@ -127,6 +134,7 @@ export interface CampusEvent {
   dressCode?: string;       // e.g. "Kaos hitam & celana panjang"
   status: EventStatus;
   activities: EventActivity[];
+  hashtags?: string[];      // Organizer-provided hashtags for the event
   createdAt: string;
 }
 
@@ -187,6 +195,7 @@ export interface DailyQuest {
   deadline: string; // e.g., 'Sisa 3 Jam', 'Sisa Hari Ini', '23:59 WIB'
   completed?: boolean;
   actionUrl?: string;
+  hashtags?: string[]; // Superadmin-provided hashtags
   isActive: boolean;
   createdAt: string;
   updatedAt?: string;
@@ -208,8 +217,33 @@ export interface ActionProgram {
   description?: string;
   samplePhotos?: string[];
   suggestedPrompt?: string;
+  hashtags?: string[]; // Superadmin-provided hashtags
   isActive: boolean;
   order?: number;
   createdAt: string;
   updatedAt?: string;
 }
+
+// ==============================================================================
+// AI CAPTION GENERATION TYPES
+// ==============================================================================
+
+export type CaptionTone = 'INSPIRATIONAL' | 'CASUAL' | 'FORMAL';
+
+export interface CaptionGenerationOptions {
+  actionTitle: string;
+  pillar: 'PROGRAM' | 'QUEST' | 'EVENT';
+  tone: CaptionTone;
+  detectedObjects?: string[];
+  userNotes?: string;
+  organizerHashtags?: string[];
+  photoBase64?: string;
+}
+
+export interface CaptionGenerationResult {
+  captionText: string;
+  tone: CaptionTone;
+  hashtagsUsed: string[];
+  sdgTag?: string;
+}
+

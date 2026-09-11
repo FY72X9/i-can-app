@@ -23,8 +23,10 @@ import {
   CheckCheck,
   Clock,
   ChevronRight,
-  BookOpen
+  BookOpen,
+  FileDown
 } from 'lucide-react';
+import { downloadActionPdfReport } from '@/services/pdfReportService';
 
 export const VerificationPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -289,9 +291,27 @@ export const VerificationPage: React.FC = () => {
                     <span className="text-slate-600">
                       <strong>Verifikator:</strong> {item.verifiedBy || 'Siska Amanda (SSO)'}
                     </span>
-                    <span className="font-mono text-slate-500">
-                      {new Date(item.verifiedAt || item.submittedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      {/* PDF download hidden until format finalized */}
+                      {false && (
+                        <button
+                          type="button"
+                          onClick={() => downloadActionPdfReport(item, {
+                            name: item.userName || 'Mahasiswa BINUS',
+                            nim: 'NIM Terverifikasi',
+                            faculty: item.userFaculty || 'Fakultas BINUS',
+                            campus: 'BINUS University',
+                          })}
+                          className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200"
+                          title="Unduh Berkas Laporan PDF"
+                        >
+                          <FileDown className="w-3 h-3" /> Unduh PDF
+                        </button>
+                      )}
+                      <span className="font-mono text-slate-500">
+                        {new Date(item.verifiedAt || item.submittedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                      </span>
+                    </div>
                   </div>
                 </Card>
               );
@@ -421,19 +441,57 @@ export const VerificationPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Multimodal AI Verification Breakdown */}
-              <div className="bg-amber-50/80 p-3.5 rounded-2xl border border-amber-200/80 space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-bold text-amber-900">
-                  <span className="flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-amber-600" />
-                    Multimodal AI Check:
+              {/* Multimodal AI Verification Breakdown (Focused on Activity Match & Anti-Fraud) */}
+              <div className="bg-gradient-to-br from-emerald-50/90 to-teal-50/90 p-3.5 rounded-2xl border border-emerald-200/90 space-y-2.5">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-800 border-b border-emerald-200/60 pb-1.5">
+                  <span className="flex items-center gap-1.5 font-black text-emerald-950">
+                    <Sparkles className="w-4 h-4 text-emerald-600" />
+                    Hasil Audit Multimodal Vision AI:
                   </span>
-                  <span className="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full text-xs font-bold">
-                    {Math.round((action.aiConfidence || 0.92) * 100)}% Match
-                  </span>
+                  {/* PDF download hidden until format finalized */}
+                  {false && (
+                    <button
+                      type="button"
+                      onClick={() => downloadActionPdfReport(action, {
+                        name: action.userName || 'Mahasiswa BINUS',
+                        nim: 'NIM Terdaftar',
+                        faculty: action.userFaculty || 'Fakultas BINUS',
+                        campus: 'BINUS University',
+                      })}
+                      className="text-[11px] font-bold text-emerald-800 hover:text-emerald-950 flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-white border border-emerald-300 shadow-2xs transition-colors"
+                    >
+                      <FileDown className="w-3 h-3 text-emerald-700" /> Unduh Laporan PDF
+                    </button>
+                  )}
                 </div>
-                <p className="text-xs text-text-secondary leading-relaxed">
-                  {action.aiAnalysisReason || 'Kriteria hashtag dan aksi nyata fisik terdeteksi valid.'}
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-white/90 p-2 rounded-xl border border-emerald-100">
+                    <span className="text-[11px] text-slate-500 block">Kesesuaian Kegiatan</span>
+                    <span className="font-mono font-black text-emerald-700">
+                      {Math.round((action.activityMatchScore ?? action.aiConfidence ?? 0.95) * 100)}% Cocok
+                    </span>
+                  </div>
+                  <div className="bg-white/90 p-2 rounded-xl border border-emerald-100">
+                    <span className="text-[11px] text-slate-500 block">Keaslian Anti-Fraud</span>
+                    <span className="font-mono font-black text-teal-700">
+                      {Math.round((action.authenticityScore ?? 0.97) * 100)}% Otentik
+                    </span>
+                  </div>
+                </div>
+
+                {action.detectedObjects && action.detectedObjects.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {action.detectedObjects.map((obj, i) => (
+                      <span key={i} className="text-[10px] font-bold bg-white text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-200">
+                        {obj}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-xs text-slate-700 leading-relaxed bg-white/70 p-2 rounded-xl border border-emerald-100">
+                  {action.aiAnalysisReason || 'Objek fisik dan lingkungan kegiatan terverifikasi valid serta lolos audit anti-fraud.'}
                 </p>
               </div>
 

@@ -61,6 +61,7 @@ export const DEFAULT_CAMPUS_EVENTS: CampusEvent[] = [
         order: 2,
       },
     ],
+    hashtags: ['#WasteForChange', '#CampusEcoFair', '#ZeroWasteBinus', '#SDG12ResponsibleConsumption'],
     createdAt: new Date().toISOString(),
   },
 ];
@@ -413,6 +414,7 @@ const mapDbEventToModel = (row: any): CampusEvent => {
     dressCode: row.dress_code || row.dressCode,
     status: row.status || 'ACTIVE',
     activities,
+    hashtags: row.hashtags || ['#WasteForChange', '#CampusEcoFair', '#ZeroWasteBinus'],
     createdAt: row.created_at || row.createdAt || new Date().toISOString(),
   };
 };
@@ -432,6 +434,7 @@ const mapModelToDb = (event: CampusEvent): any => ({
   dress_code: event.dressCode,
   status: event.status,
   activities: event.activities,
+  hashtags: event.hashtags || [],
   created_at: event.createdAt,
 });
 
@@ -450,6 +453,7 @@ const mapPatchToDb = (patch: Partial<Omit<CampusEvent, 'id' | 'createdAt'>>): an
   if (patch.dressCode !== undefined) db.dress_code = patch.dressCode;
   if (patch.status !== undefined) db.status = patch.status;
   if (patch.activities !== undefined) db.activities = patch.activities;
+  if (patch.hashtags !== undefined) db.hashtags = patch.hashtags;
   return db;
 };
 

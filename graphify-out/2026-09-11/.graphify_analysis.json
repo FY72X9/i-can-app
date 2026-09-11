@@ -22,16 +22,14 @@
       "src_components_common_card",
       "src_components_common_card_card",
       "src_components_common_card_cardprops",
-      "src_components_common_formattedtext",
-      "src_components_common_formattedtext_formattedtext",
-      "src_components_common_formattedtext_formattedtextprops",
-      "src_components_common_formattedtext_renderinlineformatted",
       "src_components_common_topnavbar",
       "src_components_common_topnavbar_topnavbar",
       "src_components_common_topnavbar_topnavbarprops",
       "src_main",
       "src_pages_eventdetailpage",
       "src_pages_eventdetailpage_eventdetailpage",
+      "src_pages_eventspage",
+      "src_pages_eventspage_eventspage",
       "src_pages_feedpage",
       "src_pages_feedpage_feedpage",
       "src_pages_feedpage_feedpage_load",
@@ -71,55 +69,6 @@
       "src_types_index_verificationdecision"
     ],
     "1": [
-      "src_pages_adminltepage",
-      "src_pages_adminltepage_adminltepage",
-      "src_pages_adminltepage_program_colors_list",
-      "src_pages_adminltepage_program_icons_list",
-      "src_pages_adminltepage_renderprogramiconhelper",
-      "src_pages_uploadpage",
-      "src_pages_uploadpage_actionpillar",
-      "src_pages_uploadpage_resolveicon",
-      "src_pages_uploadpage_uploadpage",
-      "src_services_actionservice_submitgreenaction",
-      "src_services_gemini_verifyactionwithgemini",
-      "src_services_questprogramservice",
-      "src_services_questprogramservice_completedailyquest",
-      "src_services_questprogramservice_createactionprogram",
-      "src_services_questprogramservice_createdailyquest",
-      "src_services_questprogramservice_default_action_programs",
-      "src_services_questprogramservice_default_daily_quests",
-      "src_services_questprogramservice_deleteactionprogram",
-      "src_services_questprogramservice_deletedailyquest",
-      "src_services_questprogramservice_getactionprograms",
-      "src_services_questprogramservice_getdailyquestbyid",
-      "src_services_questprogramservice_getdailyquests",
-      "src_services_questprogramservice_resetactionprogramstodefault",
-      "src_services_questprogramservice_resetdailyqueststodefault",
-      "src_services_questprogramservice_toggleactionprogramstatus",
-      "src_services_questprogramservice_toggledailyqueststatus",
-      "src_services_questprogramservice_updateactionprogram",
-      "src_services_questprogramservice_updatedailyquest",
-      "src_stores_notificationstore",
-      "src_stores_notificationstore_notificationstate",
-      "src_types_index",
-      "src_types_index_actioncategory",
-      "src_types_index_actionprogram",
-      "src_types_index_actionstatus",
-      "src_types_index_actiontype",
-      "src_types_index_badge",
-      "src_types_index_dailyquest",
-      "src_types_index_eventactivity",
-      "src_types_index_eventstatus",
-      "src_types_index_eventtimelinecategory",
-      "src_types_index_facultyleaderboard",
-      "src_types_index_notificationitem",
-      "src_types_index_notificationtype",
-      "src_types_index_satrecognition",
-      "src_utils_imagecompressor",
-      "src_utils_imagecompressor_compressimage",
-      "src_utils_imagecompressor_compressionresult"
-    ],
-    "2": [
       "package",
       "package_dependencies",
       "package_dependencies_canvas_confetti",
@@ -165,81 +114,91 @@
       "ref_vitejs_plugin_react",
       "vite_config"
     ],
-    "3": [
-      "actionservice_getactions",
-      "actionservice_local_actions_key",
-      "actionservice_seeded_initial_actions",
-      "actionservice_submitgreenaction",
-      "actionservice_updateactionverification",
-      "d_codes_i_can_app_src_pages_feedpage_tsx",
-      "d_codes_i_can_app_src_pages_verificationpage_tsx",
-      "d_codes_i_can_app_src_pages_walletpage_tsx",
-      "d_codes_i_can_app_src_services_actionservice_ts",
-      "feedpage_activetab_setactivetab",
-      "feedpage_addreaction",
-      "feedpage_defaultsampleposts",
-      "feedpage_filteredposts",
-      "feedpage_hasliked_sethasliked",
-      "feedpage_likes_setlikes",
-      "feedpage_load",
-      "feedpage_postslist_setpostslist",
-      "feedpage_reactions_setreactions",
-      "feedpage_togglelike",
-      "uploadpage_handlesubmit",
-      "verificationpage_confirmreject",
-      "verificationpage_defaultsamplequeue",
-      "verificationpage_filteredqueue",
-      "verificationpage_handledecision",
-      "verificationpage_load",
-      "verificationpage_loading_setloading",
-      "verificationpage_presetreasons",
-      "verificationpage_queue_setqueue",
-      "verificationpage_rejectionreason_setrejectionreason",
-      "verificationpage_rejectmodalid_setrejectmodalid",
-      "verificationpage_selectedfilter_setselectedfilter",
-      "walletpage_copiedtranscript_setcopiedtranscript",
-      "walletpage_defaultverified",
-      "walletpage_handleexporttranscript",
-      "walletpage_load",
-      "walletpage_totalcoins",
-      "walletpage_totalcomserv",
-      "walletpage_totalsat",
-      "walletpage_user",
-      "walletpage_verifiedactions_setverifiedactions"
-    ],
-    "4": [
+    "2": [
       "ref_supabase_supabase_js",
       "src_components_common_qrscannermodal",
       "src_components_common_qrscannermodal_qrscannermodal",
       "src_components_common_qrscannermodal_qrscannermodalprops",
-      "src_pages_eventspage",
-      "src_pages_eventspage_eventspage",
-      "src_pages_homepage",
-      "src_pages_homepage_homepage",
-      "src_pages_homepage_resolveprogramicon",
+      "src_pages_uploadpage",
+      "src_pages_uploadpage_actionpillar",
+      "src_pages_uploadpage_resolveicon",
+      "src_pages_uploadpage_uploadpage",
+      "src_services_actionservice_submitgreenaction",
       "src_services_eventservice",
-      "src_services_eventservice_categorizedevents",
       "src_services_eventservice_createevent",
+      "src_services_eventservice_default_campus_events",
       "src_services_eventservice_deleteevent",
       "src_services_eventservice_generateid",
       "src_services_eventservice_getactiveevents",
-      "src_services_eventservice_getcategorizedevents",
       "src_services_eventservice_geteventbyid",
       "src_services_eventservice_getevents",
       "src_services_eventservice_geteventsbyorganizer",
-      "src_services_eventservice_geteventtimelinecategory",
       "src_services_eventservice_getlocalevents",
       "src_services_eventservice_mapdbeventtomodel",
       "src_services_eventservice_mapmodeltodb",
       "src_services_eventservice_mappatchtodb",
       "src_services_eventservice_savelocalevents",
       "src_services_eventservice_updateevent",
+      "src_services_gemini_verifyactionwithgemini",
+      "src_services_questprogramservice_completedailyquest",
       "src_services_supabase",
       "src_services_supabase_isconfigured",
       "src_services_supabase_supabase",
-      "src_types_index_campusevent"
+      "src_stores_notificationstore",
+      "src_stores_notificationstore_notificationstate",
+      "src_types_index",
+      "src_types_index_actioncategory",
+      "src_types_index_actionstatus",
+      "src_types_index_actiontype",
+      "src_types_index_badge",
+      "src_types_index_campusevent",
+      "src_types_index_eventactivity",
+      "src_types_index_eventstatus",
+      "src_types_index_eventtimelinecategory",
+      "src_types_index_facultyleaderboard",
+      "src_types_index_notificationitem",
+      "src_types_index_notificationtype",
+      "src_types_index_satrecognition"
     ],
-    "5": [
+    "3": [
+      "src_components_common_formattedtext",
+      "src_components_common_formattedtext_formattedtext",
+      "src_components_common_formattedtext_formattedtextprops",
+      "src_components_common_formattedtext_renderinlineformatted",
+      "src_pages_adminltepage",
+      "src_pages_adminltepage_adminltepage",
+      "src_pages_adminltepage_program_colors_list",
+      "src_pages_adminltepage_program_icons_list",
+      "src_pages_adminltepage_renderprogramiconhelper",
+      "src_pages_homepage",
+      "src_pages_homepage_homepage",
+      "src_pages_homepage_resolveprogramicon",
+      "src_services_eventservice_categorizedevents",
+      "src_services_eventservice_getcategorizedevents",
+      "src_services_eventservice_geteventtimelinecategory",
+      "src_services_questprogramservice",
+      "src_services_questprogramservice_createactionprogram",
+      "src_services_questprogramservice_createdailyquest",
+      "src_services_questprogramservice_default_action_programs",
+      "src_services_questprogramservice_default_daily_quests",
+      "src_services_questprogramservice_deleteactionprogram",
+      "src_services_questprogramservice_deletedailyquest",
+      "src_services_questprogramservice_getactionprograms",
+      "src_services_questprogramservice_getdailyquestbyid",
+      "src_services_questprogramservice_getdailyquests",
+      "src_services_questprogramservice_resetactionprogramstodefault",
+      "src_services_questprogramservice_resetdailyqueststodefault",
+      "src_services_questprogramservice_toggleactionprogramstatus",
+      "src_services_questprogramservice_toggledailyqueststatus",
+      "src_services_questprogramservice_updateactionprogram",
+      "src_services_questprogramservice_updatedailyquest",
+      "src_types_index_actionprogram",
+      "src_types_index_dailyquest",
+      "src_utils_imagecompressor",
+      "src_utils_imagecompressor_compressimage",
+      "src_utils_imagecompressor_compressionresult"
+    ],
+    "4": [
       "adminltepage_actionslist_setactionslist",
       "adminltepage_activemenu_setactivemenu",
       "adminltepage_grantcoinsamount_setgrantcoinsamount",
@@ -270,7 +229,7 @@
       "d_codes_i_can_app_src_pages_adminltepage_tsx",
       "d_codes_i_can_app_src_services_authservice_ts"
     ],
-    "6": [
+    "5": [
       "src_components_common_protectedroute",
       "src_components_common_protectedroute_getroledefaultpath",
       "src_components_common_protectedroute_protectedroute",
@@ -301,7 +260,7 @@
       "src_types_index_userprofile",
       "src_types_index_userrole"
     ],
-    "7": [
+    "6": [
       "d_codes_i_can_app_src_pages_uploadpage_tsx",
       "uploadpage_airesult_setairesult",
       "uploadpage_campaignurl_setcampaignurl",
@@ -329,7 +288,7 @@
       "uploadpage_submittedsuccess_setsubmittedsuccess",
       "uploadpage_user"
     ],
-    "8": [
+    "7": [
       "d_codes_i_can_app_src_pages_loginpage_tsx",
       "loginpage_activetab_setactivetab",
       "loginpage_faculties",
@@ -354,7 +313,7 @@
       "loginpage_signin_logtosignin",
       "loginpage_user_isauthenticated_loginas_loginwithpassword_register_autherror_clearerror_isloading"
     ],
-    "9": [
+    "8": [
       "tsconfig",
       "tsconfig_compileroptions",
       "tsconfig_compileroptions_baseurl",
@@ -375,6 +334,20 @@
       "tsconfig_compileroptions_usedefineforclassfields",
       "tsconfig_include",
       "tsconfig_references"
+    ],
+    "9": [
+      "actionservice_updateactionverification",
+      "d_codes_i_can_app_src_pages_verificationpage_tsx",
+      "verificationpage_confirmreject",
+      "verificationpage_defaultsamplequeue",
+      "verificationpage_filteredqueue",
+      "verificationpage_handledecision",
+      "verificationpage_loading_setloading",
+      "verificationpage_presetreasons",
+      "verificationpage_queue_setqueue",
+      "verificationpage_rejectionreason_setrejectionreason",
+      "verificationpage_rejectmodalid_setrejectmodalid",
+      "verificationpage_selectedfilter_setselectedfilter"
     ],
     "10": [
       "d_codes_i_can_app_src_components_common_topnavbar_tsx",
@@ -402,6 +375,40 @@
       "protectedroute_protectedroute"
     ],
     "12": [
+      "d_codes_i_can_app_src_pages_feedpage_tsx",
+      "feedpage_activetab_setactivetab",
+      "feedpage_addreaction",
+      "feedpage_defaultsampleposts",
+      "feedpage_filteredposts",
+      "feedpage_hasliked_sethasliked",
+      "feedpage_likes_setlikes",
+      "feedpage_postslist_setpostslist",
+      "feedpage_reactions_setreactions",
+      "feedpage_togglelike"
+    ],
+    "13": [
+      "actionservice_getactions",
+      "actionservice_local_actions_key",
+      "actionservice_seeded_initial_actions",
+      "actionservice_submitgreenaction",
+      "d_codes_i_can_app_src_services_actionservice_ts",
+      "feedpage_load",
+      "uploadpage_handlesubmit",
+      "verificationpage_load",
+      "walletpage_load"
+    ],
+    "14": [
+      "d_codes_i_can_app_src_pages_walletpage_tsx",
+      "walletpage_copiedtranscript_setcopiedtranscript",
+      "walletpage_defaultverified",
+      "walletpage_handleexporttranscript",
+      "walletpage_totalcoins",
+      "walletpage_totalcomserv",
+      "walletpage_totalsat",
+      "walletpage_user",
+      "walletpage_verifiedactions_setverifiedactions"
+    ],
+    "15": [
       "src_services_gemini",
       "src_services_gemini_aiverificationresult",
       "src_services_gemini_buildverificationprompt",
@@ -412,7 +419,7 @@
       "src_services_gemini_parseaijsonresponse",
       "src_services_gemini_verifyactionwithmultimodalai"
     ],
-    "13": [
+    "16": [
       "tsconfig_node",
       "tsconfig_node_compileroptions",
       "tsconfig_node_compileroptions_allowsyntheticdefaultimports",
@@ -423,7 +430,7 @@
       "tsconfig_node_compileroptions_strict",
       "tsconfig_node_include"
     ],
-    "14": [
+    "17": [
       "d_codes_i_can_app_src_pages_homepage_tsx",
       "homepage_cheers_setcheers",
       "homepage_flashquests",
@@ -433,132 +440,132 @@
       "homepage_programs",
       "homepage_user"
     ],
-    "15": [
+    "18": [
       "bottomnav_icon",
       "bottomnav_isverifier",
       "bottomnav_navitems",
       "bottomnav_user",
       "d_codes_i_can_app_src_components_common_bottomnav_tsx"
     ],
-    "16": [
+    "19": [
       "d_codes_i_can_app_src_services_logto_ts",
       "logto_islogtoconfigured",
       "logto_logtoappid",
       "logto_logtoconfig",
       "logto_logtoendpoint"
     ],
-    "17": [
+    "20": [
       "d_codes_i_can_app_src_services_supabase_ts",
       "supabase_isconfigured",
       "supabase_supabase",
       "supabase_supabaseanonkey",
       "supabase_supabaseurl"
     ],
-    "18": [
+    "21": [
       "button_basestyles",
       "button_sizestyles",
       "button_variantstyles",
       "d_codes_i_can_app_src_components_common_button_tsx"
     ],
-    "19": [
+    "22": [
       "d_codes_i_can_app_src_stores_notificationstore_ts",
       "notificationstore_initial_notifications",
       "notificationstore_notifications_storage_key",
       "notificationstore_usenotificationstore"
     ],
-    "20": [
+    "23": [
       "src_utils_carboncalc",
       "src_utils_carboncalc_calculateactionimpact",
       "src_utils_carboncalc_emission_factors",
       "src_utils_carboncalc_emissionfactor"
     ],
-    "21": [
+    "24": [
       "carboncalc_calculateactionimpact",
       "carboncalc_emission_factors",
       "d_codes_i_can_app_src_utils_carboncalc_ts"
     ],
-    "22": [
+    "25": [
       "d_codes_i_can_app_src_pages_profilepage_tsx",
       "profilepage_icon",
       "profilepage_profilepage"
     ],
-    "23": [
+    "26": [
       "src_vite_env_d",
       "src_vite_env_d_importmeta",
       "src_vite_env_d_importmetaenv"
     ],
-    "24": [
+    "27": [
       "badge_badge",
       "d_codes_i_can_app_src_components_common_badge_tsx"
     ],
-    "25": [
+    "28": [
       "card_card",
       "d_codes_i_can_app_src_components_common_card_tsx"
     ],
-    "26": [
+    "29": [
       "d_codes_i_can_app_src_services_gemini_ts",
       "gemini_verifyactionwithgemini"
     ],
-    "27": [
+    "30": [
       "d_codes_i_can_app_src_utils_imagecompressor_ts",
       "imagecompressor_compressimage"
     ],
-    "28": [
+    "31": [
       "d_codes_i_can_app_postcss_config_js"
     ],
-    "29": [
+    "32": [
       "d_codes_i_can_app_src_main_tsx"
     ],
-    "30": [
+    "33": [
       "d_codes_i_can_app_src_types_index_ts"
     ],
-    "31": [
+    "34": [
       "d_codes_i_can_app_src_vite_env_d_ts"
     ],
-    "32": [
+    "35": [
       "d_codes_i_can_app_tailwind_config_js"
     ],
-    "33": [
+    "36": [
       "d_codes_i_can_app_vite_config_ts"
     ],
-    "34": [
+    "37": [
       "postcss_config"
     ],
-    "35": [
+    "38": [
       "readme_i_can_app"
     ],
-    "36": [
+    "39": [
       "tailwind_config"
     ]
   },
   "cohesion": {
-    "0": 0.08516242317822652,
-    "1": 0.1026827012025902,
-    "2": 0.046511627906976744,
-    "3": 0.05512820512820513,
-    "4": 0.15402298850574714,
-    "5": 0.08374384236453201,
-    "6": 0.229064039408867,
-    "7": 0.07692307692307693,
-    "8": 0.10276679841897234,
-    "9": 0.1,
+    "0": 0.08951048951048951,
+    "1": 0.046511627906976744,
+    "2": 0.09513742071881606,
+    "3": 0.14126984126984127,
+    "4": 0.08374384236453201,
+    "5": 0.229064039408867,
+    "6": 0.07692307692307693,
+    "7": 0.10276679841897234,
+    "8": 0.1,
+    "9": 0.18181818181818182,
     "10": 0.2,
     "11": 0.2,
-    "12": 0.4444444444444444,
-    "13": 0.2222222222222222,
-    "14": 0.25,
-    "15": 0.4,
-    "16": 0.4,
-    "17": 0.4,
-    "18": 0.5,
-    "19": 0.5,
-    "20": 0.5,
-    "21": 0.6666666666666666,
-    "22": 0.6666666666666666,
-    "23": 0.6666666666666666,
-    "24": 1.0,
-    "25": 1.0,
-    "26": 1.0,
+    "12": 0.2,
+    "13": 0.25,
+    "14": 0.2222222222222222,
+    "15": 0.4444444444444444,
+    "16": 0.2222222222222222,
+    "17": 0.25,
+    "18": 0.4,
+    "19": 0.4,
+    "20": 0.4,
+    "21": 0.5,
+    "22": 0.5,
+    "23": 0.5,
+    "24": 0.6666666666666666,
+    "25": 0.6666666666666666,
+    "26": 0.6666666666666666,
     "27": 1.0,
     "28": 1.0,
     "29": 1.0,
@@ -568,7 +575,10 @@
     "33": 1.0,
     "34": 1.0,
     "35": 1.0,
-    "36": 1.0
+    "36": 1.0,
+    "37": 1.0,
+    "38": 1.0,
+    "39": 1.0
   },
   "gods": [
     {
@@ -612,50 +622,17 @@
       "degree": 14
     },
     {
+      "id": "src_services_eventservice_getevents",
+      "label": "getEvents()",
+      "degree": 13
+    },
+    {
       "id": "src_services_questprogramservice_getdailyquests",
       "label": "getDailyQuests()",
       "degree": 12
-    },
-    {
-      "id": "src_pages_uploadpage_uploadpage",
-      "label": "UploadPage()",
-      "degree": 11
     }
   ],
   "surprises": [
-    {
-      "source": "updateActionVerification()",
-      "target": "handleAdminVerify()",
-      "source_files": [
-        "D:/Codes/i-can-app/src/services/actionService.ts",
-        "D:/Codes/i-can-app/src/pages/AdminLtePage.tsx"
-      ],
-      "confidence": "INFERRED",
-      "relation": "calls",
-      "why": "inferred connection - not explicitly stated in source; bridges separate communities"
-    },
-    {
-      "source": "updateActionVerification()",
-      "target": "confirmReject()",
-      "source_files": [
-        "D:/Codes/i-can-app/src/services/actionService.ts",
-        "D:/Codes/i-can-app/src/pages/VerificationPage.tsx"
-      ],
-      "confidence": "INFERRED",
-      "relation": "calls",
-      "why": "inferred connection - not explicitly stated in source; peripheral node `confirmReject()` unexpectedly reaches hub `updateActionVerification()`"
-    },
-    {
-      "source": "updateActionVerification()",
-      "target": "handleDecision()",
-      "source_files": [
-        "D:/Codes/i-can-app/src/services/actionService.ts",
-        "D:/Codes/i-can-app/src/pages/VerificationPage.tsx"
-      ],
-      "confidence": "INFERRED",
-      "relation": "calls",
-      "why": "inferred connection - not explicitly stated in source; peripheral node `handleDecision()` unexpectedly reaches hub `updateActionVerification()`"
-    },
     {
       "source": "getActions()",
       "target": "loadData()",
@@ -677,6 +654,39 @@
       "confidence": "INFERRED",
       "relation": "calls",
       "why": "inferred connection - not explicitly stated in source; peripheral node `load()` unexpectedly reaches hub `getActions()`"
+    },
+    {
+      "source": "getActions()",
+      "target": "load()",
+      "source_files": [
+        "D:/Codes/i-can-app/src/services/actionService.ts",
+        "D:/Codes/i-can-app/src/pages/VerificationPage.tsx"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; peripheral node `load()` unexpectedly reaches hub `getActions()`"
+    },
+    {
+      "source": "getActions()",
+      "target": "load()",
+      "source_files": [
+        "D:/Codes/i-can-app/src/services/actionService.ts",
+        "D:/Codes/i-can-app/src/pages/WalletPage.tsx"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; peripheral node `load()` unexpectedly reaches hub `getActions()`"
+    },
+    {
+      "source": "updateActionVerification()",
+      "target": "handleAdminVerify()",
+      "source_files": [
+        "D:/Codes/i-can-app/src/services/actionService.ts",
+        "D:/Codes/i-can-app/src/pages/AdminLtePage.tsx"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities"
     }
   ],
   "tokens": {

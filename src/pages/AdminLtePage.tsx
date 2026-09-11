@@ -181,6 +181,7 @@ export const AdminLtePage: React.FC = () => {
     timeRange: '',
     location: '',
     dressCode: '',
+    hashtags: '#WasteForChange #CampusEcoFair #ZeroWasteBinus',
     activities: [{ name: '', description: '', coinsReward: 10, satPointsReward: 0 }] as Array<{ name: string; description: string; coinsReward: number; satPointsReward?: number }>,
   });
   const [showRewardGuide, setShowRewardGuide] = useState(false);
@@ -741,6 +742,11 @@ export const AdminLtePage: React.FC = () => {
       dressCode: eventFormData.dressCode.trim() || undefined,
       status: 'ACTIVE' as EventStatus,
       activities: validActivities,
+      hashtags: (eventFormData.hashtags || '')
+        .split(/[,\s]+/)
+        .map((t) => t.trim())
+        .filter(Boolean)
+        .map((t) => (t.startsWith('#') ? t : `#${t}`)),
     };
 
     if (editingEvent) {
@@ -765,6 +771,7 @@ export const AdminLtePage: React.FC = () => {
       timeRange: '',
       location: '',
       dressCode: '',
+      hashtags: '#WasteForChange #CampusEcoFair #ZeroWasteBinus',
       activities: [{ name: '', description: '', coinsReward: 10, satPointsReward: 0 }],
     });
     await loadData();
@@ -797,6 +804,7 @@ export const AdminLtePage: React.FC = () => {
       timeRange: event.timeRange || '',
       location: event.location || '',
       dressCode: event.dressCode || '',
+      hashtags: event.hashtags && event.hashtags.length > 0 ? event.hashtags.join(' ') : '#WasteForChange #CampusEcoFair #ZeroWasteBinus',
       activities: (event.activities || []).map((a) => ({
         name: a.name,
         description: a.description,
@@ -1723,6 +1731,7 @@ export const AdminLtePage: React.FC = () => {
                       timeRange: '',
                       location: '',
                       dressCode: '',
+                      hashtags: '#WasteForChange #CampusEcoFair #ZeroWasteBinus',
                       activities: [{ name: '', description: '', coinsReward: 10, satPointsReward: 0 }],
                     });
                     setShowEventForm(true);
@@ -2098,6 +2107,26 @@ export const AdminLtePage: React.FC = () => {
                           required
                         />
                       </div>
+                    </div>
+
+                    {/* Event Official Hashtags */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Hashtag Resmi Event (Otomatis Disematkan di Caption Mahasiswa)
+                        </label>
+                        <span className="text-[10px] text-slate-400">Pisahkan dengan spasi atau koma</span>
+                      </div>
+                      <input
+                        type="text"
+                        value={eventFormData.hashtags}
+                        onChange={(e) => setEventFormData((p) => ({ ...p, hashtags: e.target.value }))}
+                        placeholder="#WasteForChange #CampusEcoFair #ZeroWasteBinus #SDG12"
+                        className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none font-mono text-emerald-800 font-bold"
+                      />
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Hashtag ini akan otomatis disertakan oleh AI saat mahasiswa menekan tombol &ldquo;Generate Caption&rdquo; di halaman Kirim Bukti Aksi.
+                      </p>
                     </div>
 
                     {/* Activities */}
