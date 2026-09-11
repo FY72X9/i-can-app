@@ -122,7 +122,9 @@ export const EventsPage: React.FC = () => {
                     </span>
                     <span className="flex items-center gap-1">
                       <Trophy className="w-3 h-3 text-amber-500" />
-                      {event.activities.length} Pos Aktivitas
+                      {(event.activities?.length || 0) > 0
+                        ? `${event.activities.length} Pos Aktivitas`
+                        : 'Event Terpadu (Tanpa Pos)'}
                     </span>
                   </div>
                 </div>

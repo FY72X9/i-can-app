@@ -129,7 +129,7 @@ export const createEvent = async (
     ...eventData,
     id: generateId('evt'),
     createdAt: new Date().toISOString(),
-    activities: eventData.activities.map((act, idx) => ({
+    activities: (eventData.activities || []).map((act, idx) => ({
       ...act,
       id: act.id || generateId('act'),
       eventId: '', // Will be patched below

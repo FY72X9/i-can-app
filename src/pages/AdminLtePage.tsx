@@ -66,8 +66,10 @@ import {
   Globe2,
   BookOpen,
   Clock,
-  Tag
+  Tag,
+  Upload
 } from 'lucide-react';
+import { compressImage } from '@/utils/imageCompressor';
 
 const PROGRAM_ICONS_LIST = [
   { id: 'TreePine', label: 'Pohon', icon: TreePine },
@@ -173,6 +175,10 @@ export const AdminLtePage: React.FC = () => {
     endDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
     activities: [{ name: '', description: '', coinsReward: 10 }] as Array<{ name: string; description: string; coinsReward: number }>,
   });
+  const [bannerInputMode, setBannerInputMode] = useState<'upload' | 'url'>('upload');
+  const [isCompressingBanner, setIsCompressingBanner] = useState(false);
+  const [bannerUploadError, setBannerUploadError] = useState<string | null>(null);
+  const bannerFileInputRef = React.useRef<HTMLInputElement>(null);
   const [showQrModal, setShowQrModal] = useState<{ eventTitle: string; activity: EventActivity } | null>(null);
 
   // Daily Quests Management State
@@ -668,26 +674,56 @@ export const AdminLtePage: React.FC = () => {
     }
   };
 
+  const handleBannerFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setBannerUploadError('Berkas yang dipilih harus berupa gambar (JPG, PNG, WebP).');
+      return;
+    }
+
+    try {
+      setIsCompressingBanner(true);
+      setBannerUploadError(null);
+      const result = await compressImage(file, 1200, 0.82);
+      setEventFormData((prev) => ({
+        ...prev,
+        bannerUrl: result.dataUrl,
+      }));
+    } catch (err) {
+      console.error('[AdminLTE] Gagal memproses gambar banner:', err);
+      setBannerUploadError('Gagal memproses gambar. Silakan coba gambar lain.');
+    } finally {
+      setIsCompressingBanner(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
   const handleEventFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validActivities = (eventFormData.activities || [])
+      .filter((act) => act.name.trim() !== '')
+      .map((act, idx) => ({
+        id: '',
+        eventId: '',
+        name: act.name.trim(),
+        description: act.description.trim(),
+        qrCodeValue: `ican-evt-${Date.now().toString(36)}-act${idx + 1}`,
+        coinsReward: Number(act.coinsReward) || 10,
+        order: idx,
+      }));
+
     const eventPayload = {
       organizerId: user?.id || 'usr-organizer-002',
       organizerName: user?.fullName || 'Penyelenggara',
-      title: eventFormData.title,
-      description: eventFormData.description,
-      bannerUrl: eventFormData.bannerUrl,
+      title: eventFormData.title.trim(),
+      description: eventFormData.description.trim(),
+      bannerUrl: eventFormData.bannerUrl || 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=800&auto=format&fit=crop&q=80',
       startDate: new Date(eventFormData.startDate).toISOString(),
       endDate: new Date(eventFormData.endDate).toISOString(),
       status: 'ACTIVE' as EventStatus,
-      activities: eventFormData.activities.map((act, idx) => ({
-        id: '',
-        eventId: '',
-        name: act.name,
-        description: act.description,
-        qrCodeValue: `ican-evt-${Date.now().toString(36)}-act${idx + 1}`,
-        coinsReward: act.coinsReward,
-        order: idx,
-      })),
+      activities: validActivities,
     };
 
     if (editingEvent) {
@@ -700,6 +736,8 @@ export const AdminLtePage: React.FC = () => {
 
     setShowEventForm(false);
     setEditingEvent(null);
+    setBannerUploadError(null);
+    setBannerInputMode('upload');
     setEventFormData({
       title: '',
       description: '',
@@ -720,13 +758,21 @@ export const AdminLtePage: React.FC = () => {
 
   const handleEditEvent = (event: CampusEvent) => {
     setEditingEvent(event);
+    setBannerUploadError(null);
+    if (event.bannerUrl && event.bannerUrl.startsWith('data:')) {
+      setBannerInputMode('upload');
+    } else if (event.bannerUrl && event.bannerUrl.startsWith('http')) {
+      setBannerInputMode('url');
+    } else {
+      setBannerInputMode('upload');
+    }
     setEventFormData({
       title: event.title,
       description: event.description,
       bannerUrl: event.bannerUrl,
       startDate: event.startDate.split('T')[0],
       endDate: event.endDate.split('T')[0],
-      activities: event.activities.map((a) => ({ name: a.name, description: a.description, coinsReward: a.coinsReward })),
+      activities: (event.activities || []).map((a) => ({ name: a.name, description: a.description, coinsReward: a.coinsReward })),
     });
     setShowEventForm(true);
   };
@@ -1555,6 +1601,8 @@ export const AdminLtePage: React.FC = () => {
                 <button
                   onClick={() => {
                     setEditingEvent(null);
+                    setBannerUploadError(null);
+                    setBannerInputMode('upload');
                     setEventFormData({
                       title: '',
                       description: '',
@@ -1653,15 +1701,129 @@ export const AdminLtePage: React.FC = () => {
                         required
                       />
                     </div>
-                    <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1.5">URL Banner</label>
-                      <input
-                        type="url"
-                        value={eventFormData.bannerUrl}
-                        onChange={(e) => setEventFormData((p) => ({ ...p, bannerUrl: e.target.value }))}
-                        className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
-                      />
+                    {/* Banner Image / URL */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-700">Banner / Poster Event</label>
+                        <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-[11px] font-bold">
+                          <button
+                            type="button"
+                            onClick={() => setBannerInputMode('upload')}
+                            className={`px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                              bannerInputMode === 'upload'
+                                ? 'bg-white text-[#007bff] shadow-2xs font-black'
+                                : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            <Upload className="w-3 h-3" /> Unggah Berkas
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBannerInputMode('url')}
+                            className={`px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 ${
+                              bannerInputMode === 'url'
+                                ? 'bg-white text-[#007bff] shadow-2xs font-black'
+                                : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                          >
+                            <ExternalLink className="w-3 h-3" /> Tautan URL
+                          </button>
+                        </div>
+                      </div>
+
+                      {bannerInputMode === 'upload' ? (
+                        <div className="space-y-2">
+                          <input
+                            ref={bannerFileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleBannerFileChange}
+                            className="hidden"
+                          />
+                          {eventFormData.bannerUrl ? (
+                            <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 group">
+                              <img
+                                src={eventFormData.bannerUrl}
+                                alt="Pratinjau Banner"
+                                className="w-full h-36 sm:h-44 object-cover"
+                              />
+                              <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => bannerFileInputRef.current?.click()}
+                                  disabled={isCompressingBanner}
+                                  className="px-3 py-1.5 rounded-xl bg-white text-slate-800 text-xs font-bold hover:bg-slate-100 flex items-center gap-1 shadow-md transition-transform active:scale-95"
+                                >
+                                  <Upload className="w-3.5 h-3.5 text-[#007bff]" /> Ganti Gambar
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setEventFormData((p) => ({ ...p, bannerUrl: '' }))}
+                                  className="px-3 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 flex items-center gap-1 shadow-md transition-transform active:scale-95"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" /> Hapus
+                                </button>
+                              </div>
+                              <div className="absolute bottom-2 left-2 bg-slate-900/70 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">
+                                <Check className="w-3 h-3 text-emerald-400" /> Banner Terpasang
+                              </div>
+                            </div>
+                          ) : (
+                            <div
+                              onClick={() => !isCompressingBanner && bannerFileInputRef.current?.click()}
+                              className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-colors ${
+                                isCompressingBanner
+                                  ? 'border-blue-300 bg-blue-50/50 cursor-wait'
+                                  : 'border-slate-300 hover:border-[#007bff] bg-slate-50 hover:bg-blue-50/30'
+                              }`}
+                            >
+                              <div className="w-10 h-10 rounded-2xl bg-blue-100 text-[#007bff] flex items-center justify-center mx-auto mb-2">
+                                {isCompressingBanner ? (
+                                  <RefreshCw className="w-5 h-5 animate-spin" />
+                                ) : (
+                                  <Upload className="w-5 h-5" />
+                                )}
+                              </div>
+                              <p className="text-xs font-bold text-slate-700">
+                                {isCompressingBanner ? 'Mengompresi & Memproses Gambar...' : 'Klik untuk Unggah Gambar Banner'}
+                              </p>
+                              <p className="text-[10px] text-slate-400 mt-1">
+                                Mendukung format JPG, PNG, atau WebP (otomatis dikompresi)
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <input
+                            type="url"
+                            value={eventFormData.bannerUrl}
+                            onChange={(e) => setEventFormData((p) => ({ ...p, bannerUrl: e.target.value }))}
+                            placeholder="https://images.unsplash.com/photo-..."
+                            className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none"
+                          />
+                          {eventFormData.bannerUrl && (
+                            <div className="rounded-2xl overflow-hidden border border-slate-200 h-28 bg-slate-100 relative">
+                              <img
+                                src={eventFormData.bannerUrl}
+                                alt="Pratinjau Banner URL"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLElement).style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {bannerUploadError && (
+                        <p className="text-xs text-rose-600 font-bold flex items-center gap-1 mt-1">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {bannerUploadError}
+                        </p>
+                      )}
                     </div>
+
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs font-bold text-slate-700 block mb-1.5">Tanggal Mulai</label>
@@ -1688,57 +1850,80 @@ export const AdminLtePage: React.FC = () => {
                     {/* Activities */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-slate-700">Pos Aktivitas / Station</label>
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Pos Aktivitas / Station ({eventFormData.activities.length})
+                          </label>
+                          <span className="text-[10px] text-slate-400">
+                            Opsional — Kosongkan jika event tidak memiliki pos aktivitas terpisah
+                          </span>
+                        </div>
                         <button
                           type="button"
                           onClick={addActivityField}
-                          className="text-xs font-bold text-[#007bff] hover:underline flex items-center gap-1"
+                          className="text-xs font-bold text-[#007bff] hover:underline flex items-center gap-1 px-2.5 py-1 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 transition-colors"
                         >
                           <Plus className="w-3 h-3" /> Tambah Pos
                         </button>
                       </div>
-                      {eventFormData.activities.map((act, idx) => (
-                        <div key={idx} className="flex gap-2 items-start bg-slate-50 p-3 rounded-xl border border-slate-200">
-                          <div className="flex-1 space-y-2">
-                            <input
-                              type="text"
-                              placeholder={`Nama Pos ${idx + 1}`}
-                              value={act.name}
-                              onChange={(e) => updateActivityField(idx, 'name', e.target.value)}
-                              className="w-full text-xs p-2 rounded-xl border border-slate-300 bg-white focus:outline-none"
-                              required
-                            />
-                            <input
-                              type="text"
-                              placeholder="Deskripsi singkat"
-                              value={act.description}
-                              onChange={(e) => updateActivityField(idx, 'description', e.target.value)}
-                              className="w-full text-xs p-2 rounded-xl border border-slate-300 bg-white focus:outline-none"
-                            />
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-slate-500">Reward:</span>
+
+                      {eventFormData.activities.length === 0 ? (
+                        <div className="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-4 text-center space-y-1.5">
+                          <p className="text-xs font-bold text-slate-700">Event ini tidak memiliki pos aktivitas terpisah.</p>
+                          <p className="text-[11px] text-slate-500">
+                            Peserta akan langsung berpartisipasi pada event secara utuh tanpa pos checkpoint. Klik tombol di bawah jika ingin menambahkan pos.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={addActivityField}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-xs font-bold text-[#007bff] hover:bg-blue-50 transition-colors shadow-2xs mt-1"
+                          >
+                            <Plus className="w-3 h-3" /> Tambah Pos Pertama
+                          </button>
+                        </div>
+                      ) : (
+                        eventFormData.activities.map((act, idx) => (
+                          <div key={idx} className="flex gap-2 items-start bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <div className="flex-1 space-y-2">
                               <input
-                                type="number"
-                                min={1}
-                                max={100}
-                                value={act.coinsReward}
-                                onChange={(e) => updateActivityField(idx, 'coinsReward', Number(e.target.value))}
-                                className="w-20 text-xs p-2 rounded-xl border border-slate-300 bg-white focus:outline-none font-mono"
+                                type="text"
+                                placeholder={`Nama Pos ${idx + 1}`}
+                                value={act.name}
+                                onChange={(e) => updateActivityField(idx, 'name', e.target.value)}
+                                className="w-full text-xs p-2 rounded-xl border border-slate-300 bg-white focus:outline-none"
+                                required
                               />
-                              <span className="text-xs text-amber-700 font-bold">GC</span>
+                              <input
+                                type="text"
+                                placeholder="Deskripsi singkat pos"
+                                value={act.description}
+                                onChange={(e) => updateActivityField(idx, 'description', e.target.value)}
+                                className="w-full text-xs p-2 rounded-xl border border-slate-300 bg-white focus:outline-none"
+                              />
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-slate-500">Reward:</span>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={100}
+                                  value={act.coinsReward}
+                                  onChange={(e) => updateActivityField(idx, 'coinsReward', Number(e.target.value))}
+                                  className="w-20 text-xs p-2 rounded-xl border border-slate-300 bg-white focus:outline-none font-mono"
+                                />
+                                <span className="text-xs text-amber-700 font-bold">GC</span>
+                              </div>
                             </div>
-                          </div>
-                          {eventFormData.activities.length > 1 && (
                             <button
                               type="button"
                               onClick={() => removeActivityField(idx)}
-                              className="p-1.5 rounded-lg hover:bg-rose-100 text-rose-500 transition-colors"
+                              title="Hapus pos ini"
+                              className="p-1.5 rounded-lg hover:bg-rose-100 text-rose-500 hover:text-rose-700 transition-colors"
                             >
-                              <X className="w-3.5 h-3.5" />
+                              <X className="w-4 h-4" />
                             </button>
-                          )}
-                        </div>
-                      ))}
+                          </div>
+                        ))
+                      )}
                     </div>
 
                     <div className="flex gap-2">
@@ -1786,7 +1971,7 @@ export const AdminLtePage: React.FC = () => {
                           </div>
                           <p className="text-xs text-slate-500 truncate">{evt.description}</p>
                           <p className="text-[10px] text-slate-400 font-mono">
-                            {new Date(evt.startDate).toLocaleDateString('id-ID')} — {new Date(evt.endDate).toLocaleDateString('id-ID')} • {evt.activities.length} Pos
+                            {new Date(evt.startDate).toLocaleDateString('id-ID')} — {new Date(evt.endDate).toLocaleDateString('id-ID')} • {(evt.activities?.length || 0) > 0 ? `${evt.activities.length} Pos` : 'Tanpa Pos'}
                           </p>
                         </div>
                         <div className="flex flex-col gap-1.5 shrink-0">
@@ -1810,18 +1995,22 @@ export const AdminLtePage: React.FC = () => {
                       {/* Activities QR Section */}
                       <div className="border-t border-slate-100 px-4 py-3 bg-slate-50">
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">Pos Aktivitas & QR Code</p>
-                        <div className="flex flex-wrap gap-2">
-                          {evt.activities.map((act) => (
-                            <button
-                              key={act.id}
-                              onClick={() => setShowQrModal({ eventTitle: evt.title, activity: act })}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-[#007bff] hover:bg-blue-50 text-xs font-bold text-slate-700 transition-colors"
-                            >
-                              <QrCode className="w-3.5 h-3.5 text-[#007bff]" />
-                              {act.name} (+{act.coinsReward} GC)
-                            </button>
-                          ))}
-                        </div>
+                        {evt.activities && evt.activities.length > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            {evt.activities.map((act) => (
+                              <button
+                                key={act.id}
+                                onClick={() => setShowQrModal({ eventTitle: evt.title, activity: act })}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-[#007bff] hover:bg-blue-50 text-xs font-bold text-slate-700 transition-colors"
+                              >
+                                <QrCode className="w-3.5 h-3.5 text-[#007bff]" />
+                                {act.name} (+{act.coinsReward} GC)
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-slate-400 italic">Event Terpadu — Tidak ada pos checkpoint terpisah</p>
+                        )}
                       </div>
                     </div>
                   ))}

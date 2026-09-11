@@ -134,7 +134,7 @@ export const EventDetailPage: React.FC = () => {
               : 'border-transparent text-text-muted hover:text-text-secondary'
           }`}
         >
-          📍 Pos Aktivitas ({event.activities.length})
+          📍 Pos Aktivitas ({(event.activities || []).length})
         </button>
         <button
           onClick={() => setActiveTab('leaderboard')}
@@ -151,36 +151,60 @@ export const EventDetailPage: React.FC = () => {
       {/* Activities Tab */}
       {activeTab === 'activities' && (
         <div className="space-y-3">
-          {event.activities
-            .sort((a, b) => a.order - b.order)
-            .map((activity) => (
-              <div
-                key={activity.id}
-                className="bg-white rounded-2xl border border-surface-border p-4 space-y-2.5 shadow-eco-soft"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <h4 className="text-sm font-black text-text-primary">{activity.name}</h4>
-                    <p className="text-xs text-text-secondary mt-0.5 line-clamp-2">{activity.description}</p>
-                  </div>
-                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 shrink-0">
-                    <Coins className="w-3 h-3 text-amber-600" />
-                    <span className="text-[11px] font-black text-amber-800">+{activity.coinsReward} GC</span>
-                  </div>
-                </div>
-
-                {/* Action Button */}
-                {isActive && (
-                  <Link
-                    to={`/upload?eventId=${event.id}&activityId=${activity.id}`}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-eco-700 hover:bg-eco-800 text-white text-xs font-black transition-colors shadow-eco-sm active:scale-95"
-                  >
-                    <Camera className="w-4 h-4" />
-                    Kirim Bukti Aksi
-                  </Link>
-                )}
+          {(!event.activities || event.activities.length === 0) ? (
+            <div className="bg-white rounded-3xl border border-surface-border p-6 sm:p-8 text-center space-y-3 shadow-eco-soft">
+              <div className="w-12 h-12 rounded-2xl bg-eco-50 border border-eco-200 flex items-center justify-center mx-auto text-eco-700">
+                <Sparkles className="w-6 h-6 text-eco-600" />
               </div>
-            ))}
+              <div>
+                <h4 className="text-sm font-black text-text-primary">Event Terpadu (Tanpa Pos Terpisah)</h4>
+                <p className="text-xs text-text-secondary mt-1 max-w-md mx-auto leading-relaxed">
+                  Event ini tidak menggunakan pos aktivitas atau checkpoint terpisah. Seluruh kontribusi aksi dapat langsung dikirimkan untuk event ini.
+                </p>
+              </div>
+              {isActive && (
+                <Link
+                  to={`/upload?eventId=${event.id}`}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-2xl bg-eco-700 hover:bg-eco-800 text-white text-xs font-black transition-colors shadow-eco-sm active:scale-95 mt-2"
+                >
+                  <Camera className="w-4 h-4" />
+                  Kirim Bukti Aksi Event
+                </Link>
+              )}
+            </div>
+          ) : (
+            event.activities
+              .slice()
+              .sort((a, b) => a.order - b.order)
+              .map((activity) => (
+                <div
+                  key={activity.id}
+                  className="bg-white rounded-2xl border border-surface-border p-4 space-y-2.5 shadow-eco-soft"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm font-black text-text-primary">{activity.name}</h4>
+                      <p className="text-xs text-text-secondary mt-0.5 line-clamp-2">{activity.description}</p>
+                    </div>
+                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 shrink-0">
+                      <Coins className="w-3 h-3 text-amber-600" />
+                      <span className="text-[11px] font-black text-amber-800">+{activity.coinsReward} GC</span>
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  {isActive && (
+                    <Link
+                      to={`/upload?eventId=${event.id}&activityId=${activity.id}`}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-eco-700 hover:bg-eco-800 text-white text-xs font-black transition-colors shadow-eco-sm active:scale-95"
+                    >
+                      <Camera className="w-4 h-4" />
+                      Kirim Bukti Aksi
+                    </Link>
+                  )}
+                </div>
+              ))
+          )}
         </div>
       )}
 
