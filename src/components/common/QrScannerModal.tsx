@@ -60,7 +60,7 @@ export const QrScannerModal: React.FC<QrScannerModalProps> = ({ isOpen, onClose 
   const handleSimulationSelect = (eventId: string, activityId: string) => {
     stopCamera();
     onClose();
-    navigate(`/upload?eventId=${eventId}&activityId=${activityId}`);
+    navigate(`/upload?source=event&eventId=${eventId}&activityId=${activityId}`);
   };
 
   if (!isOpen) return null;

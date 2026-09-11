@@ -22,7 +22,7 @@ export const DEFAULT_DAILY_QUESTS: DailyQuest[] = [
     satReward: 0,
     deadline: 'Sisa Hari Ini',
     completed: false,
-    actionUrl: '/upload',
+    actionUrl: '/upload?source=quest&questId=quest-tumbler',
     isActive: true,
     createdAt: new Date().toISOString(),
   },
@@ -35,7 +35,7 @@ export const DEFAULT_DAILY_QUESTS: DailyQuest[] = [
     satReward: 0,
     deadline: 'Sisa 5 Jam',
     completed: false,
-    actionUrl: '/upload',
+    actionUrl: '/upload?source=quest&questId=quest-stair',
     isActive: true,
     createdAt: new Date().toISOString(),
   },
@@ -174,6 +174,15 @@ export const toggleDailyQuestStatus = async (id: string): Promise<DailyQuest | n
   const quest = quests.find((q) => q.id === id);
   if (!quest) return null;
   return updateDailyQuest(id, { isActive: !quest.isActive });
+};
+
+export const getDailyQuestById = async (id: string): Promise<DailyQuest | null> => {
+  const quests = await getDailyQuests();
+  return quests.find((q) => q.id === id) || null;
+};
+
+export const completeDailyQuest = async (id: string): Promise<DailyQuest | null> => {
+  return updateDailyQuest(id, { completed: true });
 };
 
 export const resetDailyQuestsToDefault = async (): Promise<DailyQuest[]> => {

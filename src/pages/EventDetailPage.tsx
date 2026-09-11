@@ -80,7 +80,7 @@ export const EventDetailPage: React.FC = () => {
   }
 
   const category = getEventTimelineCategory(event);
-  const isActionOpen = category === 'TODAY';
+  const isActionOpen = event.status === 'ACTIVE' || category === 'TODAY';
 
   return (
     <div className="space-y-5 -mt-2">
@@ -264,7 +264,7 @@ export const EventDetailPage: React.FC = () => {
               </div>
               {isActionOpen ? (
                 <Link
-                  to={`/upload?eventId=${event.id}`}
+                  to={`/upload?source=event&eventId=${event.id}`}
                   className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-2xl bg-eco-700 hover:bg-eco-800 text-white text-xs font-black transition-colors shadow-eco-sm active:scale-95 mt-2"
                 >
                   <Camera className="w-4 h-4" />
@@ -311,7 +311,7 @@ export const EventDetailPage: React.FC = () => {
                   {/* Action Button */}
                   {isActionOpen ? (
                     <Link
-                      to={`/upload?eventId=${event.id}&activityId=${activity.id}`}
+                      to={`/upload?source=event&eventId=${event.id}&activityId=${activity.id}`}
                       className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-eco-700 hover:bg-eco-800 text-white text-xs font-black transition-colors shadow-eco-sm active:scale-95"
                     >
                       <Camera className="w-4 h-4" />

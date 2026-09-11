@@ -714,11 +714,11 @@ export const AdminLtePage: React.FC = () => {
     const validActivities = (eventFormData.activities || [])
       .filter((act) => act.name.trim() !== '')
       .map((act, idx) => ({
-        id: '',
-        eventId: '',
+        id: (act as any).id || `act-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+        eventId: editingEvent ? editingEvent.id : '',
         name: act.name.trim(),
         description: act.description.trim(),
-        qrCodeValue: `ican-evt-${Date.now().toString(36)}-act${idx + 1}`,
+        qrCodeValue: (act as any).qrCodeValue || `ican-evt-${Date.now().toString(36)}-act${idx + 1}`,
         coinsReward: Number(act.coinsReward) || 10,
         satPointsReward: Number(act.satPointsReward) || 0,
         order: idx,

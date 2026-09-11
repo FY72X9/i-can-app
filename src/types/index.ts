@@ -90,6 +90,9 @@ export interface GreenAction {
   eventId?: string;           // Set if this action is part of a Campus Event
   eventActivityId?: string;   // ID of the specific event activity/station completed
   eventOrganizerId?: string;  // Organizer user ID for filtering approval queues
+  // Daily Quest submission field
+  questId?: string;           // Set if this action is part of a Daily Quest
+  actionSource?: 'PROGRAM' | 'QUEST' | 'EVENT'; // Source discriminator
 }
 // ==============================================================================
 // EVENT-DRIVEN ARCHITECTURE — Campus Event & Activity Models

@@ -15,12 +15,71 @@ const LOCAL_EVENTS_KEY = 'i_can_events';
 const generateId = (prefix: string = 'evt') =>
   `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 
+export const DEFAULT_CAMPUS_EVENTS: CampusEvent[] = [
+  {
+    id: 'evt-waste-for-change',
+    organizerId: 'usr-organizer-002',
+    organizerName: 'Student Service Office (SSO)',
+    title: 'Waste for Change: Campus Eco Fair 2026',
+    description: 'Aksi pilah sampah massal dan penukaran botol plastik dengan merchandise ramah lingkungan di kampus BINUS.',
+    bannerUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=800&auto=format&fit=crop&q=80',
+    startDate: new Date().toISOString(),
+    endDate: new Date(Date.now() + 7 * 86400000).toISOString(),
+    timeRange: '08:00 - 15:00 WIB',
+    location: 'Plaza Gedung Anggrek, Kampus BINUS',
+    dressCode: 'Almamater / Kaos Hitam',
+    status: 'ACTIVE',
+    activities: [
+      {
+        id: 'act-wfc-pos1',
+        eventId: 'evt-waste-for-change',
+        name: 'Pos 1: Drop Point Botol Plastik & PET',
+        description: 'Setorkan minimal 3 botol plastik bersih ke tong daur ulang.',
+        qrCodeValue: 'ican-evt-wfc-pos1',
+        coinsReward: 15,
+        satPointsReward: 1,
+        order: 0,
+      },
+      {
+        id: 'act-wfc-pos2',
+        eventId: 'evt-waste-for-change',
+        name: 'Pos 2: Edukasi Pemilahan Sampah Organik',
+        description: 'Ikuti sesi edukasi pembuatan pupuk kompos cair selama 15 menit.',
+        qrCodeValue: 'ican-evt-wfc-pos2',
+        coinsReward: 20,
+        satPointsReward: 2,
+        order: 1,
+      },
+      {
+        id: 'act-wfc-pos3',
+        eventId: 'evt-waste-for-change',
+        name: 'Pos 3: Pameran Inovasi Zero Waste BINUS',
+        description: 'Kunjungi booth inovasi teknologi hijau karya mahasiswa dan scan QR checkpoint.',
+        qrCodeValue: 'ican-evt-wfc-pos3',
+        coinsReward: 15,
+        satPointsReward: 1,
+        order: 2,
+      },
+    ],
+    createdAt: new Date().toISOString(),
+  },
+];
+
 const getLocalEvents = (): CampusEvent[] => {
   try {
     const raw = localStorage.getItem(LOCAL_EVENTS_KEY);
-    return raw ? JSON.parse(raw) : [];
+    if (!raw) {
+      saveLocalEvents(DEFAULT_CAMPUS_EVENTS);
+      return DEFAULT_CAMPUS_EVENTS;
+    }
+    const list: any[] = JSON.parse(raw);
+    if (!Array.isArray(list) || list.length === 0) {
+      saveLocalEvents(DEFAULT_CAMPUS_EVENTS);
+      return DEFAULT_CAMPUS_EVENTS;
+    }
+    return list.map(mapDbEventToModel);
   } catch {
-    return [];
+    return DEFAULT_CAMPUS_EVENTS;
   }
 };
 
@@ -236,9 +295,14 @@ export const updateEvent = async (
   if (idx === -1) return null;
 
   const updated = { ...events[idx], ...patch };
-  // Ensure activities have correct eventId
+  // Ensure activities have correct eventId and unique non-empty IDs
   if (updated.activities) {
-    updated.activities = updated.activities.map((act) => ({ ...act, eventId }));
+    updated.activities = updated.activities.map((act, i) => ({
+      ...act,
+      id: act.id && String(act.id).trim() !== '' ? String(act.id) : `act-${eventId}-${i + 1}`,
+      eventId,
+      order: act.order ?? i,
+    }));
   }
   events[idx] = updated;
   saveLocalEvents(events);
@@ -318,23 +382,40 @@ export const computeEventLeaderboard = (
 // DB MAPPING HELPERS (Supabase snake_case <-> TypeScript camelCase)
 // ============================================================
 
-const mapDbEventToModel = (row: any): CampusEvent => ({
-  id: row.id,
-  organizerId: row.organizer_id,
-  organizerName: row.organizer_name,
-  title: row.title,
-  description: row.description,
-  bannerUrl: row.banner_url || '',
-  mediaUrls: row.media_urls || [],
-  startDate: row.start_date,
-  endDate: row.end_date,
-  timeRange: row.time_range || row.timeRange,
-  location: row.location,
-  dressCode: row.dress_code || row.dressCode,
-  status: row.status,
-  activities: row.activities || [],
-  createdAt: row.created_at,
-});
+const mapDbEventToModel = (row: any): CampusEvent => {
+  const eventId = row.id || generateId('evt');
+  const rawActivities = row.activities || [];
+  const activities: EventActivity[] = Array.isArray(rawActivities)
+    ? rawActivities.map((act: any, idx: number) => ({
+        id: act.id && String(act.id).trim() !== '' ? String(act.id) : `act-${eventId}-${idx + 1}`,
+        eventId: act.eventId || eventId,
+        name: act.name || `Pos ${idx + 1}`,
+        description: act.description || '',
+        coinsReward: Number(act.coinsReward) || 10,
+        satPointsReward: Number(act.satPointsReward) || 0,
+        qrCodeValue: act.qrCodeValue || `ican-${eventId}-act${idx + 1}`,
+        order: act.order ?? idx,
+      }))
+    : [];
+
+  return {
+    id: eventId,
+    organizerId: row.organizer_id || row.organizerId || 'usr-organizer-002',
+    organizerName: row.organizer_name || row.organizerName || 'Student Service Office (SSO)',
+    title: row.title || 'Event Kampus Hijau',
+    description: row.description || '',
+    bannerUrl: row.banner_url || row.bannerUrl || '',
+    mediaUrls: row.media_urls || row.mediaUrls || [],
+    startDate: row.start_date || row.startDate || new Date().toISOString(),
+    endDate: row.end_date || row.endDate || new Date(Date.now() + 7 * 86400000).toISOString(),
+    timeRange: row.time_range || row.timeRange,
+    location: row.location,
+    dressCode: row.dress_code || row.dressCode,
+    status: row.status || 'ACTIVE',
+    activities,
+    createdAt: row.created_at || row.createdAt || new Date().toISOString(),
+  };
+};
 
 const mapModelToDb = (event: CampusEvent): any => ({
   id: event.id,

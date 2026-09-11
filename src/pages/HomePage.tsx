@@ -372,7 +372,7 @@ export const HomePage: React.FC = () => {
               <div className="flex items-center justify-between pt-1 text-xs font-black border-t border-black/5">
                 <span className="text-amber-800">{quest.reward}</span>
                 {!quest.completed && (
-                  <Link to={quest.actionUrl || '/upload'} className="text-eco-800 hover:underline flex items-center gap-0.5 font-bold">
+                  <Link to={quest.actionUrl || `/upload?source=quest&questId=${quest.id}`} className="text-eco-800 hover:underline flex items-center gap-0.5 font-bold">
                     Kerjakan Misi →
                   </Link>
                 )}
@@ -399,7 +399,7 @@ export const HomePage: React.FC = () => {
             <p className="text-xs text-text-secondary mt-0.5">Pilih program, unggah bukti fisik & klaim SAT resmi</p>
           </div>
           {actionPrograms.length > 0 && (
-            <Link to="/upload" className="text-xs font-black text-eco-800 hover:text-eco-950 flex items-center gap-0.5">
+            <Link to="/upload?source=program" className="text-xs font-black text-eco-800 hover:text-eco-950 flex items-center gap-0.5">
               Unggah <ChevronRight className="w-4 h-4" />
             </Link>
           )}
@@ -409,7 +409,7 @@ export const HomePage: React.FC = () => {
           {actionPrograms.map((prog) => {
             const Icon = resolveProgramIcon(prog.icon);
             return (
-              <Link key={prog.id} to={`/upload?programId=${prog.id}`} className="block">
+              <Link key={prog.id} to={`/upload?source=program&programId=${prog.id}`} className="block">
                 <Card className="p-4 sm:p-5 bg-white border-surface-border shadow-eco-sm hover:shadow-eco-card hover:border-eco-400 transition-all duration-200 group active:scale-[0.98] space-y-3.5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3.5 min-w-0">
