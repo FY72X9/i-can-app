@@ -657,7 +657,23 @@ export async function batchImportAccounts(
 }
 
 /**
- * Synchronize local user accounts to Supabase public.users table
+ * Map app role to Supabase schema role
+ */
+function mapRoleToSupabase(role: string): 'STUDENT' | 'VERIFIER' | 'ADMIN' {
+  const upper = role.toUpperCase();
+  if (upper === 'SUPERADMIN' || upper === 'ADMIN') return 'ADMIN';
+  if (upper === 'ORGANIZER' || upper === 'VERIFIER') return 'VERIFIER';
+  return 'STUDENT';
+}
+
+/**
+ * Synchronize local user accounts to Supabase public.users table.
+ *
+ * PREREQUISITES — run supabase/fix_users_insert.sql in Supabase SQL Editor first:
+ *  1. FK constraint on id removed
+ *  2. id column has DEFAULT gen_random_uuid()
+ *  3. INSERT RLS policy exists
+ *  4. UPDATE RLS policy broadened for upsert
  */
 export async function syncAccountsToSupabase(
   accountsToSync?: StoredAuthAccount[]
@@ -670,11 +686,21 @@ export async function syncAccountsToSupabase(
     const list = accountsToSync || (await getStoredAccounts());
     if (!list || list.length === 0) return { count: 0 };
 
-    const rows = list.map((acc) => ({
-      nim: acc.nim,
-      email: acc.email,
-      full_name: acc.fullName,
-      role: acc.role === 'SUPERADMIN' ? 'ADMIN' : acc.role === 'ORGANIZER' ? 'VERIFIER' : 'STUDENT',
+    // Filter: only sync accounts that have a valid NIM and email
+    const validAccounts = list.filter(
+      (acc) => acc.nim && acc.email && acc.nim.trim() !== '' && acc.email.trim() !== ''
+    );
+
+    if (validAccounts.length === 0) return { count: 0 };
+
+    console.log(`[Supabase Sync] Preparing ${validAccounts.length} accounts for sync...`);
+
+    // Map to Supabase column format (omit 'id' — let DB generate via DEFAULT)
+    const rows = validAccounts.map((acc) => ({
+      nim: acc.nim.trim(),
+      email: acc.email.trim().toLowerCase(),
+      full_name: acc.fullName.trim(),
+      role: mapRoleToSupabase(acc.role),
       avatar_url: acc.avatarUrl || null,
       total_green_coins: acc.totalGreenCoins || 0,
       total_sat_points: acc.totalSatPoints || 0,
@@ -683,19 +709,46 @@ export async function syncAccountsToSupabase(
       created_at: acc.createdAt || new Date().toISOString(),
     }));
 
-    const { data, error } = await supabase
-      .from('users')
-      .upsert(rows, { onConflict: 'nim' })
-      .select();
+    // Batch upsert in chunks of 50 to avoid payload limits
+    const BATCH_SIZE = 50;
+    let totalSynced = 0;
+    const errors: string[] = [];
 
-    if (error) {
-      console.warn('Supabase upsert error:', error);
-      return { count: 0, error: error.message };
+    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+      const batch = rows.slice(i, i + BATCH_SIZE);
+      const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+
+      console.log(`[Supabase Sync] Batch ${batchNum}: upserting ${batch.length} rows...`);
+
+      const { data, error } = await supabase
+        .from('users')
+        .upsert(batch, { onConflict: 'nim' })
+        .select();
+
+      if (error) {
+        console.error(`[Supabase Sync] Batch ${batchNum} error:`, error.code, error.message, error.details, error.hint);
+        errors.push(`Batch ${batchNum}: ${error.message} (code: ${error.code})`);
+      } else {
+        const count = data?.length || batch.length;
+        totalSynced += count;
+        console.log(`[Supabase Sync] Batch ${batchNum}: ${count} rows synced successfully`);
+      }
     }
 
-    return { count: data?.length || rows.length };
+    if (errors.length > 0) {
+      const errorMsg = errors.join('\n');
+      console.warn('[Supabase Sync] Completed with errors:\n', errorMsg);
+      if (totalSynced === 0) {
+        return { count: 0, error: errorMsg };
+      }
+      // Partial success
+      return { count: totalSynced, error: `Sebagian berhasil (${totalSynced}/${rows.length}). Errors:\n${errorMsg}` };
+    }
+
+    console.log(`[Supabase Sync] All done! ${totalSynced} accounts synced.`);
+    return { count: totalSynced };
   } catch (err: any) {
-    console.error('Error saat sync ke Supabase:', err);
+    console.error('[Supabase Sync] Fatal error:', err);
     return { count: 0, error: err.message };
   }
 }
