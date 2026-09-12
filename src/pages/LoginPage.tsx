@@ -108,6 +108,13 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     setFormValidationMsg(null);
 
+    const cleanNim = regNim.replace(/\D/g, '').slice(0, 10);
+    if (cleanNim !== regNim || cleanNim.length !== 10) {
+      setFormValidationMsg('NIM harus tepat 10 digit angka');
+      setRegNim(cleanNim);
+      return;
+    }
+
     if (!regFullName.trim() || !regNim.trim() || !regEmail.trim() || !regPassword.trim()) {
       setFormValidationMsg('Harap lengkapi semua kolom pendaftaran');
       return;
@@ -125,7 +132,7 @@ export const LoginPage: React.FC = () => {
 
     const success = await register({
       fullName: regFullName,
-      nim: regNim,
+      nim: cleanNim,
       email: regEmail,
       facultyName: regFaculty,
       password: regPassword,
@@ -382,7 +389,10 @@ export const LoginPage: React.FC = () => {
                     type="text"
                     placeholder="2602998811"
                     value={regNim}
-                    onChange={(e) => setRegNim(e.target.value)}
+                    onChange={(e) => setRegNim(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    maxLength={10}
+                    inputMode="numeric"
+                    pattern="[0-9]{10}"
                     className="w-full text-xs p-2.5 rounded-2xl border border-surface-border bg-surface-subtle focus:bg-white focus:outline-none focus:ring-2 focus:ring-eco-500/20 focus:border-eco-600 transition-all font-mono"
                     required
                   />

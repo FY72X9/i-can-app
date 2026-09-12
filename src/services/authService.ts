@@ -328,6 +328,12 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
 
   const cleanEmail = email.trim().toLowerCase();
   const cleanNim = nim.trim();
+  const identifierCheck = validateUserIdentifier(cleanNim, role);
+  if (!identifierCheck.valid) {
+    return { error: identifierCheck.error };
+  }
+
+  const passwordHash = await hashPassword(password);
 
   // 1. Cloud Registration via Supabase Auth (if configured)
   if (isConfigured) {
@@ -349,8 +355,11 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
         return { error: error.message };
       }
 
-      if (data.user) {
-        const profile: UserProfile = {
+      if (!data.user) {
+        return { error: 'Pendaftaran Supabase belum menghasilkan akun. Periksa verifikasi email atau konfigurasi Auth.' };
+      }
+
+      const profile: UserProfile = {
           id: data.user.id,
           nim: cleanNim,
           email: cleanEmail,
@@ -362,11 +371,21 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
           totalCarbonSaved: 0.0,
           streakDays: 1,
           createdAt: new Date().toISOString(),
-        };
-        return { user: profile };
+      };
+
+      const account: StoredAuthAccount = {
+        ...profile,
+        facultyName: profile.facultyName || 'School of Computer Science',
+        passwordHash,
+      };
+      const { error: rpcError } = await upsertLocalAccountToSupabase(account, passwordHash);
+      if (rpcError) {
+        return { error: `Akun Auth berhasil dibuat, tetapi profil database gagal disimpan: ${rpcError}` };
       }
+      return { user: profile };
     } catch (err: any) {
-      console.warn('Supabase sign-up failed, falling back to secure local store:', err);
+      console.error('[authService] Supabase sign-up failed:', err);
+      return { error: err?.message || 'Pendaftaran gagal karena koneksi database Supabase bermasalah' };
     }
   }
 
@@ -382,7 +401,6 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
     return { error: 'NIM atau Email sudah terdaftar dalam sistem' };
   }
 
-  const passwordHash = await hashPassword(password);
   const newAccount: StoredAuthAccount = {
     id: `usr-${Date.now()}`,
     nim: cleanNim,
@@ -846,7 +864,7 @@ function mapRoleFromSupabase(role: string): UserRole {
  * is immediately visible/usable for login from any other device or browser.
  */
 async function upsertLocalAccountToSupabase(
-  acc: Pick<StoredAuthAccount, 'nim' | 'email' | 'fullName' | 'facultyName' | 'role' | 'avatarUrl' | 'totalGreenCoins' | 'totalSatPoints' | 'totalCarbonSaved' | 'streakDays'>,
+  acc: Pick<StoredAuthAccount, 'nim' | 'email' | 'fullName' | 'facultyName' | 'role' | 'avatarUrl' | 'totalGreenCoins' | 'totalSatPoints' | 'totalCarbonSaved' | 'streakDays'> & { id?: string },
   passwordHash?: string
 ): Promise<{ error?: string }> {
   if (!isConfigured) return {};
@@ -863,6 +881,9 @@ async function upsertLocalAccountToSupabase(
       p_total_sat_points: acc.totalSatPoints || 0,
       p_total_carbon_saved: acc.totalCarbonSaved || 0,
       p_streak_days: acc.streakDays || 1,
+      p_id: acc.id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(acc.id)
+        ? acc.id
+        : null,
     });
     if (error) {
       console.warn('[authService] upsert_local_account RPC failed:', error.message);

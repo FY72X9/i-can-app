@@ -443,6 +443,7 @@ DROP POLICY IF EXISTS "Verifiers can insert logs" ON public.verifications;
 -- 8. RPCs for locally-registered (non-Supabase-Auth) accounts
 -- ------------------------------------------------------------------------------
 
+DROP FUNCTION IF EXISTS public.upsert_local_account(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, INT, INT, NUMERIC, INT);
 CREATE OR REPLACE FUNCTION public.upsert_local_account(
   p_nim TEXT,
   p_email TEXT,
@@ -454,20 +455,22 @@ CREATE OR REPLACE FUNCTION public.upsert_local_account(
   p_total_green_coins INT DEFAULT 50,
   p_total_sat_points INT DEFAULT 0,
   p_total_carbon_saved NUMERIC DEFAULT 0,
-  p_streak_days INT DEFAULT 1
+  p_streak_days INT DEFAULT 1,
+  p_id UUID DEFAULT NULL
 ) RETURNS public.users
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE v_user public.users;
 BEGIN
   INSERT INTO public.users (
-    nim, email, full_name, role, faculty_name, avatar_url,
+    id, nim, email, full_name, role, faculty_name, avatar_url,
     total_green_coins, total_sat_points, total_carbon_saved, streak_days
   )
   VALUES (
-    p_nim, p_email, p_full_name, p_role, p_faculty_name, p_avatar_url,
+    COALESCE(p_id, gen_random_uuid()), p_nim, p_email, p_full_name, p_role, p_faculty_name, p_avatar_url,
     p_total_green_coins, p_total_sat_points, p_total_carbon_saved, p_streak_days
   )
   ON CONFLICT (nim) DO UPDATE SET
+    id = CASE WHEN p_id IS NOT NULL THEN p_id ELSE public.users.id END,
     email = EXCLUDED.email,
     full_name = EXCLUDED.full_name,
     role = EXCLUDED.role,
@@ -485,7 +488,7 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.upsert_local_account(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, INT, INT, NUMERIC, INT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.upsert_local_account(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, INT, INT, NUMERIC, INT, UUID) TO anon, authenticated;
 
 CREATE OR REPLACE FUNCTION public.login_local_account(
   p_identifier TEXT,

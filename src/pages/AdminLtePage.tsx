@@ -3299,6 +3299,8 @@ export const AdminLtePage: React.FC = () => {
                   type="text"
                   value={userFormData.nim}
                   onChange={(e) => setUserFormData((prev) => ({ ...prev, nim: sanitizeNimInput(e.target.value, prev.role) }))}
+                  maxLength={userFormData.role === 'MAHASISWA' ? 10 : 11}
+                  inputMode={userFormData.role === 'MAHASISWA' ? 'numeric' : 'text'}
                   placeholder={
                     userFormData.role === 'MAHASISWA' ? 'Contoh: 2602158890' : 'Contoh: BN00123456 / 1980010101'
                   }
@@ -3513,6 +3515,8 @@ export const AdminLtePage: React.FC = () => {
                   type="text"
                   value={editFormData.nim}
                   onChange={(e) => setEditFormData((prev) => ({ ...prev, nim: sanitizeNimInput(e.target.value, prev.role) }))}
+                  maxLength={editFormData.role === 'MAHASISWA' ? 10 : 11}
+                  inputMode={editFormData.role === 'MAHASISWA' ? 'numeric' : 'text'}
                   className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] font-mono"
                   required
                 />
