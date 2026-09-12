@@ -40,45 +40,64 @@ export async function getActions(): Promise<GreenAction[]> {
         .order('submitted_at', { ascending: false });
 
       if (!error && data) {
-        return data.map((item: any) => ({
-          id: item.id,
-          userId: item.user_id,
-          userName: item.user_name || 'Mahasiswa BINUS',
-          categoryId: item.category_id,
-          categoryName: item.category_name || 'Aksi Hijau',
-          categoryIcon: item.category_icon || 'Leaf',
-          submissionType: item.submission_type,
-          isSurveyProposal: item.is_survey_proposal,
-          actionStep: item.action_step,
-          surveyLocation: item.survey_location,
-          partnerName: item.partner_name,
-          safetyAssessed: item.safety_assessed,
-          photoUrl: item.photo_url || item.photoUrl,
-          groupPhotoUrl: item.group_photo_url || item.groupPhotoUrl,
-          additionalPhotos: item.additional_photos || item.additionalPhotos || [],
-          campaignUrl: item.campaign_url,
-          videoUrl: item.video_url,
-          groupMembers: item.group_members,
-          story: item.story,
-          gpsLat: item.gps_lat,
-          gpsLng: item.gps_lng,
-          status: item.status,
-          decision: item.decision,
-          aiConfidence: item.ai_confidence,
-          aiGuidelineScore: item.ai_guideline_score,
-          aiCompletenessScore: item.ai_completeness_score,
-          aiAnalysisReason: item.ai_analysis_reason,
-          greenCoinsEarned: item.green_coins_earned,
-          carbonImpactKg: item.carbon_impact_kg,
-          satPointsEarned: item.sat_points_earned,
-          comservHoursEarned: item.comserv_hours,
-          guidelineComplied: item.guideline_complied,
-          realActivityVerified: item.real_activity_verified,
-          submittedAt: item.submitted_at,
-          verifiedAt: item.verified_at,
-          verifiedBy: item.verified_by,
-          rejectionReason: item.rejection_reason,
-        }));
+        // Fetch users map to populate userFaculty & userAvatar accurately
+        let userMap = new Map<string, any>();
+        try {
+          const { data: usersData } = await supabase
+            .from('users')
+            .select('id, full_name, faculty_name, avatar_url');
+          if (usersData) {
+            usersData.forEach((u: any) => userMap.set(u.id, u));
+          }
+        } catch {
+          // ignore error fetching users
+        }
+
+        return data.map((item: any) => {
+          const user = userMap.get(item.user_id);
+          return {
+            id: item.id,
+            userId: item.user_id,
+            userName: item.user_name || user?.full_name || 'Mahasiswa BINUS',
+            userFaculty: user?.faculty_name || 'BINUS University',
+            userAvatar: user?.avatar_url,
+            categoryId: item.category_id,
+            categoryName: item.category_name || 'Aksi Hijau',
+            categoryIcon: item.category_icon || 'Leaf',
+            submissionType: item.submission_type,
+            actionSource: item.action_source,
+            isSurveyProposal: item.is_survey_proposal,
+            actionStep: item.action_step,
+            surveyLocation: item.survey_location,
+            partnerName: item.partner_name,
+            safetyAssessed: item.safety_assessed,
+            photoUrl: item.photo_url || item.photoUrl,
+            groupPhotoUrl: item.group_photo_url || item.groupPhotoUrl,
+            additionalPhotos: item.additional_photos || item.additionalPhotos || [],
+            campaignUrl: item.campaign_url,
+            videoUrl: item.video_url,
+            groupMembers: item.group_members,
+            story: item.story,
+            gpsLat: item.gps_lat,
+            gpsLng: item.gps_lng,
+            status: item.status,
+            decision: item.decision,
+            aiConfidence: item.ai_confidence,
+            aiGuidelineScore: item.ai_guideline_score,
+            aiCompletenessScore: item.ai_completeness_score,
+            aiAnalysisReason: item.ai_analysis_reason,
+            greenCoinsEarned: item.green_coins_earned,
+            carbonImpactKg: item.carbon_impact_kg,
+            satPointsEarned: item.sat_points_earned,
+            comservHoursEarned: item.comserv_hours,
+            guidelineComplied: item.guideline_complied,
+            realActivityVerified: item.real_activity_verified,
+            submittedAt: item.submitted_at,
+            verifiedAt: item.verified_at,
+            verifiedBy: item.verified_by,
+            rejectionReason: item.rejection_reason,
+          };
+        });
       }
     } catch (err) {
       console.warn('Supabase fetch failed, falling back to local store:', err);
@@ -294,4 +313,27 @@ export async function updateActionVerification(
 export async function getUserActions(userId: string): Promise<GreenAction[]> {
   const all = await getActions();
   return all.filter((a) => a.userId === userId);
+}
+
+/**
+ * Realtime subscription to the actions table
+ */
+export function subscribeToActions(callback: (payload?: any) => void): () => void {
+  if (!isConfigured) return () => {};
+
+  const channelName = `public:actions:${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const channel = supabase
+    .channel(channelName)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'actions' },
+      (payload) => {
+        callback(payload);
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
 }
