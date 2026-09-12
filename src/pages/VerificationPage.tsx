@@ -79,6 +79,8 @@ export const VerificationPage: React.FC = () => {
       setLoading(false);
     }
     load();
+    const refreshTimer = window.setInterval(load, 10000);
+    return () => window.clearInterval(refreshTimer);
   }, []);
 
   const handleDecision = async (actionId: string, decision: VerificationDecision) => {

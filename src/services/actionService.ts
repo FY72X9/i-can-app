@@ -15,6 +15,18 @@ const daysAgo = (days: number, hours: number = 0) =>
 
 export const SEEDED_INITIAL_ACTIONS: GreenAction[] = [];
 
+const generateActionId = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
+    const random = Math.random() * 16 | 0;
+    const value = character === 'x' ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
+};
+
 // Retrieve all actions (from Supabase or LocalStorage fallback)
 export async function getActions(): Promise<GreenAction[]> {
   if (isConfigured) {
@@ -126,7 +138,7 @@ export async function submitGreenAction(
 
   const newAction: GreenAction = {
     ...actionData,
-    id: `act-${Date.now()}`,
+    id: generateActionId(),
     photoUrl,
     submittedAt: new Date().toISOString(),
   };
@@ -177,8 +189,14 @@ export async function submitGreenAction(
       if (!error && data) {
         return newAction;
       }
+
+      if (error) {
+        console.error('[actionService] Supabase action insert failed:', error.message, error.details, error.hint);
+        throw new Error(`Supabase action insert failed: ${error.message}`);
+      }
     } catch (err) {
-      console.warn('Supabase insert failed, persisting locally:', err);
+      console.error('[actionService] Supabase insert failed:', err);
+      throw err;
     }
   }
 

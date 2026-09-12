@@ -248,7 +248,9 @@ export const AdminLtePage: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+    const refreshTimer = window.setInterval(loadData, 10000);
+    return () => window.clearInterval(refreshTimer);
+  }, [user?.id, user?.role]);
 
   const loadData = async () => {
     const actions = await getActions();

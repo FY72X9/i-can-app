@@ -509,7 +509,30 @@ $$;
 GRANT EXECUTE ON FUNCTION public.login_local_account(TEXT, TEXT) TO anon, authenticated;
 
 -- ------------------------------------------------------------------------------
--- 9. VERIFY
+-- 9. SEED SUPERADMIN ACCOUNT
+-- Matches DEFAULT_SEEDED_ACCOUNTS[0] in src/services/authService.ts.
+-- Default password: admin123 (hash below = SHA-256("admin123" + "_ican_salt_2026"),
+-- the exact algorithm used by hashPassword() in authService.ts). Change the
+-- password from the admin panel after first login.
+-- ------------------------------------------------------------------------------
+
+SELECT public.upsert_local_account(
+  p_nim => '1980010101',
+  p_email => 'hendra.sso@binus.ac.id',
+  p_full_name => 'Hendra Kusuma, M.Kom (Super Admin)',
+  p_role => 'ADMIN',
+  p_faculty_name => 'Student Service Office (SSO)',
+  p_avatar_url => 'https://ui-avatars.com/api/?name=Hendra%20Kusuma%2C%20M.Kom%20(Super%20Admin)&background=7c3aed&color=fff&bold=true&size=150',
+  p_password_hash => '77f34e86c34c8dd129d1ca0072d23d5b6785b914cf98409e64c28657d44dd2e1',
+  p_total_green_coins => 2400,
+  p_total_sat_points => 120,
+  p_total_carbon_saved => 62.00,
+  p_streak_days => 28
+);
+
+-- ------------------------------------------------------------------------------
+-- 10. VERIFY
 -- ------------------------------------------------------------------------------
 
 SELECT tablename, policyname, cmd FROM pg_policies WHERE schemaname = 'public' ORDER BY tablename, policyname;
+SELECT nim, email, full_name, role FROM public.users WHERE nim = '1980010101';
