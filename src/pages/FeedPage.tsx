@@ -118,8 +118,10 @@ export const FeedPage: React.FC = () => {
     if (!isSilent) setIsLoading(true);
     try {
       const actions = await getActions();
+      // Hanya tampilkan aksi yang berstatus terverifikasi (APPROVED)
+      const verifiedActions = actions.filter((a: GreenAction) => a.status === 'APPROVED');
 
-      const mapped = actions.map((a: GreenAction, idx: number) => {
+      const mapped = verifiedActions.map((a: GreenAction, idx: number) => {
         // Categorize submission into tab types
         const isTfi = 
           a.submissionType === 'PENYULUHAN_AKSI_NYATA' ||
@@ -152,7 +154,7 @@ export const FeedPage: React.FC = () => {
           category: a.categoryName,
           type: postType,
           submissionType: a.submissionType,
-          status: a.status || 'PENDING',
+          status: a.status || 'APPROVED',
           rejectionReason: a.rejectionReason,
           photo: a.photoUrl,
           campaignUrl: a.campaignUrl,
@@ -161,7 +163,7 @@ export const FeedPage: React.FC = () => {
           coinsEarned: `+${a.greenCoinsEarned || 10} GC`,
           satEarned: a.satPointsEarned > 0 ? `+${a.satPointsEarned} SAT (${a.comservHoursEarned || 0} Jam)` : 'Aksi Mandiri Harian',
           location: a.surveyLocation || 'Kampus BINUS & Sekitar',
-          time: formatRelativeTime(a.submittedAt),
+          time: formatRelativeTime(a.verifiedAt || a.submittedAt),
           rawSubmittedAt: a.submittedAt,
           sdgBadge: isTfi ? 'SDG 15 & 13' : isVbl ? 'SDG 4 Quality Edu' : 'SDG 12 & 13',
         };
@@ -229,20 +231,16 @@ export const FeedPage: React.FC = () => {
   };
 
   const filteredPosts = postsList.filter((p) => {
-    if (activeTab === 'ALL') {
-      // In ALL feed, show public posts (not rejected)
-      return p.status !== 'REJECTED';
-    }
+    if (activeTab === 'ALL') return true;
     if (activeTab === 'MY_ACTIVITIES') {
-      // In MY_ACTIVITIES, show user's posts including pending and rejected so they know the outcome
       const isMyId = user?.id && p.userId === user.id;
       const isMyName = user?.fullName && p.author.toLowerCase().includes(user.fullName.trim().toLowerCase());
       const isMyFirstName = user?.fullName && p.author.toLowerCase().includes(user.fullName.split(' ')[0].toLowerCase());
       return isMyId || isMyName || isMyFirstName;
     }
-    if (activeTab === 'TFI') return p.type === 'TFI' && p.status !== 'REJECTED';
-    if (activeTab === 'VBL') return p.type === 'VBL' && p.status !== 'REJECTED';
-    if (activeTab === 'SELF') return p.type === 'SELF' && p.status !== 'REJECTED';
+    if (activeTab === 'TFI') return p.type === 'TFI';
+    if (activeTab === 'VBL') return p.type === 'VBL';
+    if (activeTab === 'SELF') return p.type === 'SELF';
     return true;
   });
 
@@ -318,12 +316,12 @@ export const FeedPage: React.FC = () => {
             🌱
           </div>
           <h3 className="text-sm font-black text-text-primary">
-            {activeTab === 'MY_ACTIVITIES' ? 'Belum Ada Aksi Pribadi' : 'Belum Ada Aksi di Kategori Ini'}
+            {activeTab === 'MY_ACTIVITIES' ? 'Belum Ada Aksi Pribadi Terverifikasi' : 'Belum Ada Aksi Terverifikasi'}
           </h3>
           <p className="text-xs text-text-secondary max-w-xs mx-auto leading-relaxed">
             {activeTab === 'MY_ACTIVITIES'
-              ? 'Kamu belum melaporkan aksi hijau atau aksi yang dilaporkan sedang disinkronkan. Yuk mulai aksi pertamamu sekarang!'
-              : 'Jadilah mahasiswa pertama yang membagikan aksi inspiratif di kategori ini.'}
+              ? 'Aksi yang kamu unggah sedang dalam proses review verifikator SSO/TFI atau belum dilaporkan. Yuk laporkan aksi hijau pertamamu!'
+              : 'Belum ada aksi yang disetujui verifikator di kategori ini. Aksi mahasiswa akan otomatis muncul secara realtime begitu disetujui verifikator.'}
           </p>
           <Link
             to="/upload"
