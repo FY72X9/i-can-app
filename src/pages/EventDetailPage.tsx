@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { CampusEvent, GreenAction } from '@/types';
 import { getEventById, computeEventLeaderboard, EventLeaderboardEntry, getEventTimelineCategory } from '@/services/eventService';
-import { getActions } from '@/services/actionService';
+import { getActions, subscribeToActions } from '@/services/actionService';
 import { useAuthStore } from '@/stores/authStore';
 import { FormattedText } from '@/components/common/FormattedText';
 
@@ -37,11 +37,18 @@ export const EventDetailPage: React.FC = () => {
 
   useEffect(() => {
     loadEvent();
+    
+    // Subscribe to realtime changes (so leaderboard updates when verified)
+    const unsubscribe = subscribeToActions(() => {
+      loadEvent(false);
+    });
+    
+    return () => unsubscribe();
   }, [id]);
 
-  const loadEvent = async () => {
+  const loadEvent = async (showLoading = true) => {
     if (!id) return;
-    setLoading(true);
+    if (showLoading) setLoading(true);
     const evt = await getEventById(id);
     setEvent(evt);
 

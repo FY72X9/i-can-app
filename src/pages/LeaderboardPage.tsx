@@ -5,7 +5,7 @@ import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
 import { CampusEvent } from '@/types';
 import { getEvents, computeEventLeaderboard, EventLeaderboardEntry } from '@/services/eventService';
-import { getActions } from '@/services/actionService';
+import { getActions, subscribeToActions } from '@/services/actionService';
 import { 
   Trophy, 
   Award, 
@@ -60,14 +60,27 @@ export const LeaderboardPage: React.FC = () => {
     getEvents().then(setEvents);
   }, []);
 
-  useEffect(() => {
+  const loadEventLeaderboard = () => {
     if (selectedEventId) {
       getActions().then((actions) => {
         const eventActions = actions.filter((a) => a.eventId === selectedEventId);
         const lb = computeEventLeaderboard(eventActions);
         setEventLeaderboard(lb);
       });
+    } else {
+      setEventLeaderboard([]);
     }
+  };
+
+  useEffect(() => {
+    loadEventLeaderboard();
+    
+    // Subscribe to realtime changes
+    const unsubscribe = subscribeToActions(() => {
+      loadEventLeaderboard();
+    });
+    
+    return () => unsubscribe();
   }, [selectedEventId]);
 
   const [cheers, setCheers] = useState<Record<string, number>>({
