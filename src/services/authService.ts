@@ -328,6 +328,13 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
 
   const cleanEmail = email.trim().toLowerCase();
   const cleanNim = nim.trim();
+  const cleanFullName = fullName.trim().replace(/\s+/g, ' ');
+  if (cleanFullName.length < 3 || cleanFullName.length > 100) {
+    return { error: 'Nama lengkap harus terdiri dari 3-100 karakter' };
+  }
+  if (!/^[^\s@]+@binus\.ac\.id$/i.test(cleanEmail)) {
+    return { error: 'Gunakan email BINUS dengan format nama@binus.ac.id' };
+  }
   const identifierCheck = validateUserIdentifier(cleanNim, role);
   if (!identifierCheck.valid) {
     return { error: identifierCheck.error };
@@ -344,7 +351,7 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
         options: {
           data: {
             nim: cleanNim,
-            full_name: fullName,
+            full_name: cleanFullName,
             role,
             faculty_name: facultyName,
           },
@@ -363,7 +370,7 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
           id: data.user.id,
           nim: cleanNim,
           email: cleanEmail,
-          fullName,
+          fullName: cleanFullName,
           role,
           facultyName,
           totalGreenCoins: 50,
@@ -405,7 +412,7 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
     id: `usr-${Date.now()}`,
     nim: cleanNim,
     email: cleanEmail,
-    fullName: fullName.trim(),
+    fullName: cleanFullName,
     facultyName: facultyName || 'School of Computer Science',
     role,
     passwordHash,

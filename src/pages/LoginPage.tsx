@@ -108,20 +108,32 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     setFormValidationMsg(null);
 
+    const cleanName = regFullName.trim().replace(/\s+/g, ' ');
+    const cleanEmail = regEmail.trim().toLowerCase();
     const cleanNim = regNim.replace(/\D/g, '').slice(0, 10);
+    if (cleanName.length < 3 || cleanName.length > 100) {
+      setFormValidationMsg('Nama lengkap harus terdiri dari 3-100 karakter');
+      return;
+    }
+
     if (cleanNim !== regNim || cleanNim.length !== 10) {
       setFormValidationMsg('NIM harus tepat 10 digit angka');
       setRegNim(cleanNim);
       return;
     }
 
-    if (!regFullName.trim() || !regNim.trim() || !regEmail.trim() || !regPassword.trim()) {
-      setFormValidationMsg('Harap lengkapi semua kolom pendaftaran');
+    if (!/^[^\s@]+@binus\.ac\.id$/i.test(cleanEmail)) {
+      setFormValidationMsg('Gunakan email BINUS dengan format nama@binus.ac.id');
       return;
     }
 
-    if (regPassword.length < 6) {
-      setFormValidationMsg('Kata sandi minimal 6 karakter');
+    if (regPassword.length < 6 || regPassword.length > 128) {
+      setFormValidationMsg('Kata sandi harus terdiri dari 6-128 karakter');
+      return;
+    }
+
+    if (!regConfirmPassword) {
+      setFormValidationMsg('Konfirmasi kata sandi wajib diisi');
       return;
     }
 
@@ -131,9 +143,9 @@ export const LoginPage: React.FC = () => {
     }
 
     const success = await register({
-      fullName: regFullName,
+      fullName: cleanName,
       nim: cleanNim,
-      email: regEmail,
+      email: cleanEmail,
       facultyName: regFaculty,
       password: regPassword,
       role: 'MAHASISWA',
@@ -372,7 +384,10 @@ export const LoginPage: React.FC = () => {
                     type="text"
                     placeholder="Contoh: Citra Kirana"
                     value={regFullName}
-                    onChange={(e) => setRegFullName(e.target.value)}
+                    onChange={(e) => setRegFullName(e.target.value.slice(0, 100))}
+                    maxLength={100}
+                    minLength={3}
+                    autoComplete="name"
                     className="w-full text-xs p-2.5 pl-8 rounded-2xl border border-surface-border bg-surface-subtle focus:bg-white focus:outline-none focus:ring-2 focus:ring-eco-500/20 focus:border-eco-600 transition-all"
                     required
                   />
@@ -406,7 +421,10 @@ export const LoginPage: React.FC = () => {
                     type="email"
                     placeholder="nama@binus.ac.id"
                     value={regEmail}
-                    onChange={(e) => setRegEmail(e.target.value)}
+                    onChange={(e) => setRegEmail(e.target.value.slice(0, 255))}
+                    maxLength={255}
+                    pattern="[^\s@]+@binus\.ac\.id"
+                    autoComplete="email"
                     className="w-full text-xs p-2.5 rounded-2xl border border-surface-border bg-surface-subtle focus:bg-white focus:outline-none focus:ring-2 focus:ring-eco-500/20 focus:border-eco-600 transition-all"
                     required
                   />
@@ -442,7 +460,10 @@ export const LoginPage: React.FC = () => {
                     type={showRegPassword ? 'text' : 'password'}
                     placeholder="Min. 6 karakter"
                     value={regPassword}
-                    onChange={(e) => setRegPassword(e.target.value)}
+                    onChange={(e) => setRegPassword(e.target.value.slice(0, 128))}
+                    minLength={6}
+                    maxLength={128}
+                    autoComplete="new-password"
                     className="w-full text-xs p-2.5 rounded-2xl border border-surface-border bg-surface-subtle focus:bg-white focus:outline-none focus:ring-2 focus:ring-eco-500/20 focus:border-eco-600 transition-all"
                     required
                   />
@@ -456,7 +477,10 @@ export const LoginPage: React.FC = () => {
                     type={showRegPassword ? 'text' : 'password'}
                     placeholder="Ulangi sandi"
                     value={regConfirmPassword}
-                    onChange={(e) => setRegConfirmPassword(e.target.value)}
+                    onChange={(e) => setRegConfirmPassword(e.target.value.slice(0, 128))}
+                    minLength={6}
+                    maxLength={128}
+                    autoComplete="new-password"
                     className="w-full text-xs p-2.5 rounded-2xl border border-surface-border bg-surface-subtle focus:bg-white focus:outline-none focus:ring-2 focus:ring-eco-500/20 focus:border-eco-600 transition-all"
                     required
                   />
