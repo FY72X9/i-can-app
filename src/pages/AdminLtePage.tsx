@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore, DEMO_PROFILES } from '@/stores/authStore';
 import { getActions, updateActionVerification } from '@/services/actionService';
-import { getStoredAccounts } from '@/services/authService';
+import { getStoredAccounts, syncAccountsToSupabase } from '@/services/authService';
 import { GreenAction, UserProfile, UserRole, CampusEvent, EventActivity, EventStatus, DailyQuest, ActionProgram, ActionType } from '@/types';
 import { getEvents, getEventsByOrganizer, createEvent, updateEvent, deleteEvent, getEventTimelineCategory } from '@/services/eventService';
 import {
@@ -146,6 +146,7 @@ export const AdminLtePage: React.FC = () => {
   const [showEventForm, setShowEventForm] = useState(false);
   const [showUserForm, setShowUserForm] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [isSyncingSupabase, setIsSyncingSupabase] = useState(false);
   const [showUserPassword, setShowUserPassword] = useState(false);
   const [userFormError, setUserFormError] = useState<string | null>(null);
   const [isCreatingUser, setIsCreatingUser] = useState(false);
@@ -247,7 +248,9 @@ export const AdminLtePage: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+    const refreshTimer = window.setInterval(loadData, 10000);
+    return () => window.clearInterval(refreshTimer);
+  }, [user?.id, user?.role]);
 
   const loadData = async () => {
     const actions = await getActions();
@@ -274,6 +277,23 @@ export const AdminLtePage: React.FC = () => {
     setQuestsList(quests);
     const progs = await getActionPrograms();
     setProgramsList(progs);
+  };
+
+  const handleSyncToSupabase = async () => {
+    setIsSyncingSupabase(true);
+    try {
+      const res = await syncAccountsToSupabase();
+      if (res.error) {
+        alert(`Peringatan Sinkronisasi Supabase:\n${res.error}\n\nCatatan: Pastikan Anda sudah menambahkan Policy INSERT di Supabase Dashboard (SQL Editor) agar tabel public.users dapat menerima data akun mahasiswa.`);
+      } else {
+        alert(`Berhasil! ${res.count} akun pengguna telah tersinkronkan ke Supabase Cloud (tabel public.users).`);
+        await loadData();
+      }
+    } catch (err: any) {
+      alert(`Terjadi kesalahan saat sinkronisasi: ${err.message}`);
+    } finally {
+      setIsSyncingSupabase(false);
+    }
   };
 
   // Quest Handlers
@@ -1301,6 +1321,16 @@ export const AdminLtePage: React.FC = () => {
                       >
                         <FileSpreadsheet className="w-3.5 h-3.5" />
                         <span>Import Excel</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSyncToSupabase}
+                        disabled={isSyncingSupabase}
+                        className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs shrink-0 cursor-pointer disabled:opacity-50"
+                        title="Kirim dan sinkronkan semua akun lokal ke database Supabase Cloud (tabel public.users)"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${isSyncingSupabase ? 'animate-spin' : ''}`} />
+                        <span>{isSyncingSupabase ? 'Menyinkronkan...' : 'Sync ke Supabase'}</span>
                       </button>
                       <button
                         onClick={() => {
@@ -3269,6 +3299,8 @@ export const AdminLtePage: React.FC = () => {
                   type="text"
                   value={userFormData.nim}
                   onChange={(e) => setUserFormData((prev) => ({ ...prev, nim: sanitizeNimInput(e.target.value, prev.role) }))}
+                  maxLength={userFormData.role === 'MAHASISWA' ? 10 : 11}
+                  inputMode={userFormData.role === 'MAHASISWA' ? 'numeric' : 'text'}
                   placeholder={
                     userFormData.role === 'MAHASISWA' ? 'Contoh: 2602158890' : 'Contoh: BN00123456 / 1980010101'
                   }
@@ -3483,6 +3515,8 @@ export const AdminLtePage: React.FC = () => {
                   type="text"
                   value={editFormData.nim}
                   onChange={(e) => setEditFormData((prev) => ({ ...prev, nim: sanitizeNimInput(e.target.value, prev.role) }))}
+                  maxLength={editFormData.role === 'MAHASISWA' ? 10 : 11}
+                  inputMode={editFormData.role === 'MAHASISWA' ? 'numeric' : 'text'}
                   className="w-full text-xs p-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff] font-mono"
                   required
                 />

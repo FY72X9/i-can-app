@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
-import { getActions } from '@/services/actionService';
+import { getActions, subscribeToActions } from '@/services/actionService';
 import { GreenAction } from '@/types';
 import { 
   Heart, 
@@ -12,77 +12,203 @@ import {
   MapPin, 
   Clock, 
   ExternalLink, 
-  Share2, 
   ShieldCheck, 
-  TreePine, 
-  Droplets, 
-  Video, 
-  CupSoda, 
-  Award, 
-  Flame, 
-  Zap, 
-  ChevronRight,
-  User
+  RefreshCw,
+  AlertCircle,
+  Radio,
+  Share2
 } from 'lucide-react';
+
+const STORAGE_LIKES_KEY = 'i_can_feed_likes';
+const STORAGE_HAS_LIKED_KEY = 'i_can_feed_has_liked';
+const STORAGE_REACTIONS_KEY = 'i_can_feed_reactions';
+
+const formatRelativeTime = (dateString?: string): string => {
+  if (!dateString) return 'Baru saja';
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 1000));
+
+    if (diffInSeconds < 60) return 'Baru saja';
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes}m lalu`;
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours}j lalu`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}h lalu`;
+
+    return date.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  } catch {
+    return 'Baru saja';
+  }
+};
 
 export const FeedPage: React.FC = () => {
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'ALL' | 'MY_ACTIVITIES' | 'TFI' | 'VBL' | 'SELF'>('ALL');
   const [postsList, setPostsList] = useState<any[]>([]);
-  const [likes, setLikes] = useState<Record<string, number>>({
-    '1': 48,
-    '2': 34,
-    '3': 22,
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isRealtimeActive, setIsRealtimeActive] = useState<boolean>(true);
+
+  // Persistent Likes State
+  const [likes, setLikes] = useState<Record<string, number>>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_LIKES_KEY);
+      return saved ? JSON.parse(saved) : { '1': 48, '2': 34, '3': 22 };
+    } catch {
+      return { '1': 48, '2': 34, '3': 22 };
+    }
   });
 
-  const [hasLiked, setHasLiked] = useState<Record<string, boolean>>({});
-  const [reactions, setReactions] = useState<Record<string, { emoji: string; count: number }[]>>({
-    '1': [{ emoji: '🔥', count: 18 }, { emoji: '🌱', count: 24 }, { emoji: '👏', count: 12 }],
-    '2': [{ emoji: '🎬', count: 15 }, { emoji: '⚡', count: 19 }, { emoji: '🎓', count: 8 }],
-    '3': [{ emoji: '💚', count: 14 }, { emoji: '🥤', count: 9 }],
+  const [hasLiked, setHasLiked] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_HAS_LIKED_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
   });
+
+  // Persistent Reactions State
+  const [reactions, setReactions] = useState<Record<string, { emoji: string; count: number }[]>>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_REACTIONS_KEY);
+      return saved ? JSON.parse(saved) : {
+        '1': [{ emoji: '🔥', count: 18 }, { emoji: '🌱', count: 24 }, { emoji: '👏', count: 12 }],
+        '2': [{ emoji: '🎬', count: 15 }, { emoji: '⚡', count: 19 }, { emoji: '🎓', count: 8 }],
+        '3': [{ emoji: '💚', count: 14 }, { emoji: '🥤', count: 9 }],
+      };
+    } catch {
+      return {};
+    }
+  });
+
+  // Save interactions to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_LIKES_KEY, JSON.stringify(likes));
+    } catch {
+      // ignore
+    }
+  }, [likes]);
 
   useEffect(() => {
-    async function load() {
+    try {
+      localStorage.setItem(STORAGE_HAS_LIKED_KEY, JSON.stringify(hasLiked));
+    } catch {
+      // ignore
+    }
+  }, [hasLiked]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_REACTIONS_KEY, JSON.stringify(reactions));
+    } catch {
+      // ignore
+    }
+  }, [reactions]);
+
+  const loadPosts = useCallback(async (isSilent = false) => {
+    if (!isSilent) setIsLoading(true);
+    try {
       const actions = await getActions();
-      const approved = actions.filter((a) => a.status === 'APPROVED');
-      
-      const mapped = approved.map((a, idx) => ({
-        id: a.id || `post-${idx}`,
-        userId: a.userId,
-        author: a.userName || 'Mahasiswa BINUS',
-        faculty: a.userFaculty || 'Fakultas BINUS',
-        avatar: a.userAvatar || (idx % 2 === 0 ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' : 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80'),
-        actionTitle: a.categoryName || 'Aksi Hijau Kampus',
-        category: a.categoryName,
-        type: a.submissionType === 'PENYULUHAN_AKSI_NYATA' ? 'TFI' : a.submissionType === 'VIDEO_BASED_LEARNING' ? 'VBL' : 'SELF',
-        photo: a.photoUrl,
-        campaignUrl: a.campaignUrl,
-        story: a.story,
-        carbonSaved: `${a.carbonImpactKg} kg CO2e`,
-        coinsEarned: `+${a.greenCoinsEarned} GC`,
-        satEarned: a.satPointsEarned > 0 ? `+${a.satPointsEarned} SAT (${a.comservHoursEarned || 0} Jam)` : 'Aksi Mandiri Harian',
-        location: 'Kampus BINUS & Sekitar',
-        time: 'Terverifikasi SSO',
-        sdgBadge: a.submissionType === 'PENYULUHAN_AKSI_NYATA' ? 'SDG 15 & 13' : a.submissionType === 'VIDEO_BASED_LEARNING' ? 'SDG 4 Quality Edu' : 'SDG 12 Consumption',
-      }));
+      // Hanya tampilkan aksi yang berstatus terverifikasi (APPROVED)
+      const verifiedActions = actions.filter((a: GreenAction) => a.status === 'APPROVED');
+
+      const mapped = verifiedActions.map((a: GreenAction, idx: number) => {
+        // Categorize submission into tab types
+        const isTfi = 
+          a.submissionType === 'PENYULUHAN_AKSI_NYATA' ||
+          a.submissionType === 'BINA_LINGKUNGAN' ||
+          (a as any).actionSource === 'EVENT' ||
+          (a as any).actionSource === 'PROGRAM' ||
+          (a.categoryName && (
+            a.categoryName.toLowerCase().includes('event') || 
+            a.categoryName.toLowerCase().includes('lestari') || 
+            a.categoryName.toLowerCase().includes('tfi')
+          ));
+
+        const isVbl = 
+          a.submissionType === 'VIDEO_BASED_LEARNING' ||
+          (a.categoryName && a.categoryName.toLowerCase().includes('video'));
+
+        const postType: 'TFI' | 'VBL' | 'SELF' = isTfi ? 'TFI' : isVbl ? 'VBL' : 'SELF';
+
+        // Author and Avatar fallback
+        const authorName = a.userName || 'Mahasiswa BINUS';
+        const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=059669&color=fff&bold=true&size=150`;
+
+        return {
+          id: a.id || `post-${idx}`,
+          userId: a.userId,
+          author: authorName,
+          faculty: a.userFaculty || 'BINUS University',
+          avatar: a.userAvatar || defaultAvatar,
+          actionTitle: a.categoryName || 'Aksi Hijau Kampus',
+          category: a.categoryName,
+          type: postType,
+          submissionType: a.submissionType,
+          status: a.status || 'APPROVED',
+          rejectionReason: a.rejectionReason,
+          photo: a.photoUrl,
+          campaignUrl: a.campaignUrl,
+          story: a.story || 'Aksi nyata keberlanjutan lingkungan civitas akademika BINUS.',
+          carbonSaved: `${Number(a.carbonImpactKg || 0).toFixed(1)} kg CO2e`,
+          coinsEarned: `+${a.greenCoinsEarned || 10} GC`,
+          satEarned: a.satPointsEarned > 0 ? `+${a.satPointsEarned} SAT (${a.comservHoursEarned || 0} Jam)` : 'Aksi Mandiri Harian',
+          location: a.surveyLocation || 'Kampus BINUS & Sekitar',
+          time: formatRelativeTime(a.verifiedAt || a.submittedAt),
+          rawSubmittedAt: a.submittedAt,
+          sdgBadge: isTfi ? 'SDG 15 & 13' : isVbl ? 'SDG 4 Quality Edu' : 'SDG 12 & 13',
+        };
+      });
 
       setPostsList(mapped);
+    } catch (err) {
+      console.error('[FeedPage] Failed to fetch actions:', err);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
     }
-    load();
   }, []);
+
+  useEffect(() => {
+    loadPosts();
+
+    // Subscribe to realtime changes on actions table
+    const unsubscribe = subscribeToActions((payload) => {
+      console.log('[FeedPage] Realtime change detected in actions table:', payload);
+      setIsRealtimeActive(true);
+      loadPosts(true);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [loadPosts]);
+
+  const handleManualRefresh = () => {
+    setIsRefreshing(true);
+    loadPosts();
+  };
 
   const getPostReactions = (postId: string, type: string) => {
     if (reactions[postId]) return reactions[postId];
-    if (type === 'TFI') return [{ emoji: '🌱', count: 24 }, { emoji: '🌳', count: 18 }, { emoji: '👏', count: 12 }];
-    if (type === 'VBL') return [{ emoji: '🎬', count: 19 }, { emoji: '🎓', count: 15 }, { emoji: '⚡', count: 8 }];
-    return [{ emoji: '💚', count: 14 }, { emoji: '🔥', count: 9 }, { emoji: '🥤', count: 6 }];
+    if (type === 'TFI') return [{ emoji: '🌱', count: 12 }, { emoji: '🌳', count: 8 }, { emoji: '👏', count: 5 }];
+    if (type === 'VBL') return [{ emoji: '🎬', count: 14 }, { emoji: '🎓', count: 9 }, { emoji: '⚡', count: 6 }];
+    return [{ emoji: '💚', count: 8 }, { emoji: '🔥', count: 5 }, { emoji: '🥤', count: 3 }];
   };
 
   const toggleLike = (id: string) => {
     setHasLiked((prev) => {
       const isLiked = !prev[id];
-      setLikes((l) => ({ ...l, [id]: (l[id] || 0) + (isLiked ? 1 : -1) }));
+      setLikes((l) => ({ ...l, [id]: Math.max(0, (l[id] || 0) + (isLiked ? 1 : -1)) }));
       return { ...prev, [id]: isLiked };
     });
   };
@@ -107,7 +233,10 @@ export const FeedPage: React.FC = () => {
   const filteredPosts = postsList.filter((p) => {
     if (activeTab === 'ALL') return true;
     if (activeTab === 'MY_ACTIVITIES') {
-      return p.userId === user?.id || (user?.fullName && p.author.includes(user.fullName.split(' ')[0]));
+      const isMyId = user?.id && p.userId === user.id;
+      const isMyName = user?.fullName && p.author.toLowerCase().includes(user.fullName.trim().toLowerCase());
+      const isMyFirstName = user?.fullName && p.author.toLowerCase().includes(user.fullName.split(' ')[0].toLowerCase());
+      return isMyId || isMyName || isMyFirstName;
     }
     if (activeTab === 'TFI') return p.type === 'TFI';
     if (activeTab === 'VBL') return p.type === 'VBL';
@@ -126,9 +255,30 @@ export const FeedPage: React.FC = () => {
           </h2>
           <p className="text-[10px] text-text-secondary">Dampak Nyata Aksi Mahasiswa & Gerakan TFI</p>
         </div>
-        <Badge variant="eco" size="sm">
-          {filteredPosts.length} Cerita Inspiratif
-        </Badge>
+
+        <div className="flex items-center gap-1.5">
+          {/* Live Realtime DB Indicator */}
+          <span 
+            title="Terkoneksi Realtime ke Database Supabase"
+            className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            Realtime
+          </span>
+
+          <button
+            onClick={handleManualRefresh}
+            title="Segarkan Feed"
+            disabled={isRefreshing}
+            className="p-1.5 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all border border-slate-200/80 active:scale-95"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-emerald-600' : ''}`} />
+          </button>
+
+          <Badge variant="eco" size="sm">
+            {filteredPosts.length} Cerita
+          </Badge>
+        </div>
       </div>
 
       {/* Feed Filter Pills */}
@@ -155,18 +305,23 @@ export const FeedPage: React.FC = () => {
       </div>
 
       {/* Post List */}
-      {filteredPosts.length === 0 ? (
+      {isLoading ? (
+        <Card className="p-8 text-center bg-white border-surface-border space-y-3 shadow-eco-card">
+          <div className="w-10 h-10 rounded-full border-3 border-eco-200 border-t-eco-600 animate-spin mx-auto"></div>
+          <p className="text-xs text-text-secondary font-medium">Memuat data feed realtime...</p>
+        </Card>
+      ) : filteredPosts.length === 0 ? (
         <Card className="p-8 text-center bg-white border-surface-border space-y-3 shadow-eco-card">
           <div className="w-14 h-14 rounded-3xl bg-eco-50 text-eco-700 flex items-center justify-center mx-auto shadow-xs text-2xl">
             🌱
           </div>
           <h3 className="text-sm font-black text-text-primary">
-            {activeTab === 'MY_ACTIVITIES' ? 'Belum Ada Aksi Pribadi Terverifikasi' : 'Belum Ada Aksi di Kategori Ini'}
+            {activeTab === 'MY_ACTIVITIES' ? 'Belum Ada Aksi Pribadi Terverifikasi' : 'Belum Ada Aksi Terverifikasi'}
           </h3>
           <p className="text-xs text-text-secondary max-w-xs mx-auto leading-relaxed">
             {activeTab === 'MY_ACTIVITIES'
               ? 'Aksi yang kamu unggah sedang dalam proses review verifikator SSO/TFI atau belum dilaporkan. Yuk laporkan aksi hijau pertamamu!'
-              : 'Jadilah mahasiswa pertama yang membagikan aksi inspiratif di kategori ini.'}
+              : 'Belum ada aksi yang disetujui verifikator di kategori ini. Aksi mahasiswa akan otomatis muncul secara realtime begitu disetujui verifikator.'}
           </p>
           <Link
             to="/upload"
@@ -179,36 +334,66 @@ export const FeedPage: React.FC = () => {
         <div className="space-y-4 sm:space-y-5">
           {filteredPosts.map((post) => (
             <Card key={post.id} className="p-5 sm:p-6 space-y-4 bg-white border-surface-border shadow-eco-card relative">
-              {/* Header Author */}
+              {/* Header Author & Verification Status */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <img
                     src={post.avatar}
                     alt={post.author}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author)}&background=059669&color=fff&bold=true&size=150`;
+                    }}
                     className="w-11 h-11 rounded-2xl object-cover ring-2 ring-eco-neon/60 shadow-xs shrink-0"
                   />
                   <div>
-                    <h4 className="text-xs sm:text-sm font-black text-text-primary flex items-center gap-1.5">
-                      {post.author}
-                      {post.type !== 'SELF' && (
-                        <span title="Terverifikasi TFI" className="inline-flex items-center">
-                          <ShieldCheck className="w-4 h-4 text-eco-600" />
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h4 className="text-xs sm:text-sm font-black text-text-primary">
+                        {post.author}
+                      </h4>
+
+                      {/* Status Badges */}
+                      {post.status === 'APPROVED' ? (
+                        <span 
+                          title="Terverifikasi Verifikator SSO / TFI"
+                          className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200"
+                        >
+                          <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                          Terverifikasi SSO
+                        </span>
+                      ) : post.status === 'PENDING' ? (
+                        <span 
+                          title="Sedang menunggu peninjauan verifikator kampus"
+                          className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200"
+                        >
+                          <Clock className="w-3 h-3 text-amber-500" />
+                          Menunggu Verifikasi
+                        </span>
+                      ) : (
+                        <span 
+                          title="Aksi ditolak atau memerlukan perbaikan bukti"
+                          className="inline-flex items-center gap-0.5 text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200"
+                        >
+                          Perlu Revisi
                         </span>
                       )}
-                    </h4>
+                    </div>
                     <p className="text-xs text-text-secondary font-medium mt-0.5">{post.faculty}</p>
                   </div>
                 </div>
+
                 <Badge variant={post.type === 'TFI' ? 'success' : post.type === 'VBL' ? 'purple' : 'neutral'} size="sm">
                   {post.sdgBadge}
                 </Badge>
               </div>
 
-              {/* Action Image with Double-Tap Vibe */}
+              {/* Action Image with double badge overlay */}
               <div className="relative rounded-3xl overflow-hidden aspect-[16/10] bg-slate-900 border border-surface-border group">
                 <img
-                  src={post.photo}
+                  src={post.photo || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80'}
                   alt={post.actionTitle}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80';
+                  }}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
@@ -216,8 +401,10 @@ export const FeedPage: React.FC = () => {
                     <MapPin className="w-3.5 h-3.5 text-eco-neon" />
                     {post.location}
                   </span>
-                  <span className="bg-eco-700/95 backdrop-blur-md text-white text-xs font-black px-3 py-1 rounded-full shadow-neon-glow">
-                    {post.coinsEarned}
+                  <span className={`backdrop-blur-md text-white text-xs font-black px-3 py-1 rounded-full ${
+                    post.status === 'APPROVED' ? 'bg-eco-700/95 shadow-neon-glow' : 'bg-amber-600/90 shadow-sm'
+                  }`}>
+                    {post.coinsEarned} {post.status === 'PENDING' ? '(Pending)' : ''}
                   </span>
                 </div>
               </div>
@@ -225,8 +412,19 @@ export const FeedPage: React.FC = () => {
               {/* Description & Story */}
               <div className="space-y-1.5">
                 <h3 className="text-sm sm:text-base font-black text-text-primary leading-snug">{post.actionTitle}</h3>
-                <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">{post.story}</p>
+                <p className="text-xs sm:text-sm text-text-secondary leading-relaxed whitespace-pre-line">{post.story}</p>
               </div>
+
+              {/* Rejection Alert Box for Author */}
+              {post.status === 'REJECTED' && post.rejectionReason && (
+                <div className="bg-rose-50 p-3 rounded-2xl border border-rose-200 text-xs text-rose-800 space-y-1">
+                  <p className="font-bold flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4 text-rose-600" />
+                    Catatan Review Verifikator SSO:
+                  </p>
+                  <p className="text-rose-700 pl-5.5">{post.rejectionReason}</p>
+                </div>
+              )}
 
               {/* Social Media Publication Link if available */}
               {post.campaignUrl && (
@@ -248,7 +446,9 @@ export const FeedPage: React.FC = () => {
 
               {/* SAT & Impact Badge */}
               <div className="flex items-center justify-between text-xs font-black bg-surface-subtle p-3 rounded-2xl border border-surface-border/60">
-                <span className="text-blue-700">{post.satEarned}</span>
+                <span className={post.status === 'APPROVED' ? 'text-blue-700' : 'text-amber-700'}>
+                  {post.status === 'APPROVED' ? post.satEarned : `${post.satEarned} (Dalam Tinjauan)`}
+                </span>
                 <span className="text-eco-800 font-mono">{post.carbonSaved}</span>
               </div>
 
@@ -266,7 +466,7 @@ export const FeedPage: React.FC = () => {
                 ))}
 
                 <div className="flex items-center gap-1.5 pl-1.5 border-l border-slate-200 shrink-0">
-                  {['🔥', '🌱', '⚡'].map((emoji) => (
+                  {['🔥', '🌱', '⚡', '👏'].map((emoji) => (
                     <button
                       key={emoji}
                       onClick={() => addReaction(post.id, emoji, post.type)}
@@ -288,7 +488,7 @@ export const FeedPage: React.FC = () => {
                     }`}
                   >
                     <Heart className={`w-4 h-4 ${hasLiked[post.id] ? 'fill-rose-600 text-rose-600' : ''}`} />
-                    <span>{likes[post.id]} Suka</span>
+                    <span>{likes[post.id] ?? 0} Suka</span>
                   </button>
 
                   <button 

@@ -109,36 +109,90 @@ const DEFAULT_SEEDED_ACCOUNTS: Omit<StoredAuthAccount, 'passwordHash'>[] = [
 ];
 
 /**
- * Initializes local storage accounts if not present
+ * Reads whatever is currently cached in localStorage (no network access).
+ */
+function readLocalAccounts(): StoredAuthAccount[] | null {
+  const raw = localStorage.getItem(STORAGE_ACCOUNTS_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length >= 1) {
+      // Auto-migrate legacy roles and male avatar photos to neutral avatars on read
+      let modified = false;
+      parsed.forEach((acc: any) => {
+        const norm = normalizeUserRole(acc.role);
+        if (acc.role !== norm) {
+          acc.role = norm;
+          modified = true;
+        }
+        if (!acc.avatarUrl || acc.avatarUrl.includes('photo-1535713875002-d1d0cf377fde') || acc.avatarUrl.includes('photo-1500648767791-00dcc994a43e')) {
+          acc.avatarUrl = getNeutralAvatarUrl(acc.fullName, acc.nim, acc.role);
+          modified = true;
+        }
+      });
+      if (modified) {
+        localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(parsed));
+      }
+      return parsed as StoredAuthAccount[];
+    }
+  } catch {
+    // fallback
+  }
+  return null;
+}
+
+/**
+ * Maps a public.users row (Supabase) back into the local StoredAuthAccount shape.
+ * passwordHash is intentionally left blank — credentials never leave the DB via REST;
+ * verification always goes through the login_local_account RPC.
+ */
+function mapDbUserToAccount(row: any, existingHash?: string): StoredAuthAccount {
+  return {
+    id: row.id,
+    nim: row.nim,
+    email: row.email,
+    fullName: row.full_name,
+    facultyName: row.faculty_name || 'Universitas',
+    role: mapRoleFromSupabase(row.role),
+    passwordHash: existingHash || '',
+    avatarUrl: row.avatar_url || undefined,
+    totalGreenCoins: row.total_green_coins || 0,
+    totalSatPoints: row.total_sat_points || 0,
+    totalCarbonSaved: row.total_carbon_saved || 0,
+    streakDays: row.streak_days || 0,
+    createdAt: row.created_at || new Date().toISOString(),
+    isDeleted: row.is_deleted || false,
+    deletedAt: row.deleted_at || undefined,
+  };
+}
+
+/**
+ * Returns the account list that other devices/users see: reads the real
+ * public.users table from Supabase when configured (merged with the local
+ * cache so password hashes used for offline login are preserved), and only
+ * falls back to the localStorage-only copy when Supabase is unreachable.
  */
 export async function getStoredAccounts(): Promise<StoredAuthAccount[]> {
-  const raw = localStorage.getItem(STORAGE_ACCOUNTS_KEY);
-  if (raw) {
+  const local = readLocalAccounts();
+
+  if (isConfigured) {
     try {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length >= 1) {
-        // Auto-migrate legacy roles and male avatar photos to neutral avatars on read
-        let modified = false;
-        parsed.forEach((acc: any) => {
-          const norm = normalizeUserRole(acc.role);
-          if (acc.role !== norm) {
-            acc.role = norm;
-            modified = true;
-          }
-          if (!acc.avatarUrl || acc.avatarUrl.includes('photo-1535713875002-d1d0cf377fde') || acc.avatarUrl.includes('photo-1500648767791-00dcc994a43e')) {
-            acc.avatarUrl = getNeutralAvatarUrl(acc.fullName, acc.nim, acc.role);
-            modified = true;
-          }
+      const { data, error } = await supabase.from('users').select('*');
+      if (!error && data) {
+        const localByNim = new Map((local || []).map((a) => [a.nim.toLowerCase(), a]));
+        const merged = data.map((row: any) => {
+          const existing = localByNim.get(String(row.nim).toLowerCase());
+          return mapDbUserToAccount(row, existing?.passwordHash);
         });
-        if (modified) {
-          localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(parsed));
-        }
-        return parsed as StoredAuthAccount[];
+        localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(merged));
+        return merged;
       }
-    } catch {
-      // fallback
+    } catch (err) {
+      console.warn('[authService] Failed to read accounts from Supabase, using local cache:', err);
     }
   }
+
+  if (local) return local;
 
   // Pre-seed default accounts with hashed passwords (Default passwords: 'binus123' & 'admin123')
   const defaultAdminHash = await hashPassword('admin123');
@@ -154,6 +208,54 @@ export async function getStoredAccounts(): Promise<StoredAuthAccount[]> {
 export async function resetLegacyAccounts(): Promise<void> {
   localStorage.removeItem(STORAGE_ACCOUNTS_KEY);
   await getStoredAccounts();
+}
+
+/**
+ * Upsert a single user account to Supabase public.users table.
+ * Called internally by all CRUD operations to keep Supabase in sync.
+ */
+async function syncSingleAccountToSupabase(acc: StoredAuthAccount): Promise<void> {
+  if (!isConfigured) return;
+  try {
+    const row = {
+      nim: acc.nim.trim(),
+      email: acc.email.trim().toLowerCase(),
+      full_name: acc.fullName.trim(),
+      role: mapRoleToSupabase(acc.role),
+      avatar_url: acc.avatarUrl || null,
+      total_green_coins: acc.totalGreenCoins || 0,
+      total_sat_points: acc.totalSatPoints || 0,
+      total_carbon_saved: acc.totalCarbonSaved || 0.0,
+      streak_days: acc.streakDays || 1,
+      created_at: acc.createdAt || new Date().toISOString(),
+    };
+    const { error } = await supabase
+      .from('users')
+      .upsert(row, { onConflict: 'nim' });
+    if (error) {
+      console.warn('[authService] Supabase sync single account error:', error.message);
+    }
+  } catch (err) {
+    console.warn('[authService] Supabase sync single account failed:', err);
+  }
+}
+
+/**
+ * Delete a user from Supabase public.users by NIM.
+ */
+async function deleteAccountFromSupabase(nim: string): Promise<void> {
+  if (!isConfigured) return;
+  try {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('nim', nim.trim());
+    if (error) {
+      console.warn('[authService] Supabase delete account error:', error.message);
+    }
+  } catch (err) {
+    console.warn('[authService] Supabase delete account failed:', err);
+  }
 }
 
 export async function createAccountByAdmin(params: RegisterParams): Promise<{ user?: UserProfile; error?: string }> {
@@ -202,6 +304,9 @@ export async function createAccountByAdmin(params: RegisterParams): Promise<{ us
   accounts.push(newAccount);
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
 
+  // Persist centrally (profile + password) so the account can log in from any device
+  await upsertLocalAccountToSupabase(newAccount, passwordHash);
+
   const { passwordHash: _, ...userProfile } = newAccount;
   return { user: userProfile };
 }
@@ -223,6 +328,19 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
 
   const cleanEmail = email.trim().toLowerCase();
   const cleanNim = nim.trim();
+  const cleanFullName = fullName.trim().replace(/\s+/g, ' ');
+  if (cleanFullName.length < 3 || cleanFullName.length > 100) {
+    return { error: 'Nama lengkap harus terdiri dari 3-100 karakter' };
+  }
+  if (!/^[^\s@]+@binus\.ac\.id$/i.test(cleanEmail)) {
+    return { error: 'Gunakan email BINUS dengan format nama@binus.ac.id' };
+  }
+  const identifierCheck = validateUserIdentifier(cleanNim, role);
+  if (!identifierCheck.valid) {
+    return { error: identifierCheck.error };
+  }
+
+  const passwordHash = await hashPassword(password);
 
   // 1. Cloud Registration via Supabase Auth (if configured)
   if (isConfigured) {
@@ -233,7 +351,7 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
         options: {
           data: {
             nim: cleanNim,
-            full_name: fullName,
+            full_name: cleanFullName,
             role,
             faculty_name: facultyName,
           },
@@ -244,12 +362,15 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
         return { error: error.message };
       }
 
-      if (data.user) {
-        const profile: UserProfile = {
+      if (!data.user) {
+        return { error: 'Pendaftaran Supabase belum menghasilkan akun. Periksa verifikasi email atau konfigurasi Auth.' };
+      }
+
+      const profile: UserProfile = {
           id: data.user.id,
           nim: cleanNim,
           email: cleanEmail,
-          fullName,
+          fullName: cleanFullName,
           role,
           facultyName,
           totalGreenCoins: 50,
@@ -257,11 +378,21 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
           totalCarbonSaved: 0.0,
           streakDays: 1,
           createdAt: new Date().toISOString(),
-        };
-        return { user: profile };
+      };
+
+      const account: StoredAuthAccount = {
+        ...profile,
+        facultyName: profile.facultyName || 'School of Computer Science',
+        passwordHash,
+      };
+      const { error: rpcError } = await upsertLocalAccountToSupabase(account, passwordHash);
+      if (rpcError) {
+        return { error: `Akun Auth berhasil dibuat, tetapi profil database gagal disimpan: ${rpcError}` };
       }
+      return { user: profile };
     } catch (err: any) {
-      console.warn('Supabase sign-up failed, falling back to secure local store:', err);
+      console.error('[authService] Supabase sign-up failed:', err);
+      return { error: err?.message || 'Pendaftaran gagal karena koneksi database Supabase bermasalah' };
     }
   }
 
@@ -277,12 +408,11 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
     return { error: 'NIM atau Email sudah terdaftar dalam sistem' };
   }
 
-  const passwordHash = await hashPassword(password);
   const newAccount: StoredAuthAccount = {
     id: `usr-${Date.now()}`,
     nim: cleanNim,
     email: cleanEmail,
-    fullName: fullName.trim(),
+    fullName: cleanFullName,
     facultyName: facultyName || 'School of Computer Science',
     role,
     passwordHash,
@@ -293,6 +423,12 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
     streakDays: 1,
     createdAt: new Date().toISOString(),
   };
+
+  // Persist centrally so this account can log in from any device, not just this browser
+  const { error: rpcError } = await upsertLocalAccountToSupabase(newAccount, passwordHash);
+  if (rpcError) {
+    console.warn('[authService] Registration saved locally only, Supabase sync failed:', rpcError);
+  }
 
   accounts.push(newAccount);
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
@@ -344,9 +480,41 @@ export async function loginWithCredentials(
     }
   }
 
-  // 2. Secure Local Store Authentication
-  const accounts = await getStoredAccounts();
   const inputHash = await hashPassword(password);
+
+  // 2. Cloud login for locally-registered (non-Supabase-Auth) accounts — verified
+  // server-side via RPC so any device/browser can authenticate, not just the one
+  // that originally created the account.
+  if (isConfigured) {
+    try {
+      const { data, error } = await supabase.rpc('login_local_account', {
+        p_identifier: cleanIdentifier,
+        p_password_hash: inputHash,
+      });
+      if (!error && data) {
+        const row = Array.isArray(data) ? data[0] : data;
+        // A no-match RPC result is a composite row with every field null, not
+        // an actual null/undefined value — guard on a required field instead.
+        if (row && row.id && row.nim) {
+          const account = mapDbUserToAccount(row, inputHash);
+          // Refresh local cache entry so offline login keeps working afterwards
+          const cached = readLocalAccounts() || [];
+          const idx = cached.findIndex((a) => a.nim.toLowerCase() === account.nim.toLowerCase());
+          if (idx === -1) cached.push(account);
+          else cached[idx] = { ...cached[idx], ...account, passwordHash: inputHash };
+          localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(cached));
+
+          const { passwordHash: _, ...userProfile } = account;
+          return { user: userProfile };
+        }
+      }
+    } catch (err) {
+      console.warn('[authService] login_local_account RPC failed, trying local store:', err);
+    }
+  }
+
+  // 3. Offline / not-yet-synced local store fallback
+  const accounts = await getStoredAccounts();
 
   const matchedAccount = accounts.find(
     (acc) =>
@@ -396,6 +564,10 @@ export async function updateStoredUserAccount(
   };
   accounts[index] = updated;
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+
+  // Sync to Supabase
+  await syncSingleAccountToSupabase(updated);
+
   const { passwordHash: _, ...profile } = updated;
   return profile;
 }
@@ -446,15 +618,21 @@ export async function editAccountByAdmin(
   if (data.role) account.role = targetRole;
 
   // Optional password reset
+  let newPasswordHash: string | undefined;
   if (data.newPassword) {
     if (data.newPassword.length < 6) {
       return { error: 'Kata sandi baru minimal 6 karakter' };
     }
-    account.passwordHash = await hashPassword(data.newPassword);
+    newPasswordHash = await hashPassword(data.newPassword);
+    account.passwordHash = newPasswordHash;
   }
 
   accounts[index] = account;
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+
+  // Sync to Supabase (RPC also updates the password hash centrally when changed)
+  await upsertLocalAccountToSupabase(account, newPasswordHash);
+
   const { passwordHash: _, ...userProfile } = account;
   return { user: userProfile };
 }
@@ -470,6 +648,10 @@ export async function softDeleteAccountByAdmin(userId: string): Promise<{ succes
   accounts[index].isDeleted = true;
   accounts[index].deletedAt = new Date().toISOString();
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+
+  // Delete from Supabase
+  await deleteAccountFromSupabase(accounts[index].nim);
+
   return { success: true };
 }
 
@@ -484,6 +666,10 @@ export async function restoreAccountByAdmin(userId: string): Promise<{ success?:
   accounts[index].isDeleted = false;
   accounts[index].deletedAt = undefined;
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+
+  // Re-sync to Supabase
+  await syncSingleAccountToSupabase(accounts[index]);
+
   return { success: true };
 }
 
@@ -642,7 +828,145 @@ export async function batchImportAccounts(
   if (newAccounts.length > 0 || result.updated > 0) {
     const merged = [...accounts, ...newAccounts];
     localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(merged));
+
+    // Auto-sync newly imported accounts + their password hashes to Supabase if configured
+    if (isConfigured && newAccounts.length > 0) {
+      const CONCURRENCY = 10;
+      for (let i = 0; i < newAccounts.length; i += CONCURRENCY) {
+        const batch = newAccounts.slice(i, i + CONCURRENCY);
+        try {
+          await Promise.all(batch.map((acc) => upsertLocalAccountToSupabase(acc, acc.passwordHash)));
+        } catch (err) {
+          console.warn('Auto-sync to Supabase failed:', err);
+        }
+      }
+    }
   }
 
   return result;
+}
+
+/**
+ * Map app role to Supabase schema role
+ */
+function mapRoleToSupabase(role: string): 'STUDENT' | 'VERIFIER' | 'ADMIN' {
+  const upper = role.toUpperCase();
+  if (upper === 'SUPERADMIN' || upper === 'ADMIN') return 'ADMIN';
+  if (upper === 'ORGANIZER' || upper === 'VERIFIER') return 'VERIFIER';
+  return 'STUDENT';
+}
+
+/**
+ * Map Supabase schema role back to the app's UserRole
+ */
+function mapRoleFromSupabase(role: string): UserRole {
+  const upper = (role || '').toUpperCase();
+  if (upper === 'ADMIN') return 'SUPERADMIN';
+  if (upper === 'VERIFIER') return 'ORGANIZER';
+  return 'MAHASISWA';
+}
+
+/**
+ * Create/update one account's profile + password hash centrally via RPC so it
+ * is immediately visible/usable for login from any other device or browser.
+ */
+async function upsertLocalAccountToSupabase(
+  acc: Pick<StoredAuthAccount, 'nim' | 'email' | 'fullName' | 'facultyName' | 'role' | 'avatarUrl' | 'totalGreenCoins' | 'totalSatPoints' | 'totalCarbonSaved' | 'streakDays'> & { id?: string },
+  passwordHash?: string
+): Promise<{ error?: string }> {
+  if (!isConfigured) return {};
+  try {
+    const { error } = await supabase.rpc('upsert_local_account', {
+      p_nim: acc.nim.trim(),
+      p_email: acc.email.trim().toLowerCase(),
+      p_full_name: acc.fullName.trim(),
+      p_role: mapRoleToSupabase(acc.role),
+      p_faculty_name: acc.facultyName || null,
+      p_avatar_url: acc.avatarUrl || null,
+      p_password_hash: passwordHash || null,
+      p_total_green_coins: acc.totalGreenCoins || 0,
+      p_total_sat_points: acc.totalSatPoints || 0,
+      p_total_carbon_saved: acc.totalCarbonSaved || 0,
+      p_streak_days: acc.streakDays || 1,
+      p_id: acc.id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(acc.id)
+        ? acc.id
+        : null,
+    });
+    if (error) {
+      console.warn('[authService] upsert_local_account RPC failed:', error.message);
+      return { error: error.message };
+    }
+    return {};
+  } catch (err: any) {
+    console.warn('[authService] upsert_local_account RPC failed:', err);
+    return { error: err?.message };
+  }
+}
+
+/**
+ * Synchronize local user accounts to Supabase public.users table.
+ *
+ * PREREQUISITES — run supabase/fix_users_insert.sql in Supabase SQL Editor first:
+ *  1. FK constraint on id removed
+ *  2. id column has DEFAULT gen_random_uuid()
+ *  3. INSERT RLS policy exists
+ *  4. UPDATE RLS policy broadened for upsert
+ */
+export async function syncAccountsToSupabase(
+  accountsToSync?: StoredAuthAccount[]
+): Promise<{ count: number; error?: string }> {
+  if (!isConfigured) {
+    return { count: 0, error: 'Koneksi Supabase belum dikonfigurasi di file .env' };
+  }
+
+  try {
+    const list = accountsToSync || (await getStoredAccounts());
+    if (!list || list.length === 0) return { count: 0 };
+
+    // Filter: only sync accounts that have a valid NIM and email
+    const validAccounts = list.filter(
+      (acc) => acc.nim && acc.email && acc.nim.trim() !== '' && acc.email.trim() !== ''
+    );
+
+    if (validAccounts.length === 0) return { count: 0 };
+
+    console.log(`[Supabase Sync] Preparing ${validAccounts.length} accounts for sync...`);
+
+    // Route through the RPC (not a raw upsert) so each account's password hash is
+    // migrated into the locked-down credentials table too — required for that
+    // account to be able to log in from a different device/browser afterwards.
+    const CONCURRENCY = 10;
+    let totalSynced = 0;
+    const errors: string[] = [];
+
+    for (let i = 0; i < validAccounts.length; i += CONCURRENCY) {
+      const batch = validAccounts.slice(i, i + CONCURRENCY);
+      const results = await Promise.all(
+        batch.map((acc) => upsertLocalAccountToSupabase(acc, acc.passwordHash))
+      );
+      results.forEach((res, idx) => {
+        if (res.error) {
+          errors.push(`${batch[idx].nim}: ${res.error}`);
+        } else {
+          totalSynced++;
+        }
+      });
+    }
+
+    if (errors.length > 0) {
+      const errorMsg = errors.join('\n');
+      console.warn('[Supabase Sync] Completed with errors:\n', errorMsg);
+      if (totalSynced === 0) {
+        return { count: 0, error: errorMsg };
+      }
+      // Partial success
+      return { count: totalSynced, error: `Sebagian berhasil (${totalSynced}/${validAccounts.length}). Errors:\n${errorMsg}` };
+    }
+
+    console.log(`[Supabase Sync] All done! ${totalSynced} accounts synced.`);
+    return { count: totalSynced };
+  } catch (err: any) {
+    console.error('[Supabase Sync] Fatal error:', err);
+    return { count: 0, error: err.message };
+  }
 }

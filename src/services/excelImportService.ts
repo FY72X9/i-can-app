@@ -330,6 +330,7 @@ export function downloadStudentTemplate(format: 'xlsx' | 'csv' = 'xlsx'): void {
   ];
 
   const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template Mahasiswa');
   const fileName = `Template_Import_Mahasiswa_BINUS.${format}`;
   try {
     const wbout = XLSX.write(wb, { bookType: format, type: 'array' });

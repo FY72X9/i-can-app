@@ -15,59 +15,92 @@ const daysAgo = (days: number, hours: number = 0) =>
 
 export const SEEDED_INITIAL_ACTIONS: GreenAction[] = [];
 
+const generateActionId = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
+    const random = Math.random() * 16 | 0;
+    const value = character === 'x' ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
+};
+
 // Retrieve all actions (from Supabase or LocalStorage fallback)
 export async function getActions(): Promise<GreenAction[]> {
   if (isConfigured) {
     try {
+      // No embedded relationship joins — user_id/category_id are plain text
+      // with no FK (see fix_actions_schema_mismatch.sql), so name/icon are
+      // read from the denormalized columns written at submission time.
       const { data, error } = await supabase
         .from('actions')
-        .select(`
-          *,
-          users (full_name, nim),
-          action_categories (name, icon, emission_factor, base_coins)
-        `)
+        .select('*')
         .order('submitted_at', { ascending: false });
 
       if (!error && data) {
-        return data.map((item: any) => ({
-          id: item.id,
-          userId: item.user_id,
-          userName: item.users?.full_name || 'Mahasiswa BINUS',
-          categoryId: item.category_id,
-          categoryName: item.action_categories?.name || 'Aksi Hijau',
-          categoryIcon: item.action_categories?.icon || 'Leaf',
-          submissionType: item.submission_type,
-          isSurveyProposal: item.is_survey_proposal,
-          actionStep: item.action_step,
-          surveyLocation: item.survey_location,
-          partnerName: item.partner_name,
-          safetyAssessed: item.safety_assessed,
-          photoUrl: item.photo_url || item.photoUrl,
-          groupPhotoUrl: item.group_photo_url || item.groupPhotoUrl,
-          additionalPhotos: item.additional_photos || item.additionalPhotos || [],
-          campaignUrl: item.campaign_url,
-          videoUrl: item.video_url,
-          groupMembers: item.group_members,
-          story: item.story,
-          gpsLat: item.gps_lat,
-          gpsLng: item.gps_lng,
-          status: item.status,
-          decision: item.decision,
-          aiConfidence: item.ai_confidence,
-          aiGuidelineScore: item.ai_guideline_score,
-          aiCompletenessScore: item.ai_completeness_score,
-          aiAnalysisReason: item.ai_analysis_reason,
-          greenCoinsEarned: item.green_coins_earned,
-          carbonImpactKg: item.carbon_impact_kg,
-          satPointsEarned: item.sat_points_earned,
-          comservHoursEarned: item.comserv_hours,
-          guidelineComplied: item.guideline_complied,
-          realActivityVerified: item.real_activity_verified,
-          submittedAt: item.submitted_at,
-          verifiedAt: item.verified_at,
-          verifiedBy: item.verified_by,
-          rejectionReason: item.rejection_reason,
-        }));
+        // Fetch users map to populate userFaculty & userAvatar accurately
+        let userMap = new Map<string, any>();
+        try {
+          const { data: usersData } = await supabase
+            .from('users')
+            .select('id, full_name, faculty_name, avatar_url');
+          if (usersData) {
+            usersData.forEach((u: any) => userMap.set(u.id, u));
+          }
+        } catch {
+          // ignore error fetching users
+        }
+
+        return data.map((item: any) => {
+          const user = userMap.get(item.user_id);
+          return {
+            id: item.id,
+            userId: item.user_id,
+            userName: item.user_name || user?.full_name || 'Mahasiswa BINUS',
+            userFaculty: user?.faculty_name || 'BINUS University',
+            userAvatar: user?.avatar_url,
+            categoryId: item.category_id,
+            categoryName: item.category_name || 'Aksi Hijau',
+            categoryIcon: item.category_icon || 'Leaf',
+            submissionType: item.submission_type,
+            eventId: item.event_id,
+            eventActivityId: item.event_activity_id,
+            questId: item.quest_id,
+            actionSource: item.action_source,
+            isSurveyProposal: item.is_survey_proposal,
+            actionStep: item.action_step,
+            surveyLocation: item.survey_location,
+            partnerName: item.partner_name,
+            safetyAssessed: item.safety_assessed,
+            photoUrl: item.photo_url || item.photoUrl,
+            groupPhotoUrl: item.group_photo_url || item.groupPhotoUrl,
+            additionalPhotos: item.additional_photos || item.additionalPhotos || [],
+            campaignUrl: item.campaign_url,
+            videoUrl: item.video_url,
+            groupMembers: item.group_members,
+            story: item.story,
+            gpsLat: item.gps_lat,
+            gpsLng: item.gps_lng,
+            status: item.status,
+            decision: item.decision,
+            aiConfidence: item.ai_confidence,
+            aiGuidelineScore: item.ai_guideline_score,
+            aiCompletenessScore: item.ai_completeness_score,
+            aiAnalysisReason: item.ai_analysis_reason,
+            greenCoinsEarned: item.green_coins_earned,
+            carbonImpactKg: item.carbon_impact_kg,
+            satPointsEarned: item.sat_points_earned,
+            comservHoursEarned: item.comserv_hours,
+            guidelineComplied: item.guideline_complied,
+            realActivityVerified: item.real_activity_verified,
+            submittedAt: item.submitted_at,
+            verifiedAt: item.verified_at,
+            verifiedBy: item.verified_by,
+            rejectionReason: item.rejection_reason,
+          };
+        });
       }
     } catch (err) {
       console.warn('Supabase fetch failed, falling back to local store:', err);
@@ -127,7 +160,7 @@ export async function submitGreenAction(
 
   const newAction: GreenAction = {
     ...actionData,
-    id: `act-${Date.now()}`,
+    id: generateActionId(),
     photoUrl,
     submittedAt: new Date().toISOString(),
   };
@@ -140,7 +173,10 @@ export async function submitGreenAction(
         .insert({
           id: newAction.id,
           user_id: newAction.userId,
+          user_name: newAction.userName,
           category_id: newAction.categoryId,
+          category_name: newAction.categoryName,
+          category_icon: newAction.categoryIcon,
           submission_type: newAction.submissionType,
           event_id: newAction.eventId,
           event_activity_id: newAction.eventActivityId,
@@ -175,8 +211,14 @@ export async function submitGreenAction(
       if (!error && data) {
         return newAction;
       }
+
+      if (error) {
+        console.error('[actionService] Supabase action insert failed:', error.message, error.details, error.hint);
+        throw new Error(`Supabase action insert failed: ${error.message}`);
+      }
     } catch (err) {
-      console.warn('Supabase insert failed, persisting locally:', err);
+      console.error('[actionService] Supabase insert failed:', err);
+      throw err;
     }
   }
 
@@ -274,4 +316,27 @@ export async function updateActionVerification(
 export async function getUserActions(userId: string): Promise<GreenAction[]> {
   const all = await getActions();
   return all.filter((a) => a.userId === userId);
+}
+
+/**
+ * Realtime subscription to the actions table
+ */
+export function subscribeToActions(callback: (payload?: any) => void): () => void {
+  if (!isConfigured) return () => {};
+
+  const channelName = `public:actions:${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const channel = supabase
+    .channel(channelName)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'actions' },
+      (payload) => {
+        callback(payload);
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
 }
