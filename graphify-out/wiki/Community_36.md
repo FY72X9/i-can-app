@@ -1,10 +1,10 @@
-# unknown
+# Community 36
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- [react](file:///D:/Codes/i-can-app/package.json#L18) (0 connections)
+- [zustand](file:///D:/Codes/i-can-app/package.json#L23) (0 connections)
 
 ## Relationships
 

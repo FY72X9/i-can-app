@@ -1,17 +1,25 @@
 # Community 9
 
-> 8 nodes · cohesion 0.25
+> 16 nodes · cohesion 0.12
 
 ## Key Concepts
 
-- [HomePage.tsx](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L1) (7 connections)
-- [[cheers, setCheers]](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L28) (1 connections)
-- [flashQuests](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L98) (1 connections)
-- [handleCheer()](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L35) (1 connections)
-- [[hasCheered, setHasCheered]](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L33) (1 connections)
-- [Icon](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L280) (1 connections)
-- [programs](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L43) (1 connections)
-- [{ user }](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx#L27) (1 connections)
+- [AdminLtePage.tsx](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L1) (10 connections)
+- [useAuthStore](file:///D:/Codes/i-can-app/src/stores/authStore.ts#L65) (4 connections)
+- [AdminLtePage()](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L120) (2 connections)
+- [CallbackPage()](file:///D:/Codes/i-can-app/src/pages/CallbackPage.tsx#L10) (2 connections)
+- [authStore.ts](file:///D:/Codes/i-can-app/src/stores/authStore.ts#L1) (2 connections)
+- [canDeactivate](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L1404) (1 connections)
+- [canRestore](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L1405) (1 connections)
+- [category](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L2645) (1 connections)
+- [isDeactivated](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L1401) (1 connections)
+- [isLastSuperadmin](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L1403) (1 connections)
+- [isSelf](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L1402) (1 connections)
+- [PROGRAM_COLORS_LIST](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L95) (1 connections)
+- [PROGRAM_ICONS_LIST](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L82) (1 connections)
+- [renderProgramIconHelper()](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx#L104) (1 connections)
+- [DEMO_PROFILES](file:///D:/Codes/i-can-app/src/stores/authStore.ts#L24) (1 connections)
+- [CallbackPage.tsx](file:///D:/Codes/i-can-app/src/pages/CallbackPage.tsx#L1) (1 connections)
 
 ## Relationships
 
@@ -19,12 +27,14 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\pages\HomePage.tsx](file:///D:/Codes/i-can-app/src/pages/HomePage.tsx)
+- [D:\Codes\i-can-app\src\pages\AdminLtePage.tsx](file:///D:/Codes/i-can-app/src/pages/AdminLtePage.tsx)
+- [D:\Codes\i-can-app\src\pages\CallbackPage.tsx](file:///D:/Codes/i-can-app/src/pages/CallbackPage.tsx)
+- [D:\Codes\i-can-app\src\stores\authStore.ts](file:///D:/Codes/i-can-app/src/stores/authStore.ts)
 
 ## Audit Trail
 
-- EXTRACTED: 14 (100%)
-- INFERRED: 0 (0%)
+- EXTRACTED: 26 (84%)
+- INFERRED: 5 (16%)
 - AMBIGUOUS: 0 (0%)
 
 ---

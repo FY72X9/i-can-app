@@ -1,15 +1,15 @@
-# registerUser()
+# createAccountByAdmin()
 
-> God node · 7 connections · [D:\Codes\i-can-app\src\services\authService.ts](file:///D:/Codes/i-can-app/src/services/authService.ts#L317)
+> God node · 7 connections · [D:\Codes\i-can-app\src\services\authService.ts](file:///D:/Codes/i-can-app/src/services/authService.ts#L261)
 
 ## Call Trace Diagram
 
 ```mermaid
 sequenceDiagram
-    participant P0 as registerUser()
+    participant P0 as createAccountByAdmin()
     participant P1 as getStoredAccounts()
     participant P2 as hashPassword()
-    participant P3 as createAccountByAdmin()
+    participant P3 as registerUser()
     participant P4 as loginWithCredentials()
     participant P5 as editAccountByAdmin()
     participant P6 as batchImportAccounts()
@@ -30,16 +30,18 @@ sequenceDiagram
     P2-->>- P1: return
     P2->>+ P1: calls
     P1-->>- P2: return
-    P2->>+ P3: calls
-    P3-->>- P2: return
     P2->>+ P0: calls
     P0-->>- P2: return
+    P2->>+ P3: calls
+    P3-->>- P2: return
     P2->>+ P4: calls
     P4-->>- P2: return
     P2->>+ P5: calls
     P5-->>- P2: return
     P2->>+ P6: calls
     P6-->>- P2: return
+    P1->>+ P0: calls
+    P0-->>- P1: return
     P1->>+ P3: calls
     P3-->>- P1: return
     P3->>+ P1: calls
@@ -54,8 +56,6 @@ sequenceDiagram
     P9-->>- P3: return
     P3->>+ P10: calls
     P10-->>- P3: return
-    P1->>+ P0: calls
-    P0-->>- P1: return
     P1->>+ P4: calls
     P4-->>- P1: return
     P1->>+ P5: calls

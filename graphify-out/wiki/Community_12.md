@@ -1,14 +1,20 @@
 # Community 12
 
-> 5 nodes · cohesion 0.40
+> 11 nodes · cohesion 0.22
 
 ## Key Concepts
 
-- [logto.ts](file:///D:/Codes/i-can-app/src/services/logto.ts#L1) (4 connections)
-- [isLogtoConfigured](file:///D:/Codes/i-can-app/src/services/logto.ts#L11) (1 connections)
-- [logtoAppId](file:///D:/Codes/i-can-app/src/services/logto.ts#L9) (1 connections)
-- [logtoConfig](file:///D:/Codes/i-can-app/src/services/logto.ts#L18) (1 connections)
-- [logtoEndpoint](file:///D:/Codes/i-can-app/src/services/logto.ts#L8) (1 connections)
+- [QrScannerModal.tsx](file:///D:/Codes/i-can-app/src/components/common/QrScannerModal.tsx#L1) (10 connections)
+- [handleSimulationSelect()](file:///D:/Codes/i-can-app/src/components/common/QrScannerModal.tsx#L60) (3 connections)
+- [loadActiveEvents()](file:///D:/Codes/i-can-app/src/components/common/QrScannerModal.tsx#L31) (2 connections)
+- [navigate](file:///D:/Codes/i-can-app/src/components/common/QrScannerModal.tsx#L13) (2 connections)
+- [stopCamera()](file:///D:/Codes/i-can-app/src/components/common/QrScannerModal.tsx#L53) (2 connections)
+- [[activeEvents, setActiveEvents]](file:///D:/Codes/i-can-app/src/components/common/QrScannerModal.tsx#L17) (1 connections)
+- [[cameraError, setCameraError]](file:///D:/Codes/i-can-app/src/components/common/QrScannerModal.tsx#L18) (1 connections)
+- [[showSimulation, setShowSimulation]](file:///D:/Codes/i-can-app/src/components/common/QrScannerModal.tsx#L19) (1 connections)
+- [startCamera()](file:///D:/Codes/i-can-app/src/components/common/QrScannerModal.tsx#L36) (1 connections)
+- [streamRef](file:///D:/Codes/i-can-app/src/components/common/QrScannerModal.tsx#L15) (1 connections)
+- [videoRef](file:///D:/Codes/i-can-app/src/components/common/QrScannerModal.tsx#L14) (1 connections)
 
 ## Relationships
 
@@ -16,12 +22,12 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\services\logto.ts](file:///D:/Codes/i-can-app/src/services/logto.ts)
+- [D:\Codes\i-can-app\src\components\common\QrScannerModal.tsx](file:///D:/Codes/i-can-app/src/components/common/QrScannerModal.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 8 (100%)
-- INFERRED: 0 (0%)
+- EXTRACTED: 24 (96%)
+- INFERRED: 1 (4%)
 - AMBIGUOUS: 0 (0%)
 
 ---

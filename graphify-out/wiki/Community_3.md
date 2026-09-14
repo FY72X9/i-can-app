@@ -1,30 +1,35 @@
 # Community 3
 
-> 21 nodes · cohesion 0.11
+> 27 nodes · cohesion 0.13
 
 ## Key Concepts
 
-- [VerificationPage.tsx](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L1) (11 connections)
-- [getActions()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L209) (7 connections)
-- [updateActionVerification()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L347) (5 connections)
-- [actionService.ts](file:///D:/Codes/i-can-app/src/services/actionService.ts#L1) (5 connections)
-- [submitGreenAction()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L278) (3 connections)
-- [load()](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx#L44) (2 connections)
-- [handleSubmit()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L170) (2 connections)
-- [confirmReject()](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L151) (2 connections)
-- [handleDecision()](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L122) (2 connections)
-- [load()](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L112) (2 connections)
-- [load()](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L89) (2 connections)
-- [LOCAL_ACTIONS_KEY](file:///D:/Codes/i-can-app/src/services/actionService.ts#L9) (1 connections)
-- [SEEDED_INITIAL_ACTIONS](file:///D:/Codes/i-can-app/src/services/actionService.ts#L11) (1 connections)
-- [defaultSampleQueue](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L36) (1 connections)
-- [filteredQueue](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L170) (1 connections)
-- [[loading, setLoading]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L30) (1 connections)
-- [presetReasons](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L178) (1 connections)
-- [[queue, setQueue]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L29) (1 connections)
-- [[rejectionReason, setRejectionReason]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L33) (1 connections)
-- [[rejectModalId, setRejectModalId]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L32) (1 connections)
-- [[selectedFilter, setSelectedFilter]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L31) (1 connections)
+- [eventService.ts](file:///D:/Codes/i-can-app/src/services/eventService.ts#L1) (18 connections)
+- [getLocalEvents()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L71) (8 connections)
+- [EventsPage.tsx](file:///D:/Codes/i-can-app/src/pages/EventsPage.tsx#L1) (6 connections)
+- [createEvent()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L245) (5 connections)
+- [getEventById()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L130) (5 connections)
+- [getEvents()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L101) (5 connections)
+- [saveLocalEvents()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L89) (5 connections)
+- [updateEvent()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L282) (5 connections)
+- [loadEvent()](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L49) (4 connections)
+- [deleteEvent()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L320) (3 connections)
+- [generateId()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L15) (3 connections)
+- [getActiveEvents()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L233) (3 connections)
+- [getCategorizedEvents()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L210) (3 connections)
+- [mapDbEventToModel()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L390) (3 connections)
+- [computeEventLeaderboard()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L356) (2 connections)
+- [getEventsByOrganizer()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L150) (2 connections)
+- [getEventTimelineCategory()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L176) (2 connections)
+- [mapModelToDb()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L428) (2 connections)
+- [mapPatchToDb()](file:///D:/Codes/i-can-app/src/services/eventService.ts#L449) (2 connections)
+- [loadEvents()](file:///D:/Codes/i-can-app/src/pages/EventsPage.tsx#L15) (2 connections)
+- [DEFAULT_CAMPUS_EVENTS](file:///D:/Codes/i-can-app/src/services/eventService.ts#L18) (1 connections)
+- [LOCAL_EVENTS_KEY](file:///D:/Codes/i-can-app/src/services/eventService.ts#L9) (1 connections)
+- [category](file:///D:/Codes/i-can-app/src/pages/EventsPage.tsx#L84) (1 connections)
+- [[events, setEvents]](file:///D:/Codes/i-can-app/src/pages/EventsPage.tsx#L8) (1 connections)
+- [[filter, setFilter]](file:///D:/Codes/i-can-app/src/pages/EventsPage.tsx#L9) (1 connections)
+- *... and 2 more nodes in this community*
 
 ## Relationships
 
@@ -32,16 +37,14 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\pages\FeedPage.tsx](file:///D:/Codes/i-can-app/src/pages/FeedPage.tsx)
-- [D:\Codes\i-can-app\src\pages\UploadPage.tsx](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx)
-- [D:\Codes\i-can-app\src\pages\VerificationPage.tsx](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx)
-- [D:\Codes\i-can-app\src\pages\WalletPage.tsx](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx)
-- [D:\Codes\i-can-app\src\services\actionService.ts](file:///D:/Codes/i-can-app/src/services/actionService.ts)
+- [D:\Codes\i-can-app\src\pages\EventDetailPage.tsx](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx)
+- [D:\Codes\i-can-app\src\pages\EventsPage.tsx](file:///D:/Codes/i-can-app/src/pages/EventsPage.tsx)
+- [D:\Codes\i-can-app\src\services\eventService.ts](file:///D:/Codes/i-can-app/src/services/eventService.ts)
 
 ## Audit Trail
 
-- EXTRACTED: 39 (74%)
-- INFERRED: 14 (26%)
+- EXTRACTED: 87 (92%)
+- INFERRED: 8 (8%)
 - AMBIGUOUS: 0 (0%)
 
 ---

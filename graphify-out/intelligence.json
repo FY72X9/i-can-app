@@ -1,36 +1,36 @@
 {
   "hotspots": [
     {
-      "label": "AppLayout()",
-      "risk": 0.615,
-      "type": "FUNCTION"
-    },
-    {
-      "label": "SEEDED_INITIAL_ACTIONS",
-      "risk": 0.264,
-      "type": "FUNCTION"
-    },
-    {
-      "label": "tailwind.config.js",
-      "risk": 0.204,
-      "type": "FUNCTION"
-    },
-    {
-      "label": "UploadPage.tsx",
-      "risk": 0.204,
+      "label": "AdminLtePage()",
+      "risk": 0.606,
       "type": "FUNCTION"
     },
     {
       "label": "useAuthStore",
-      "risk": 0.2,
+      "risk": 0.366,
       "type": "STATE_STORE"
+    },
+    {
+      "label": "downloadActionPdfReport()",
+      "risk": 0.347,
+      "type": "FUNCTION"
+    },
+    {
+      "label": "handleSubmit()",
+      "risk": 0.211,
+      "type": "FUNCTION"
+    },
+    {
+      "label": "UploadPage.tsx",
+      "risk": 0.202,
+      "type": "FUNCTION"
     }
   ],
   "blast_radius": {
-    "getActions()": 7,
-    "navigate": 5,
-    "updateActionVerification()": 5,
-    "getStoredAccounts()": 5,
-    "loadData()": 4
+    "getStoredAccounts()": 14,
+    "getActions()": 8,
+    "getLocalEvents()": 8,
+    "hashPassword()": 7,
+    "createAccountByAdmin()": 7
   }
 }
