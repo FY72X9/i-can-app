@@ -1,14 +1,32 @@
 # Community 11
 
-> 5 nodes · cohesion 0.40
+> 14 nodes · cohesion 0.16
 
 ## Key Concepts
 
-- [BottomNav.tsx](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L1) (4 connections)
-- [Icon](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L22) (1 connections)
-- [isVerifier](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L8) (1 connections)
-- [navItems](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L10) (1 connections)
-- [{ user }](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx#L7) (1 connections)
+- [TopNavbar.tsx](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L1) (13 connections)
+- [navigate](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L31) (3 connections)
+- [handleAvatarClick()](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L81) (2 connections)
+- [handleNotificationClick()](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L89) (2 connections)
+- [accountDropdownRef](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L48) (1 connections)
+- [canSwitchRoles](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L50) (1 connections)
+- [dropdownRef](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L47) (1 connections)
+- [handleClickOutside()](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L64) (1 connections)
+- [handleSelectProfile()](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L76) (1 connections)
+- [{ mode, isDemoMode, isPrototypeMode, toggleMode }](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L33) (1 connections)
+- [{ 
+    notifications, 
+    unreadCount, 
+    loadUserNotifications,
+    markAsRead, 
+    markAllAsRead, 
+    deleteNotification, 
+    clearAll, 
+    simulateIncomingNotification 
+  }](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L34) (1 connections)
+- [[showAccountSelector, setShowAccountSelector]](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L46) (1 connections)
+- [[showNotifications, setShowNotifications]](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L45) (1 connections)
+- [{ user, usersList, loadUsersList, loginAs }](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx#L32) (1 connections)
 
 ## Relationships
 
@@ -16,11 +34,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\components\common\BottomNav.tsx](file:///D:/Codes/i-can-app/src/components/common/BottomNav.tsx)
+- [D:\Codes\i-can-app\src\components\common\TopNavbar.tsx](file:///D:/Codes/i-can-app/src/components/common/TopNavbar.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 8 (100%)
+- EXTRACTED: 30 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

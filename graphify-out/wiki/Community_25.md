@@ -1,10 +1,12 @@
 # Community 25
 
-> 1 nodes · cohesion 1.00
+> 3 nodes · cohesion 0.67
 
 ## Key Concepts
 
-- [main.tsx](file:///D:/Codes/i-can-app/src/main.tsx#L1) (0 connections)
+- [carbonCalc.ts](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts#L1) (2 connections)
+- [calculateActionImpact()](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts#L85) (1 connections)
+- [EMISSION_FACTORS](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts#L16) (1 connections)
 
 ## Relationships
 
@@ -12,11 +14,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\main.tsx](file:///D:/Codes/i-can-app/src/main.tsx)
+- [D:\Codes\i-can-app\src\utils\carbonCalc.ts](file:///D:/Codes/i-can-app/src/utils/carbonCalc.ts)
 
 ## Audit Trail
 
-- EXTRACTED: 0 (0%)
+- EXTRACTED: 4 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

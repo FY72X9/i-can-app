@@ -1,17 +1,17 @@
-# registerUser()
+# editAccountByAdmin()
 
-> God node · 7 connections · [D:\Codes\i-can-app\src\services\authService.ts](file:///D:/Codes/i-can-app/src/services/authService.ts#L317)
+> God node · 6 connections · [D:\Codes\i-can-app\src\services\authService.ts](file:///D:/Codes/i-can-app/src/services/authService.ts#L578)
 
 ## Call Trace Diagram
 
 ```mermaid
 sequenceDiagram
-    participant P0 as registerUser()
+    participant P0 as editAccountByAdmin()
     participant P1 as getStoredAccounts()
     participant P2 as hashPassword()
     participant P3 as createAccountByAdmin()
-    participant P4 as loginWithCredentials()
-    participant P5 as editAccountByAdmin()
+    participant P4 as registerUser()
+    participant P5 as loginWithCredentials()
     participant P6 as batchImportAccounts()
     participant P7 as normalizeUserRole()
     participant P8 as validateUserIdentifier()
@@ -32,12 +32,12 @@ sequenceDiagram
     P1-->>- P2: return
     P2->>+ P3: calls
     P3-->>- P2: return
-    P2->>+ P0: calls
-    P0-->>- P2: return
     P2->>+ P4: calls
     P4-->>- P2: return
     P2->>+ P5: calls
     P5-->>- P2: return
+    P2->>+ P0: calls
+    P0-->>- P2: return
     P2->>+ P6: calls
     P6-->>- P2: return
     P1->>+ P3: calls
@@ -54,12 +54,12 @@ sequenceDiagram
     P9-->>- P3: return
     P3->>+ P10: calls
     P10-->>- P3: return
-    P1->>+ P0: calls
-    P0-->>- P1: return
     P1->>+ P4: calls
     P4-->>- P1: return
     P1->>+ P5: calls
     P5-->>- P1: return
+    P1->>+ P0: calls
+    P0-->>- P1: return
     P1->>+ P6: calls
     P6-->>- P1: return
     P1->>+ P11: calls
@@ -84,8 +84,6 @@ sequenceDiagram
     P8-->>- P0: return
     P0->>+ P9: calls
     P9-->>- P0: return
-    P0->>+ P10: calls
-    P10-->>- P0: return
 ```
 
 ## Connections by Relation
@@ -96,7 +94,6 @@ sequenceDiagram
 - [[normalizeUserRole()]] `EXTRACTED`
 - [[validateUserIdentifier()]] `EXTRACTED`
 - [[upsertLocalAccountToSupabase()]] `EXTRACTED`
-- [[getNeutralAvatarUrl()]] `EXTRACTED`
 
 ### contains
 - [[authService.ts]] `EXTRACTED`

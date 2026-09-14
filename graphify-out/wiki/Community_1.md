@@ -1,32 +1,35 @@
 # Community 1
 
-> 23 nodes · cohesion 0.10
+> 46 nodes · cohesion 0.05
 
 ## Key Concepts
 
-- [LoginPage.tsx](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L1) (22 connections)
-- [navigate](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L42) (5 connections)
-- [handleDemoStudent()](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L141) (2 connections)
-- [handleDemoVerifier()](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L146) (2 connections)
-- [handleLoginSubmit()](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L69) (2 connections)
-- [handleRegisterSubmit()](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L84) (2 connections)
-- [[activeTab, setActiveTab]](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L46) (1 connections)
-- [FACULTIES](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L31) (1 connections)
-- [[formValidationMsg, setFormValidationMsg]](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L61) (1 connections)
-- [handleLogtoSSO()](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L123) (1 connections)
-- [handleTabSwitch()](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L63) (1 connections)
-- [[loginIdentifier, setLoginIdentifier]](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L49) (1 connections)
-- [[loginPassword, setLoginPassword]](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L50) (1 connections)
-- [[regConfirmPassword, setRegConfirmPassword]](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L59) (1 connections)
-- [[regEmail, setRegEmail]](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L56) (1 connections)
-- [[regFaculty, setRegFaculty]](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L57) (1 connections)
-- [[regFullName, setRegFullName]](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L54) (1 connections)
-- [[regNim, setRegNim]](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L55) (1 connections)
-- [[regPassword, setRegPassword]](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L58) (1 connections)
-- [[showLoginPassword, setShowLoginPassword]](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L51) (1 connections)
-- [[showRegPassword, setShowRegPassword]](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L60) (1 connections)
-- [{ signIn: logtoSignIn }](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L44) (1 connections)
-- [{ user, isAuthenticated, loginAs, loginWithPassword, register, authError, clearError, isLoading }](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx#L43) (1 connections)
+- [VerificationPage.tsx](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L1) (22 connections)
+- [actionService.ts](file:///D:/Codes/i-can-app/src/services/actionService.ts#L1) (10 connections)
+- [WalletPage.tsx](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L1) (9 connections)
+- [getActions()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L31) (8 connections)
+- [submitGreenAction()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L136) (4 connections)
+- [updateActionVerification()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L234) (4 connections)
+- [handleSubmit()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L481) (3 connections)
+- [generateActionId()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L18) (2 connections)
+- [getUserActions()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L316) (2 connections)
+- [loadEventLeaderboard()](file:///D:/Codes/i-can-app/src/pages/LeaderboardPage.tsx#L63) (2 connections)
+- [handleDecision()](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L86) (2 connections)
+- [load()](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L72) (2 connections)
+- [submitRejection()](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L115) (2 connections)
+- [load()](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx#L89) (2 connections)
+- [daysAgo()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L13) (1 connections)
+- [LOCAL_ACTIONS_KEY](file:///D:/Codes/i-can-app/src/services/actionService.ts#L9) (1 connections)
+- [SEED_VERSION_KEY](file:///D:/Codes/i-can-app/src/services/actionService.ts#L10) (1 connections)
+- [SEEDED_INITIAL_ACTIONS](file:///D:/Codes/i-can-app/src/services/actionService.ts#L16) (1 connections)
+- [subscribeToActions()](file:///D:/Codes/i-can-app/src/services/actionService.ts#L324) (1 connections)
+- [[activeTab, setActiveTab]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L34) (1 connections)
+- [approvedTodayCount](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L151) (1 connections)
+- [defaultSampleQueue](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L43) (1 connections)
+- [filteredQueue](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L130) (1 connections)
+- [[history, setHistory]](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L36) (1 connections)
+- [isApprovedFull](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx#L243) (1 connections)
+- *... and 21 more nodes in this community*
 
 ## Relationships
 
@@ -34,12 +37,16 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\pages\LoginPage.tsx](file:///D:/Codes/i-can-app/src/pages/LoginPage.tsx)
+- [D:\Codes\i-can-app\src\pages\LeaderboardPage.tsx](file:///D:/Codes/i-can-app/src/pages/LeaderboardPage.tsx)
+- [D:\Codes\i-can-app\src\pages\UploadPage.tsx](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx)
+- [D:\Codes\i-can-app\src\pages\VerificationPage.tsx](file:///D:/Codes/i-can-app/src/pages/VerificationPage.tsx)
+- [D:\Codes\i-can-app\src\pages\WalletPage.tsx](file:///D:/Codes/i-can-app/src/pages/WalletPage.tsx)
+- [D:\Codes\i-can-app\src\services\actionService.ts](file:///D:/Codes/i-can-app/src/services/actionService.ts)
 
 ## Audit Trail
 
-- EXTRACTED: 52 (100%)
-- INFERRED: 0 (0%)
+- EXTRACTED: 92 (87%)
+- INFERRED: 14 (13%)
 - AMBIGUOUS: 0 (0%)
 
 ---

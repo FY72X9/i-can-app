@@ -1,10 +1,11 @@
 # Community 28
 
-> 1 nodes · cohesion 1.00
+> 2 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- [i-can-app Repository](file:///D:/Codes/i-can-app/README.md) (0 connections)
+- [imageCompressor.ts](file:///D:/Codes/i-can-app/src/utils/imageCompressor.ts#L1) (1 connections)
+- [compressImage()](file:///D:/Codes/i-can-app/src/utils/imageCompressor.ts#L15) (1 connections)
 
 ## Relationships
 
@@ -12,11 +13,11 @@
 
 ## Source Files
 
-- [README.md](file:///D:/Codes/i-can-app/README.md)
+- [D:\Codes\i-can-app\src\utils\imageCompressor.ts](file:///D:/Codes/i-can-app/src/utils/imageCompressor.ts)
 
 ## Audit Trail
 
-- EXTRACTED: 0 (0%)
+- EXTRACTED: 2 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

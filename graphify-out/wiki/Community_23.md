@@ -1,10 +1,12 @@
 # Community 23
 
-> 1 nodes · cohesion 1.00
+> 3 nodes · cohesion 0.67
 
 ## Key Concepts
 
-- [tailwind.config.js](file:///D:/Codes/i-can-app/tailwind.config.js#L1) (0 connections)
+- [appModeStore.ts](file:///D:/Codes/i-can-app/src/stores/appModeStore.ts#L1) (2 connections)
+- [APP_MODE_KEY](file:///D:/Codes/i-can-app/src/stores/appModeStore.ts#L13) (1 connections)
+- [useAppModeStore](file:///D:/Codes/i-can-app/src/stores/appModeStore.ts#L15) (1 connections)
 
 ## Relationships
 
@@ -12,11 +14,11 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\tailwind.config.js](file:///D:/Codes/i-can-app/tailwind.config.js)
+- [D:\Codes\i-can-app\src\stores\appModeStore.ts](file:///D:/Codes/i-can-app/src/stores/appModeStore.ts)
 
 ## Audit Trail
 
-- EXTRACTED: 0 (0%)
+- EXTRACTED: 4 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

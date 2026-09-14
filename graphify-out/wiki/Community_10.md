@@ -1,16 +1,24 @@
 # Community 10
 
-> 7 nodes · cohesion 0.52
+> 15 nodes · cohesion 0.13
 
 ## Key Concepts
 
-- [authService.ts](file:///D:/Codes/i-can-app/src/services/authService.ts#L1) (6 connections)
-- [getStoredAccounts()](file:///D:/Codes/i-can-app/src/services/authService.ts#L127) (5 connections)
-- [hashPassword()](file:///D:/Codes/i-can-app/src/services/authService.ts#L40) (4 connections)
-- [loginWithCredentials()](file:///D:/Codes/i-can-app/src/services/authService.ts#L253) (3 connections)
-- [registerUser()](file:///D:/Codes/i-can-app/src/services/authService.ts#L159) (3 connections)
-- [DEFAULT_SEEDED_ACCOUNTS](file:///D:/Codes/i-can-app/src/services/authService.ts#L51) (1 connections)
-- [STORAGE_ACCOUNTS_KEY](file:///D:/Codes/i-can-app/src/services/authService.ts#L34) (1 connections)
+- [EventDetailPage.tsx](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L1) (15 connections)
+- [[activeTab, setActiveTab]](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L35) (1 connections)
+- [category](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L90) (1 connections)
+- [[event, setEvent]](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L32) (1 connections)
+- [formatDate()](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L63) (1 connections)
+- [{ id }](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L28) (1 connections)
+- [isActionOpen](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L91) (1 connections)
+- [isMe](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L365) (1 connections)
+- [[leaderboard, setLeaderboard]](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L33) (1 connections)
+- [[loading, setLoading]](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L34) (1 connections)
+- [medal](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L366) (1 connections)
+- [navigate](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L29) (1 connections)
+- [[showPosterModal, setShowPosterModal]](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L36) (1 connections)
+- [unsubscribe](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L42) (1 connections)
+- [{ user }](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx#L30) (1 connections)
 
 ## Relationships
 
@@ -18,12 +26,12 @@
 
 ## Source Files
 
-- [D:\Codes\i-can-app\src\services\authService.ts](file:///D:/Codes/i-can-app/src/services/authService.ts)
+- [D:\Codes\i-can-app\src\pages\EventDetailPage.tsx](file:///D:/Codes/i-can-app/src/pages/EventDetailPage.tsx)
 
 ## Audit Trail
 
-- EXTRACTED: 22 (96%)
-- INFERRED: 1 (4%)
+- EXTRACTED: 29 (100%)
+- INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 
 ---

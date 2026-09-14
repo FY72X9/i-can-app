@@ -1,35 +1,35 @@
 # Community 0
 
-> 26 nodes · cohesion 0.08
+> 69 nodes · cohesion 0.03
 
 ## Key Concepts
 
-- [UploadPage.tsx](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L1) (26 connections)
-- [[aiResult, setAiResult]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L106) (1 connections)
-- [[campaignUrl, setCampaignUrl]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L114) (1 connections)
-- [CATEGORIES](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L47) (1 connections)
-- [[copiedHashtags, setCopiedHashtags]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L119) (1 connections)
-- [[copiedStoryCard, setCopiedStoryCard]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L120) (1 connections)
-- [fileInputRef](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L101) (1 connections)
-- [[groupMembers, setGroupMembers]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L116) (1 connections)
-- [[groupNimInput, setGroupNimInput]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L115) (1 connections)
-- [handleAddMember()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L158) (1 connections)
-- [handleCopyHashtags()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L124) (1 connections)
-- [handleCopyStoryShare()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L216) (1 connections)
-- [handlePhotoSelect()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L130) (1 connections)
-- [handleRemoveMember()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L166) (1 connections)
-- [Icon](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L363) (1 connections)
-- [[isAnalyzing, setIsAnalyzing]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L105) (1 connections)
-- [isSelected](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L362) (1 connections)
-- [[isSubmitting, setIsSubmitting]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L117) (1 connections)
-- [navigate](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L99) (1 connections)
-- [officialHashtags](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L122) (1 connections)
-- [[photoPreview, setPhotoPreview]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L104) (1 connections)
-- [runAiAnalysis()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L143) (1 connections)
-- [[selectedCategory, setSelectedCategory]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L103) (1 connections)
-- [[story, setStory]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L113) (1 connections)
-- [[submittedSuccess, setSubmittedSuccess]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L118) (1 connections)
-- *... and 1 more nodes in this community*
+- [UploadPage.tsx](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L1) (70 connections)
+- [runAiAnalysis()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L353) (5 connections)
+- [verifyActionWithGemini](file:///D:/Codes/i-can-app/src/services/gemini.ts#L424) (2 connections)
+- [handleSelectEvent()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L292) (2 connections)
+- [handleSelectProgram()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L271) (2 connections)
+- [handleSelectQuest()](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L283) (2 connections)
+- [act](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L219) (1 connections)
+- [actId](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L1174) (1 connections)
+- [active](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L177) (1 connections)
+- [activeEvents](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L209) (1 connections)
+- [[activePillar, setActivePillar]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L88) (1 connections)
+- [activityIdParam](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L172) (1 connections)
+- [additionalFileInputRef](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L84) (1 connections)
+- [[additionalPhotoPreview, setAdditionalPhotoPreview]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L104) (1 connections)
+- [[aiResult, setAiResult]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L112) (1 connections)
+- [[campaignUrl, setCampaignUrl]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L106) (1 connections)
+- [[captionTone, setCaptionTone]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L138) (1 connections)
+- [[copiedCaption, setCopiedCaption]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L148) (1 connections)
+- [[copiedHashtags, setCopiedHashtags]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L146) (1 connections)
+- [[copiedStoryCard, setCopiedStoryCard]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L147) (1 connections)
+- [currentOrganizerHashtags](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L152) (1 connections)
+- [eventIdParam](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L171) (1 connections)
+- [[eventsList, setEventsList]](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L97) (1 connections)
+- [fileInputRef](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L82) (1 connections)
+- [found](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx#L181) (1 connections)
+- *... and 44 more nodes in this community*
 
 ## Relationships
 
@@ -38,11 +38,12 @@
 ## Source Files
 
 - [D:\Codes\i-can-app\src\pages\UploadPage.tsx](file:///D:/Codes/i-can-app/src/pages/UploadPage.tsx)
+- [D:\Codes\i-can-app\src\services\gemini.ts](file:///D:/Codes/i-can-app/src/services/gemini.ts)
 
 ## Audit Trail
 
-- EXTRACTED: 51 (100%)
-- INFERRED: 0 (0%)
+- EXTRACTED: 144 (99%)
+- INFERRED: 2 (1%)
 - AMBIGUOUS: 0 (0%)
 
 ---

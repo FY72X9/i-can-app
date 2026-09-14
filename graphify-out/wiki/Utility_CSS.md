@@ -1,10 +1,10 @@
-# unknown
+# Utility CSS
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- [react](file:///D:/Codes/i-can-app/package.json#L18) (0 connections)
+- [tailwindcss](file:///D:/Codes/i-can-app/package.json#L33) (0 connections)
 
 ## Relationships
 

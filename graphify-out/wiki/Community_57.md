@@ -1,10 +1,10 @@
-# unknown
+# Community 57
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- [react](file:///D:/Codes/i-can-app/package.json#L18) (0 connections)
+- [i-can-app Repository](file:///D:/Codes/i-can-app/README.md) (0 connections)
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- [package.json](file:///D:/Codes/i-can-app/package.json)
+- [README.md](file:///D:/Codes/i-can-app/README.md)
 
 ## Audit Trail
 
