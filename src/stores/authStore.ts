@@ -17,7 +17,10 @@ import {
   BatchImportUserItem,
   BatchImportOptions,
   BatchImportResult,
-  getNeutralAvatarUrl
+  getNeutralAvatarUrl,
+  UpdateOwnProfileParams,
+  updateOwnProfile as apiUpdateOwnProfile,
+  changeOwnPassword as apiChangeOwnPassword
 } from '@/services/authService';
 
 // Default initial seeded profiles
@@ -25,16 +28,48 @@ export const DEMO_PROFILES: Record<string, UserProfile> = {
   admin: {
     id: 'usr-admin-005',
     nim: '1980010101',
-    email: 'musangking@binus.ac.id',
-    fullName: 'MUSANG KING(Super Admin)',
+    email: 'hendra.sso@binus.ac.id',
+    fullName: 'Hendra Kusuma, M.Kom (Super Admin)',
     role: 'SUPERADMIN',
     facultyId: 'fac-sso',
     facultyName: 'Student Service Office (SSO)',
-    avatarUrl: getNeutralAvatarUrl('MUSANG KING(Super Admin)', '1980010101', 'SUPERADMIN'),
+    avatarUrl: getNeutralAvatarUrl('Hendra Kusuma, M.Kom', '1980010101', 'SUPERADMIN'),
     totalGreenCoins: 2400,
     totalSatPoints: 120,
     totalCarbonSaved: 62.00,
     streakDays: 28,
+    lastActionAt: new Date().toISOString(),
+    createdAt: '2026-06-01T00:00:00Z',
+  },
+  student: {
+    id: 'usr-student-001',
+    nim: '2602158890',
+    email: 'budi.santoso@binus.ac.id',
+    fullName: 'Budi Santoso',
+    role: 'MAHASISWA',
+    facultyId: 'fac-socs',
+    facultyName: 'School of Computer Science',
+    avatarUrl: getNeutralAvatarUrl('Budi Santoso', '2602158890', 'MAHASISWA'),
+    totalGreenCoins: 120,
+    totalSatPoints: 9,
+    totalCarbonSaved: 12.50,
+    streakDays: 5,
+    lastActionAt: new Date().toISOString(),
+    createdAt: '2026-06-01T00:00:00Z',
+  },
+  organizer: {
+    id: 'usr-organizer-002',
+    nim: 'BN089123456',
+    email: 'sso.verifier@binus.ac.id',
+    fullName: 'Siti Rahmawati, S.Kom (SSO)',
+    role: 'ORGANIZER',
+    facultyId: 'fac-sso',
+    facultyName: 'Student Service Office (SSO)',
+    avatarUrl: getNeutralAvatarUrl('Siti Rahmawati, S.Kom', 'BN089123456', 'ORGANIZER'),
+    totalGreenCoins: 850,
+    totalSatPoints: 45,
+    totalCarbonSaved: 30.00,
+    streakDays: 14,
     lastActionAt: new Date().toISOString(),
     createdAt: '2026-06-01T00:00:00Z',
   },
@@ -54,6 +89,8 @@ interface AuthState {
   clearError: () => void;
   updateUserStats: (stats: { greenCoins?: number; satPoints?: number; carbonSaved?: number; streakDays?: number }) => void;
   updateUserRole: (userId: string, newRole: UserRole) => Promise<void>;
+  updateOwnProfile: (updates: UpdateOwnProfileParams) => Promise<{ user?: UserProfile; error?: string }>;
+  changeOwnPassword: (currentPassword: string, newPassword: string) => Promise<{ success?: boolean; error?: string }>;
   createUserAccount: (params: RegisterParams) => Promise<{ user?: UserProfile; error?: string }>;
   editUserAccount: (userId: string, data: EditUserParams) => Promise<{ user?: UserProfile; error?: string }>;
   softDeleteUserAccount: (userId: string) => Promise<{ success?: boolean; error?: string }>;
@@ -218,6 +255,42 @@ export const useAuthStore = create<AuthState>((set, get) => {
         const updatedUser = { ...get().user!, role: newRole };
         localStorage.setItem('i_can_user', JSON.stringify(updatedUser));
         set({ user: updatedUser });
+      }
+    },
+
+    updateOwnProfile: async (updates: UpdateOwnProfileParams) => {
+      const currentUser = get().user;
+      if (!currentUser) return { error: 'Pengguna belum masuk' };
+
+      set({ isLoading: true });
+      try {
+        const result = await apiUpdateOwnProfile(currentUser.id, updates);
+        if (result.user) {
+          localStorage.setItem('i_can_user', JSON.stringify(result.user));
+          set({ user: result.user, isLoading: false });
+          await get().loadUsersList();
+        } else {
+          set({ isLoading: false });
+        }
+        return result;
+      } catch (err: any) {
+        set({ isLoading: false });
+        return { error: err.message || 'Gagal memperbarui profil' };
+      }
+    },
+
+    changeOwnPassword: async (currentPassword: string, newPassword: string) => {
+      const currentUser = get().user;
+      if (!currentUser) return { error: 'Pengguna belum masuk' };
+
+      set({ isLoading: true });
+      try {
+        const result = await apiChangeOwnPassword(currentUser.id, currentPassword, newPassword);
+        set({ isLoading: false });
+        return result;
+      } catch (err: any) {
+        set({ isLoading: false });
+        return { error: err.message || 'Gagal mengubah kata sandi' };
       }
     },
 

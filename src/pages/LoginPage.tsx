@@ -92,12 +92,13 @@ export const LoginPage: React.FC = () => {
     e.preventDefault();
     setFormValidationMsg(null);
 
-    if (!loginIdentifier.trim() || !loginPassword.trim()) {
-      setFormValidationMsg('Silakan masukkan NIM/Email dan kata sandi Anda');
+    const cleanId = loginIdentifier.trim();
+    if (!cleanId || !loginPassword.trim()) {
+      setFormValidationMsg('Silakan masukkan NIM, Binus Number, atau Email BINUS dan kata sandi Anda');
       return;
     }
 
-    const success = await loginWithPassword(loginIdentifier, loginPassword);
+    const success = await loginWithPassword(cleanId, loginPassword);
     if (success) {
       const activeUser = useAuthStore.getState().user;
       navigate(getRoleDefaultPath(activeUser?.role));
@@ -297,7 +298,7 @@ export const LoginPage: React.FC = () => {
             <form onSubmit={handleLoginSubmit} className="space-y-3">
               <div>
                 <label className="text-[11px] font-bold text-text-secondary block mb-1">
-                  NIM atau Email BINUS
+                  NIM / Binus Number atau Email BINUS
                 </label>
                 <div className="relative">
                   <input
@@ -307,8 +308,19 @@ export const LoginPage: React.FC = () => {
                     onChange={(e) => setLoginIdentifier(e.target.value)}
                     className="w-full text-xs p-3 pl-9 rounded-2xl border border-surface-border bg-surface-subtle focus:bg-white focus:outline-none focus:ring-2 focus:ring-eco-500/20 focus:border-eco-600 transition-all font-mono"
                     required
+                    autoComplete="username"
                   />
-                  <Mail className="w-4 h-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+                  {loginIdentifier.includes('@') ? (
+                    <Mail className="w-4 h-4 text-emerald-600 absolute left-3 top-1/2 -translate-y-1/2 transition-colors" />
+                  ) : (
+                    <User className="w-4 h-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 transition-colors" />
+                  )}
+                </div>
+                <div className="mt-1.5 p-2 bg-emerald-50/80 border border-emerald-200/90 rounded-xl flex items-start gap-1.5 text-[10px] text-emerald-950 leading-tight">
+                  <span className="font-bold shrink-0">💡 Info:</span>
+                  <span>
+                    Masuk dapat menggunakan <strong>NIM</strong> (10 digit angka Mahasiswa), <strong>Binus Number</strong> (BN... Staf & Admin), atau <strong>Email BINUS resmi</strong> (contoh: <em>budi.santoso@binus.ac.id</em>).
+                  </span>
                 </div>
               </div>
 
@@ -338,7 +350,9 @@ export const LoginPage: React.FC = () => {
 
               <div className="flex justify-between items-center text-[10px] text-text-muted pt-0.5">
                 {!isPrototypeMode() && import.meta.env.VITE_APP_MODE !== 'production' && (
-                  <span className="font-mono">Default Demo: binus123</span>
+                  <span className="font-mono text-text-secondary">
+                    Demo pass: <strong className="text-eco-800">binus123</strong> (User) / <strong className="text-purple-800">admin123</strong> (Admin)
+                  </span>
                 )}
                 <button
                   type="button"
@@ -572,7 +586,7 @@ export const LoginPage: React.FC = () => {
                               </span>
                             </h4>
                             <p className="text-[9px] text-text-secondary truncate font-mono">
-                              {isOrganizer ? 'SSO / TFI' : `${u.totalSatPoints || 0} SAT • ${u.totalGreenCoins || 0} GC`}
+                              {u.email || (isOrganizer ? 'SSO / TFI' : `${u.totalSatPoints || 0} SAT • ${u.totalGreenCoins || 0} GC`)}
                             </p>
                           </div>
                         </button>
@@ -601,7 +615,9 @@ export const LoginPage: React.FC = () => {
                         />
                         <div>
                           <h4 className="text-xs font-black text-purple-950">{adminUser.fullName}</h4>
-                          <p className="text-[9px] text-purple-700 font-medium">Buka Dashboard AdminLTE & Manajemen Kuota SAT</p>
+                          <p className="text-[9px] text-purple-700 font-medium">
+                            {adminUser.email} • Dashboard AdminLTE & Manajemen Kuota
+                          </p>
                         </div>
                       </div>
                       <ArrowRight className="w-4 h-4 text-purple-700 group-hover:translate-x-1 transition-transform" />
