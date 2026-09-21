@@ -4,8 +4,9 @@ import { Card } from '@/components/common/Card';
 import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
 import { getCategorizedEvents, CategorizedEvents, getEventTimelineCategory } from '@/services/eventService';
-import { CampusEvent, DailyQuest, ActionProgram } from '@/types';
+import { CampusEvent, DailyQuest, ActionProgram, GreenAction } from '@/types';
 import { getDailyQuests, getActionPrograms } from '@/services/questProgramService';
+import { getActions, subscribeToActions } from '@/services/actionService';
 import { 
   TreePine, 
   Droplets, 
@@ -21,13 +22,13 @@ import {
   ChevronRight, 
   Zap, 
   Target, 
-  Heart,
-  BookOpen,
-  ArrowRight,
-  ShieldCheck,
-  Calendar,
-  Trash2,
-  Leaf
+  Heart, 
+  BookOpen, 
+  ArrowRight, 
+  ShieldCheck, 
+  Calendar, 
+  Trash2, 
+  Leaf 
 } from 'lucide-react';
 
 const resolveProgramIcon = (iconName: string) => {
@@ -47,7 +48,8 @@ const resolveProgramIcon = (iconName: string) => {
 };
 
 export const HomePage: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, loadUsersList } = useAuthStore();
+  const [userApprovedActions, setUserApprovedActions] = useState<GreenAction[]>([]);
   const [categorizedEvents, setCategorizedEvents] = useState<CategorizedEvents>({
     today: [],
     upcoming: [],
@@ -71,6 +73,63 @@ export const HomePage: React.FC = () => {
     });
   }, []);
 
+  // Synchronize actual user actions & approved coin balance
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadUserActions = async () => {
+      if (!user?.id) return;
+      try {
+        const all = await getActions();
+        if (!isMounted) return;
+        const approved = all.filter(
+          (a) => a.status === 'APPROVED' && (a.userId === user.id || (user.nim && a.userId === user.nim))
+        );
+        setUserApprovedActions(approved);
+      } catch (err) {
+        console.warn('Failed loading user approved actions on Home:', err);
+      }
+    };
+
+    loadUserActions();
+
+    // Subscribe to realtime database changes on actions
+    const unsubscribe = subscribeToActions(() => {
+      loadUserActions();
+      loadUsersList().catch(console.warn);
+    });
+
+    // Listen to local window update events and focus
+    const handleSync = () => {
+      loadUserActions();
+      loadUsersList().catch(console.warn);
+    };
+
+    window.addEventListener('ican:actions-updated', handleSync);
+    window.addEventListener('focus', handleSync);
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+      window.removeEventListener('ican:actions-updated', handleSync);
+      window.removeEventListener('focus', handleSync);
+    };
+  }, [user?.id, user?.nim]);
+
+  // Dynamic calculations from verified actions and user profile (100% actual, zero dummy)
+  const approvedCoinsFromActions = userApprovedActions.reduce(
+    (sum, a) => sum + (Number(a.greenCoinsEarned) || 0),
+    0
+  );
+  const approvedSatFromActions = userApprovedActions.reduce(
+    (sum, a) => sum + (a.decision === 'APPROVED_COINS_ONLY' ? 0 : (Number(a.satPointsEarned) || 0)),
+    0
+  );
+
+  const totalGreenCoins = Math.max(user?.totalGreenCoins ?? 0, approvedCoinsFromActions);
+  const totalSatPoints = Math.max(user?.totalSatPoints ?? 0, approvedSatFromActions);
+  const streakDays = user?.streakDays ?? 1;
+
   return (
     <div className="space-y-6 sm:space-y-7 pb-8">
       {/* 1. Gen Z Eco-Flex Hero Card with Clean Bento */}
@@ -88,7 +147,7 @@ export const HomePage: React.FC = () => {
 
             <div className="flex items-center gap-1.5 bg-amber-400/20 backdrop-blur-md border border-amber-300/40 text-gold-neon px-3.5 py-1 rounded-full text-xs font-black">
               <Flame className="w-4 h-4 fill-gold-neon animate-bounce-subtle" />
-              <span>{user?.streakDays || 5} Hari Streak</span>
+              <span>{streakDays} Hari Streak</span>
             </div>
           </div>
 
@@ -103,10 +162,10 @@ export const HomePage: React.FC = () => {
                 <Coins className="w-4 h-4 text-gold-neon fill-gold-neon" />
               </div>
               <div className="text-2xl sm:text-3xl font-black text-white mt-2">
-                {user?.totalGreenCoins || 120} <span className="text-xs font-semibold text-gold-300">GC</span>
+                {totalGreenCoins} <span className="text-xs font-semibold text-gold-300">GC</span>
               </div>
               <span className="text-xs text-gold-neon font-black mt-1.5 inline-block">
-                ⚡ Top 15% Nominee
+                {totalGreenCoins >= 500 ? '👑 Top 5% Champion' : totalGreenCoins >= 100 ? '⚡ Top 15% Nominee' : '🌱 Eco-Ksatria Pemula'}
               </span>
             </div>
 
@@ -119,10 +178,10 @@ export const HomePage: React.FC = () => {
                 <GraduationCap className="w-4 h-4 text-eco-neon" />
               </div>
               <div className="text-2xl sm:text-3xl font-black text-white mt-2">
-                {user?.totalSatPoints || 9} <span className="text-xs font-semibold text-eco-200">/ 120 SAT</span>
+                {totalSatPoints} <span className="text-xs font-semibold text-eco-200">/ 120 SAT</span>
               </div>
               <span className="text-xs text-eco-neon font-black mt-1.5 inline-block">
-                🎓 Target Kelulusan
+                {totalSatPoints >= 120 ? '🎉 Syarat SAT Terpenuhi' : '🎓 Target Kelulusan'}
               </span>
             </div>
           </div>
@@ -135,13 +194,13 @@ export const HomePage: React.FC = () => {
                 Target 120 Poin SAT Kelulusan
               </span>
               <span className="font-mono text-eco-neon font-bold">
-                {Math.round(((user?.totalSatPoints || 9) / 120) * 100)}%
+                {Math.round((totalSatPoints / 120) * 100)}%
               </span>
             </div>
             <div className="w-full bg-white/15 h-3 rounded-full overflow-hidden p-0.5">
               <div
                 className="bg-gradient-to-r from-eco-neon via-emerald-400 to-cyan-300 h-full rounded-full transition-all duration-500 shadow-neon-glow"
-                style={{ width: `${Math.min(100, ((user?.totalSatPoints || 9) / 120) * 100)}%` }}
+                style={{ width: `${Math.min(100, (totalSatPoints / 120) * 100)}%` }}
               />
             </div>
           </div>

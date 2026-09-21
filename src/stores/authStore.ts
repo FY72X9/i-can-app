@@ -97,6 +97,7 @@ interface AuthState {
   restoreUserAccount: (userId: string) => Promise<{ success?: boolean; error?: string }>;
   batchImportUsers: (items: BatchImportUserItem[], options?: BatchImportOptions) => Promise<BatchImportResult>;
   setUser: (user: UserProfile | null) => void;
+  refreshCurrentUser: () => Promise<UserProfile | null>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => {
@@ -133,7 +134,18 @@ export const useAuthStore = create<AuthState>((set, get) => {
         if (list && list.length > 0) {
           set({ usersList: list });
           const currentUserId = get().user?.id;
-          if (currentUserId && !list.find(u => u.id === currentUserId)) {
+          const currentUserNim = get().user?.nim;
+
+          const freshCurrentUser = list.find(
+            (u) =>
+              (currentUserId && u.id === currentUserId) ||
+              (currentUserNim && u.nim && u.nim.toLowerCase() === currentUserNim.toLowerCase())
+          );
+
+          if (freshCurrentUser) {
+            set({ user: freshCurrentUser, isAuthenticated: true });
+            localStorage.setItem('i_can_user', JSON.stringify(freshCurrentUser));
+          } else if (currentUserId && !list.find((u) => u.id === currentUserId)) {
             localStorage.removeItem('i_can_user');
             set({ user: null, isAuthenticated: false });
           }
@@ -143,6 +155,18 @@ export const useAuthStore = create<AuthState>((set, get) => {
         console.warn('Failed loading dynamic users list:', err);
       }
       return get().usersList;
+    },
+
+    refreshCurrentUser: async () => {
+      const list = await get().loadUsersList();
+      const currentUserId = get().user?.id;
+      const currentUserNim = get().user?.nim;
+      const fresh = list.find(
+        (u) =>
+          (currentUserId && u.id === currentUserId) ||
+          (currentUserNim && u.nim && u.nim.toLowerCase() === currentUserNim.toLowerCase())
+      );
+      return fresh || get().user;
     },
 
     loginAs: async (target) => {

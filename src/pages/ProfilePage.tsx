@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useAppModeStore } from '@/stores/appModeStore';
 import { getActions } from '@/services/actionService';
 import { getNeutralAvatarUrl } from '@/services/authService';
+import { uploadAvatarPhoto } from '@/services/storageService';
 import { GreenAction } from '@/types';
 import { 
   Award, 
@@ -39,9 +40,11 @@ import {
   Mail,
   Shield,
   LayoutDashboard,
-  Check,
-  RefreshCw,
-  Sliders
+  Check, 
+  RefreshCw, 
+  Sliders,
+  Camera,
+  UploadCloud
 } from 'lucide-react';
 import { downloadActionPdfReport } from '@/services/pdfReportService';
 
@@ -72,6 +75,12 @@ export const ProfilePage: React.FC = () => {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileSuccessMsg, setProfileSuccessMsg] = useState<string | null>(null);
   const [profileErrorMsg, setProfileErrorMsg] = useState<string | null>(null);
+
+  // Avatar Photo Upload State
+  const avatarFileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarUploadNote, setAvatarUploadNote] = useState<string | null>(null);
+  const [showManualUrlInput, setShowManualUrlInput] = useState(false);
 
   // Change Password Form State
   const [currentPassword, setCurrentPassword] = useState('');
@@ -183,6 +192,35 @@ export const ProfilePage: React.FC = () => {
     if (user) {
       const neutral = getNeutralAvatarUrl(editFullName || user.fullName, user.nim, user.role);
       setEditAvatarUrl(neutral);
+      setAvatarUploadNote('Avatar direset ke inisial nama standar');
+      setTimeout(() => setAvatarUploadNote(null), 3500);
+    }
+  };
+
+  const handleAvatarFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingAvatar(true);
+    setProfileErrorMsg(null);
+    setAvatarUploadNote(null);
+
+    try {
+      const res = await uploadAvatarPhoto(user?.nim || user?.id || 'user', file);
+      setEditAvatarUrl(res.url);
+      if (res.isCloud) {
+        setAvatarUploadNote(`Foto berhasil diunggah ke Supabase Storage (${res.fileSizeKb} KB)`);
+      } else {
+        setAvatarUploadNote(`Foto berhasil dioptimasi lokal (${res.fileSizeKb} KB)`);
+      }
+      setTimeout(() => setAvatarUploadNote(null), 4000);
+    } catch (err: any) {
+      setProfileErrorMsg(err.message || 'Gagal memproses foto avatar');
+    } finally {
+      setIsUploadingAvatar(false);
+      if (avatarFileInputRef.current) {
+        avatarFileInputRef.current.value = '';
+      }
     }
   };
 
@@ -247,17 +285,17 @@ export const ProfilePage: React.FC = () => {
           <div className="grid grid-cols-3 gap-2.5 pt-3 border-t border-surface-border/60 relative z-10">
             <div className="bg-surface-subtle p-3 rounded-2xl border border-surface-border/60">
               <span className="text-[9px] text-text-secondary uppercase font-bold block mb-0.5">CO2e Hemat</span>
-              <p className="text-sm sm:text-base font-black text-eco-800 font-mono">{user?.totalCarbonSaved || 12.5} kg</p>
+              <p className="text-sm sm:text-base font-black text-eco-800 font-mono">{user?.totalCarbonSaved ?? 0} kg</p>
             </div>
 
             <div className="bg-surface-subtle p-3 rounded-2xl border border-surface-border/60">
               <span className="text-[9px] text-text-secondary uppercase font-bold block mb-0.5">Green Coins</span>
-              <p className="text-sm sm:text-base font-black text-amber-800 font-mono">{user?.totalGreenCoins || 120} GC</p>
+              <p className="text-sm sm:text-base font-black text-amber-800 font-mono">{user?.totalGreenCoins ?? 0} GC</p>
             </div>
 
             <div className="bg-surface-subtle p-3 rounded-2xl border border-surface-border/60">
               <span className="text-[9px] text-text-secondary uppercase font-bold block mb-0.5">Total SAT</span>
-              <p className="text-sm sm:text-base font-black text-blue-700 font-mono">{user?.totalSatPoints || 9} SAT</p>
+              <p className="text-sm sm:text-base font-black text-blue-700 font-mono">{user?.totalSatPoints ?? 0} SAT</p>
             </div>
           </div>
         ) : (
@@ -274,7 +312,7 @@ export const ProfilePage: React.FC = () => {
 
             <div className="bg-surface-subtle p-3 rounded-2xl border border-surface-border/60">
               <span className="text-[9px] text-text-secondary uppercase font-bold block mb-0.5">Aktif</span>
-              <p className="text-sm sm:text-base font-black text-blue-700 font-mono">{user?.streakDays || 28} Hari</p>
+              <p className="text-sm sm:text-base font-black text-blue-700 font-mono">{user?.streakDays ?? 1} Hari</p>
             </div>
           </div>
         )}
@@ -367,32 +405,103 @@ export const ProfilePage: React.FC = () => {
             )}
 
             <form onSubmit={handleSaveProfile} className="space-y-3.5">
-              {/* Avatar Selector & Preview */}
+              {/* Avatar Selector & Direct Storage Upload */}
               <div>
                 <label className="text-[11px] font-bold text-text-secondary block mb-1.5">
-                  Foto Profil (Avatar URL)
+                  Foto Profil Mahasiswa
                 </label>
-                <div className="flex items-center gap-3">
-                  <img
-                    src={editAvatarUrl || getNeutralAvatarUrl(editFullName || user?.fullName || 'User', user?.nim, user?.role)}
-                    alt="Preview"
-                    className="w-12 h-12 rounded-2xl object-cover ring-2 ring-eco-400 shrink-0 shadow-xs"
-                  />
-                  <div className="flex-1 space-y-1">
-                    <input
-                      type="url"
-                      value={editAvatarUrl}
-                      onChange={(e) => setEditAvatarUrl(e.target.value)}
-                      placeholder="https://images.unsplash.com/... atau URL foto"
-                      className="w-full text-xs p-2.5 rounded-xl border border-surface-border bg-surface-subtle focus:bg-white focus:outline-none focus:ring-2 focus:ring-eco-500/20 focus:border-eco-600 transition-all font-mono"
+                <div className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-surface-subtle border border-surface-border">
+                  {/* Avatar Preview with Camera Quick Click */}
+                  <div className="relative group shrink-0">
+                    <img
+                      src={editAvatarUrl || getNeutralAvatarUrl(editFullName || user?.fullName || 'User', user?.nim, user?.role)}
+                      alt="Preview"
+                      className="w-16 h-16 rounded-2xl object-cover ring-2 ring-eco-400 shadow-xs transition-transform group-hover:scale-105 bg-white"
                     />
                     <button
                       type="button"
-                      onClick={handleApplyNeutralAvatar}
-                      className="text-[10px] font-bold text-eco-800 hover:text-eco-950 flex items-center gap-1 hover:underline"
+                      onClick={() => avatarFileInputRef.current?.click()}
+                      disabled={isUploadingAvatar}
+                      title="Klik untuk upload foto baru"
+                      className="absolute inset-0 bg-black/45 hover:bg-black/60 text-white rounded-2xl flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-2xs cursor-pointer"
                     >
-                      <RefreshCw className="w-3 h-3" /> Gunakan Avatar Netral I-CAN (Otomatis)
+                      <Camera className="w-5 h-5 text-white" />
+                      <span className="text-[9px] font-black mt-0.5">Ubah</span>
                     </button>
+                  </div>
+
+                  <div className="flex-1 min-w-0 space-y-2">
+                    {/* Action Controls: File Upload & Reset */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => avatarFileInputRef.current?.click()}
+                        disabled={isUploadingAvatar}
+                        className="px-3 py-1.5 rounded-xl bg-eco-700 hover:bg-eco-800 text-white text-xs font-black transition-all shadow-xs flex items-center gap-1.5 active:scale-95 disabled:opacity-50 cursor-pointer"
+                      >
+                        {isUploadingAvatar ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>Mengunggah...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UploadCloud className="w-3.5 h-3.5" />
+                            <span>Upload Foto</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleApplyNeutralAvatar}
+                        disabled={isUploadingAvatar}
+                        className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-surface-border text-text-secondary text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
+                        title="Gunakan avatar inisial nama resmi"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        <span>Inisial Nama</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowManualUrlInput(!showManualUrlInput)}
+                        className="text-[10px] text-eco-800 hover:underline font-bold ml-auto"
+                      >
+                        {showManualUrlInput ? 'Tutup URL' : 'Input URL'}
+                      </button>
+                    </div>
+
+                    <input
+                      ref={avatarFileInputRef}
+                      type="file"
+                      accept="image/png, image/jpeg, image/jpg, image/webp"
+                      onChange={handleAvatarFileSelect}
+                      className="hidden"
+                    />
+
+                    {avatarUploadNote && (
+                      <p className="text-[10px] font-bold text-emerald-700 flex items-center gap-1 animate-in fade-in">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                        <span>{avatarUploadNote}</span>
+                      </p>
+                    )}
+
+                    {showManualUrlInput && (
+                      <div className="pt-1 animate-in fade-in duration-150">
+                        <input
+                          type="url"
+                          value={editAvatarUrl}
+                          onChange={(e) => setEditAvatarUrl(e.target.value)}
+                          placeholder="https://images.unsplash.com/... atau URL foto"
+                          className="w-full text-xs p-2 rounded-xl border border-surface-border bg-white focus:outline-none focus:ring-2 focus:ring-eco-500/20 focus:border-eco-600 transition-all font-mono"
+                        />
+                      </div>
+                    )}
+
+                    <p className="text-[10px] text-text-muted leading-tight">
+                      Mendukung format JPG, PNG, atau WebP. Foto otomatis dikompres & disimpan ke <strong>Supabase Storage</strong>.
+                    </p>
                   </div>
                 </div>
               </div>

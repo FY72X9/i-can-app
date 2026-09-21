@@ -3,7 +3,7 @@ import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
-import { getActions } from '@/services/actionService';
+import { getActions, subscribeToActions } from '@/services/actionService';
 import { GreenAction } from '@/types';
 import { 
   Coins, 
@@ -23,82 +23,62 @@ import {
 } from 'lucide-react';
 
 export const WalletPage: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, loadUsersList } = useAuthStore();
   const [verifiedActions, setVerifiedActions] = useState<GreenAction[]>([]);
   const [copiedTranscript, setCopiedTranscript] = useState(false);
 
-  // Sample default verified actions if local storage is empty
-  const defaultVerified: GreenAction[] = [
-    {
-      id: 'act-done-1',
-      userId: user?.id || 'usr-student-001',
-      userName: user?.fullName || 'Budi Santoso',
-      categoryId: 'tree',
-      categoryName: 'Penanaman Bibit Pohon Tabebuya',
-      submissionType: 'PENYULUHAN_AKSI_NYATA',
-      photoUrl: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=600&auto=format&fit=crop&q=80',
-      story: 'Penyuluhan medsos & tanam 5 bibit pohon keras di fasilitas umum.',
-      status: 'APPROVED',
-      decision: 'APPROVED_FULL',
-      greenCoinsEarned: 25,
-      carbonImpactKg: 5.0,
-      satPointsEarned: 4,
-      comservHoursEarned: 2.0,
-      submittedAt: '2026-08-18T10:30:00Z',
-      verifiedAt: '2026-08-18T14:15:00Z',
-    },
-    {
-      id: 'act-done-2',
-      userId: user?.id || 'usr-student-001',
-      userName: user?.fullName || 'Budi Santoso',
-      categoryId: 'biopori',
-      categoryName: 'Pembuatan 5 Lubang Biopori',
-      submissionType: 'PENYULUHAN_AKSI_NYATA',
-      photoUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=600&auto=format&fit=crop&q=80',
-      story: 'Pembuatan 5 lubang biopori bersama pengelola lingkungan RT setempat.',
-      status: 'APPROVED',
-      decision: 'APPROVED_FULL',
-      greenCoinsEarned: 20,
-      carbonImpactKg: 0.5,
-      satPointsEarned: 4,
-      comservHoursEarned: 2.0,
-      submittedAt: '2026-08-15T09:00:00Z',
-      verifiedAt: '2026-08-15T11:20:00Z',
-    },
-    {
-      id: 'act-done-3',
-      userId: user?.id || 'usr-student-001',
-      userName: user?.fullName || 'Budi Santoso',
-      categoryId: 'bus',
-      categoryName: 'Shuttle Bus BINUS Campus',
-      submissionType: 'SELF_GREEN_CAMPAIGN',
-      photoUrl: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=600&auto=format&fit=crop&q=80',
-      story: 'Menggunakan shuttle bus kampus BINUS Anggrek-Syahdan.',
-      status: 'APPROVED',
-      decision: 'APPROVED_COINS_ONLY',
-      greenCoinsEarned: 15,
-      carbonImpactKg: 0.12,
-      satPointsEarned: 0,
-      comservHoursEarned: 0,
-      submittedAt: '2026-08-12T08:15:00Z',
-      verifiedAt: '2026-08-12T09:00:00Z',
-    },
-  ];
-
   useEffect(() => {
-    async function load() {
-      const actions = await getActions();
-      const userApproved = actions.filter(
-        (a) => a.status === 'APPROVED' && (a.userId === user?.id || !user?.id)
-      );
-      setVerifiedActions(userApproved.length > 0 ? userApproved : defaultVerified);
-    }
-    load();
-  }, [user?.id]);
+    let isMounted = true;
 
-  const totalSat = verifiedActions.reduce((acc, a) => acc + (a.satPointsEarned || 0), 0) || (user?.totalSatPoints || 9);
-  const totalComserv = verifiedActions.reduce((acc, a) => acc + (a.comservHoursEarned || 0), 0) || 4.5;
-  const totalCoins = user?.totalGreenCoins || 120;
+    async function load() {
+      if (!user?.id) return;
+      const actions = await getActions();
+      if (!isMounted) return;
+      const userApproved = actions.filter(
+        (a) => a.status === 'APPROVED' && (a.userId === user.id || (user.nim && a.userId === user.nim))
+      );
+      setVerifiedActions(userApproved);
+    }
+
+    load();
+
+    const unsubscribe = subscribeToActions(() => {
+      load();
+      loadUsersList().catch(console.warn);
+    });
+
+    const handleLocalSync = () => {
+      load();
+      loadUsersList().catch(console.warn);
+    };
+
+    window.addEventListener('ican:actions-updated', handleLocalSync);
+    window.addEventListener('focus', handleLocalSync);
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+      window.removeEventListener('ican:actions-updated', handleLocalSync);
+      window.removeEventListener('focus', handleLocalSync);
+    };
+  }, [user?.id, user?.nim]);
+
+  const approvedSat = verifiedActions.reduce(
+    (acc, a) => acc + (a.decision === 'APPROVED_COINS_ONLY' ? 0 : (a.satPointsEarned || 0)),
+    0
+  );
+  const approvedComserv = verifiedActions.reduce(
+    (acc, a) => acc + (a.comservHoursEarned || 0),
+    0
+  );
+  const approvedCoins = verifiedActions.reduce(
+    (acc, a) => acc + (a.greenCoinsEarned || 0),
+    0
+  );
+
+  const totalSat = Math.max(user?.totalSatPoints ?? 0, approvedSat);
+  const totalComserv = approvedComserv > 0 ? Number(approvedComserv.toFixed(1)) : 0;
+  const totalCoins = Math.max(user?.totalGreenCoins ?? 0, approvedCoins);
 
   const handleExportTranscript = () => {
     const transcriptText = `--- TRANSKRIP PORTOFOLIO AKSI I-CAN & TFI ---
@@ -202,8 +182,19 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
         </div>
 
         <div className="space-y-3">
-          {verifiedActions.map((action) => (
-            <Card key={action.id} className="p-4 sm:p-5 bg-white border-surface-border shadow-eco-sm space-y-3 hover:border-eco-300 transition-colors">
+          {verifiedActions.length === 0 ? (
+            <Card className="p-8 text-center bg-white border-dashed border-surface-border shadow-eco-sm space-y-3 rounded-2xl">
+              <div className="w-12 h-12 rounded-2xl bg-eco-50 text-eco-700 flex items-center justify-center mx-auto shadow-xs">
+                <FileCheck2 className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm font-black text-text-primary">Belum Ada Aksi yang Diverifikasi</h4>
+              <p className="text-xs text-text-secondary max-w-sm mx-auto">
+                Setelah bukti aksi nyata atau event kamu disetujui oleh Tim SSO & Verifikator, poin SAT resmi dan jam community service akan terdata di sini.
+              </p>
+            </Card>
+          ) : (
+            verifiedActions.map((action) => (
+              <Card key={action.id} className="p-4 sm:p-5 bg-white border-surface-border shadow-eco-sm space-y-3 hover:border-eco-300 transition-colors">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-11 h-11 rounded-2xl bg-eco-50 text-eco-700 flex items-center justify-center font-bold shadow-xs shrink-0">
@@ -247,7 +238,7 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
                 <span>Dampak: <strong className="text-eco-900 font-black font-mono">{action.carbonImpactKg} kg CO2e</strong></span>
               </div>
             </Card>
-          ))}
+          )))}
         </div>
       </div>
     </div>

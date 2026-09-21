@@ -244,10 +244,10 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
           {/* Burning Streak Pill (Duolingo Style) */}
           <div 
             className="flex items-center gap-1.5 bg-gradient-to-r from-amber-50 to-orange-100 border border-amber-300/80 px-2.5 py-1 rounded-full text-xs font-black text-amber-900 shadow-xs active:scale-95 transition-transform cursor-pointer"
-            title={`${user?.streakDays || 5} Hari Aktif Berkelanjutan`}
+            title={`${user?.streakDays ?? 1} Hari Aktif Berkelanjutan`}
           >
             <Flame className="w-4 h-4 text-orange-500 fill-orange-500 animate-pulse" />
-            <span className="font-mono">{user?.streakDays || 5}d</span>
+            <span className="font-mono">{user?.streakDays ?? 1}d</span>
           </div>
 
           {/* Manageable Notification Bell */}
