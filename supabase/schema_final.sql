@@ -434,6 +434,37 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- ------------------------------------------------------------------------------
+-- 7b. Action Verification Trigger: Syncs total_green_coins & SAT to public.users
+-- ------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.handle_action_verification()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (NEW.status = 'APPROVED' AND (OLD.status IS NULL OR OLD.status <> 'APPROVED')) THEN
+        UPDATE public.users
+        SET 
+            total_green_coins = COALESCE(total_green_coins, 0) + COALESCE(NEW.green_coins_earned, 0),
+            total_sat_points = COALESCE(total_sat_points, 0) + (CASE WHEN NEW.decision = 'APPROVED_FULL' THEN COALESCE(NEW.sat_points_earned, 0) ELSE 0 END),
+            total_carbon_saved = COALESCE(total_carbon_saved, 0) + COALESCE(NEW.carbon_impact_kg, 0)
+        WHERE id::text = NEW.user_id OR nim = NEW.user_id;
+    ELSIF (OLD.status = 'APPROVED' AND NEW.status <> 'APPROVED') THEN
+        UPDATE public.users
+        SET 
+            total_green_coins = GREATEST(0, COALESCE(total_green_coins, 0) - COALESCE(OLD.green_coins_earned, 0)),
+            total_sat_points = GREATEST(0, COALESCE(total_sat_points, 0) - (CASE WHEN OLD.decision = 'APPROVED_FULL' THEN COALESCE(OLD.sat_points_earned, 0) ELSE 0 END)),
+            total_carbon_saved = GREATEST(0, COALESCE(total_carbon_saved, 0) - COALESCE(OLD.carbon_impact_kg, 0))
+        WHERE id::text = OLD.user_id OR nim = OLD.user_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS trg_action_verification ON public.actions;
+CREATE TRIGGER trg_action_verification
+AFTER UPDATE OF status, decision ON public.actions
+FOR EACH ROW
+EXECUTE FUNCTION public.handle_action_verification();
+
 -- Legacy tables (unused by the app) — RLS enabled, no public policies attached
 DROP POLICY IF EXISTS "Users can read own SAT recognitions" ON public.sat_recognitions;
 DROP POLICY IF EXISTS "Verifiers can manage SAT recognitions" ON public.sat_recognitions;
@@ -512,13 +543,44 @@ $$;
 GRANT EXECUTE ON FUNCTION public.login_local_account(TEXT, TEXT) TO anon, authenticated;
 
 -- ------------------------------------------------------------------------------
--- 9. SEED SUPERADMIN ACCOUNT
--- Matches DEFAULT_SEEDED_ACCOUNTS[0] in src/services/authService.ts.
--- Default password: admin123 (hash below = SHA-256("admin123" + "_ican_salt_2026"),
--- the exact algorithm used by hashPassword() in authService.ts). Change the
--- password from the admin panel after first login.
+-- 9. SUPABASE STORAGE BUCKETS CONFIGURATION
+-- Enables free 1 GB Supabase Storage for profile avatars and green action photos
 -- ------------------------------------------------------------------------------
 
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('avatars', 'avatars', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('action-photos', 'action-photos', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- Storage Policies: Public read
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Public read avatars') THEN
+    CREATE POLICY "Public read avatars" ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Allow public insert avatars') THEN
+    CREATE POLICY "Allow public insert avatars" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'avatars');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Allow public update avatars') THEN
+    CREATE POLICY "Allow public update avatars" ON storage.objects FOR UPDATE USING (bucket_id = 'avatars') WITH CHECK (bucket_id = 'avatars');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Public read action-photos') THEN
+    CREATE POLICY "Public read action-photos" ON storage.objects FOR SELECT USING (bucket_id = 'action-photos');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Allow public insert action-photos') THEN
+    CREATE POLICY "Allow public insert action-photos" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'action-photos');
+  END IF;
+END $$;
+
+-- ------------------------------------------------------------------------------
+-- 10. SEED INITIAL ACCOUNTS (SUPERADMIN, MAHASISWA & ORGANIZER)
+-- Password Superadmin: admin123 -> SHA-256("admin123_ican_salt_2026")
+-- Password Mahasiswa & SSO: binus123 -> SHA-256("binus123_ican_salt_2026")
+-- ==============================================================================
+
+-- 1. Superadmin (Hendra Kusuma)
 SELECT public.upsert_local_account(
   p_nim => '1980010101',
   p_email => 'hendra.sso@binus.ac.id',
@@ -533,9 +595,72 @@ SELECT public.upsert_local_account(
   p_streak_days => 28
 );
 
+-- 2. Mahasiswa Utama (Budi Santoso)
+SELECT public.upsert_local_account(
+  p_nim => '2602158890',
+  p_email => 'budi.santoso@binus.ac.id',
+  p_full_name => 'Budi Santoso',
+  p_role => 'STUDENT',
+  p_faculty_name => 'School of Computer Science',
+  p_avatar_url => 'https://ui-avatars.com/api/?name=Budi%20Santoso&background=059669&color=fff&bold=true&size=150',
+  p_password_hash => '7487907fb813dda846948627ce4e8cd9521bed24927aa426b292222544f8000a',
+  p_total_green_coins => 120,
+  p_total_sat_points => 9,
+  p_total_carbon_saved => 12.50,
+  p_streak_days => 5
+);
+
+-- 3. Organizer SSO (Siti Rahmawati)
+SELECT public.upsert_local_account(
+  p_nim => 'BN089123456',
+  p_email => 'sso.verifier@binus.ac.id',
+  p_full_name => 'Siti Rahmawati, S.Kom (SSO)',
+  p_role => 'VERIFIER',
+  p_faculty_name => 'Student Service Office (SSO)',
+  p_avatar_url => 'https://ui-avatars.com/api/?name=Siti%20Rahmawati&background=d97706&color=fff&bold=true&size=150',
+  p_password_hash => '7487907fb813dda846948627ce4e8cd9521bed24927aa426b292222544f8000a',
+  p_total_green_coins => 850,
+  p_total_sat_points => 45,
+  p_total_carbon_saved => 30.00,
+  p_streak_days => 14
+);
+
+-- 4. Mahasiswa SOD Top Ranker (Nadia Safira)
+SELECT public.upsert_local_account(
+  p_nim => '2602234567',
+  p_email => 'nadia.safira@binus.ac.id',
+  p_full_name => 'Nadia Safira',
+  p_role => 'STUDENT',
+  p_faculty_name => 'School of Design',
+  p_avatar_url => 'https://ui-avatars.com/api/?name=Nadia%20Safira&background=059669&color=fff&bold=true&size=150',
+  p_password_hash => '7487907fb813dda846948627ce4e8cd9521bed24927aa426b292222544f8000a',
+  p_total_green_coins => 890,
+  p_total_sat_points => 68,
+  p_total_carbon_saved => 24.80,
+  p_streak_days => 9
+);
+
+-- 5. Mahasiswa SIS (Kevin Wijaya)
+SELECT public.upsert_local_account(
+  p_nim => '2602158892',
+  p_email => 'kevin.wijaya@binus.ac.id',
+  p_full_name => 'Kevin Wijaya',
+  p_role => 'STUDENT',
+  p_faculty_name => 'School of Information Systems',
+  p_avatar_url => 'https://ui-avatars.com/api/?name=Kevin%20Wijaya&background=059669&color=fff&bold=true&size=150',
+  p_password_hash => '7487907fb813dda846948627ce4e8cd9521bed24927aa426b292222544f8000a',
+  p_total_green_coins => 310,
+  p_total_sat_points => 22,
+  p_total_carbon_saved => 8.40,
+  p_streak_days => 4
+);
+
 -- ------------------------------------------------------------------------------
--- 10. VERIFY
+-- 11. VERIFY
 -- ------------------------------------------------------------------------------
 
 SELECT tablename, policyname, cmd FROM pg_policies WHERE schemaname = 'public' ORDER BY tablename, policyname;
-SELECT nim, email, full_name, role FROM public.users WHERE nim = '1980010101';
+SELECT u.nim, u.email, u.full_name, u.role, c.password_hash IS NOT NULL AS has_credentials
+FROM public.users u
+LEFT JOIN public.user_credentials c ON c.nim = u.nim;
+

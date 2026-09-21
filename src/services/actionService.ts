@@ -5,6 +5,7 @@
 
 import { supabase, isConfigured } from '@/services/supabase';
 import { GreenAction, VerificationDecision } from '@/types';
+import { applyRewardToUser } from '@/services/authService';
 
 const LOCAL_ACTIONS_KEY = 'i_can_submitted_actions';
 const SEED_VERSION_KEY = 'i_can_seed_version_v2_2weeks';
@@ -257,6 +258,41 @@ export async function updateActionVerification(
     finalVerifierName = verifierName;
   }
 
+  // 1. Fetch current action state before updating to calculate accurate points delta
+  let previousAction: GreenAction | null = null;
+  if (isConfigured) {
+    try {
+      const { data: dbAct } = await supabase
+        .from('actions')
+        .select('*')
+        .eq('id', actionId)
+        .maybeSingle();
+
+      if (dbAct) {
+        previousAction = {
+          id: dbAct.id,
+          userId: dbAct.user_id,
+          userName: dbAct.user_name,
+          categoryName: dbAct.category_name,
+          status: dbAct.status,
+          decision: dbAct.decision,
+          greenCoinsEarned: dbAct.green_coins_earned,
+          satPointsEarned: dbAct.sat_points_earned,
+          carbonImpactKg: dbAct.carbon_impact_kg,
+        } as any;
+      }
+    } catch (err) {
+      console.warn('Failed to pre-fetch action from Supabase:', err);
+    }
+  }
+
+  if (!previousAction) {
+    const localActions = await getActions();
+    previousAction = localActions.find((a) => a.id === actionId) || null;
+  }
+
+  // 2. Update action in Supabase
+  let updatedAction: GreenAction | null = null;
   if (isConfigured) {
     try {
       const { data, error } = await supabase
@@ -273,7 +309,7 @@ export async function updateActionVerification(
         .single();
 
       if (!error && data) {
-        return {
+        updatedAction = {
           ...data,
           status,
           decision,
@@ -287,27 +323,77 @@ export async function updateActionVerification(
     }
   }
 
-  // Local fallback update
+  // 3. Local fallback / cache update
   const actions = await getActions();
   const targetIndex = actions.findIndex((a) => a.id === actionId);
-  if (targetIndex === -1) return null;
+  if (targetIndex !== -1) {
+    const target = actions[targetIndex];
+    if (!previousAction) {
+      previousAction = target;
+    }
+    const localUpdated: GreenAction = {
+      ...target,
+      status,
+      decision,
+      verifiedAt: now,
+      verifiedBy: finalVerifierName,
+      rejectionReason: finalReason || target.rejectionReason,
+      // If coins only, sat points becomes 0
+      satPointsEarned: decision === 'APPROVED_COINS_ONLY' ? 0 : target.satPointsEarned,
+      comservHoursEarned: decision === 'APPROVED_COINS_ONLY' ? 0 : target.comservHoursEarned,
+      realActivityVerified: decision === 'APPROVED_FULL',
+    };
 
-  const target = actions[targetIndex];
-  const updatedAction: GreenAction = {
-    ...target,
-    status,
-    decision,
-    verifiedAt: now,
-    verifiedBy: finalVerifierName,
-    rejectionReason: finalReason || target.rejectionReason,
-    // If coins only, sat points becomes 0
-    satPointsEarned: decision === 'APPROVED_COINS_ONLY' ? 0 : target.satPointsEarned,
-    comservHoursEarned: decision === 'APPROVED_COINS_ONLY' ? 0 : target.comservHoursEarned,
-    realActivityVerified: decision === 'APPROVED_FULL',
-  };
+    actions[targetIndex] = localUpdated;
+    localStorage.setItem(LOCAL_ACTIONS_KEY, JSON.stringify(actions));
+    if (!updatedAction) {
+      updatedAction = localUpdated;
+    }
+  }
 
-  actions[targetIndex] = updatedAction;
-  localStorage.setItem(LOCAL_ACTIONS_KEY, JSON.stringify(actions));
+  // 4. Calculate reward delta and credit/debit target user account
+  if (previousAction && previousAction.userId) {
+    const wasApproved = previousAction.status === 'APPROVED';
+    let coinsDelta = 0;
+    let satDelta = 0;
+    let carbonDelta = 0;
+
+    if (!wasApproved && isApproved) {
+      // Newly APPROVED: Credit coins, SAT (if FULL), and carbon
+      coinsDelta = Number(previousAction.greenCoinsEarned || 0);
+      satDelta = decision === 'APPROVED_FULL' ? Number(previousAction.satPointsEarned || 0) : 0;
+      carbonDelta = Number(previousAction.carbonImpactKg || 0);
+    } else if (wasApproved && !isApproved) {
+      // REJECTED from previously approved: Revert coins & SAT
+      coinsDelta = -Number(previousAction.greenCoinsEarned || 0);
+      satDelta = previousAction.decision === 'APPROVED_FULL' ? -Number(previousAction.satPointsEarned || 0) : 0;
+      carbonDelta = -Number(previousAction.carbonImpactKg || 0);
+    } else if (wasApproved && isApproved) {
+      // Changed between COINS_ONLY and FULL
+      if (previousAction.decision === 'APPROVED_COINS_ONLY' && decision === 'APPROVED_FULL') {
+        satDelta = Number(previousAction.satPointsEarned || 0);
+      } else if (previousAction.decision === 'APPROVED_FULL' && decision === 'APPROVED_COINS_ONLY') {
+        satDelta = -Number(previousAction.satPointsEarned || 0);
+      }
+    }
+
+    if (coinsDelta !== 0 || satDelta !== 0 || carbonDelta !== 0) {
+      try {
+        await applyRewardToUser(previousAction.userId, {
+          greenCoins: coinsDelta,
+          satPoints: satDelta,
+          carbonSaved: carbonDelta,
+        });
+      } catch (rewardErr) {
+        console.warn('Failed to apply reward to user:', rewardErr);
+      }
+    }
+  }
+
+  // 5. Broadcast update event so all open pages (HomePage, WalletPage, etc.) immediately refresh
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('ican:actions-updated'));
+  }
 
   return updatedAction;
 }

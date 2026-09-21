@@ -634,6 +634,108 @@ export async function updateStoredUserAccount(
   return profile;
 }
 
+/**
+ * Apply reward delta (Green Coins, SAT Points, Carbon Saved) to a user account
+ * both locally and in Supabase public.users.
+ */
+export async function applyRewardToUser(
+  userIdOrNim: string,
+  delta: {
+    greenCoins?: number;
+    satPoints?: number;
+    carbonSaved?: number;
+  }
+): Promise<UserProfile | null> {
+  const accounts = await getStoredAccounts();
+  const index = accounts.findIndex(
+    (a) =>
+      a.id === userIdOrNim ||
+      (a.nim && a.nim.toLowerCase() === userIdOrNim.toLowerCase()) ||
+      (a.email && a.email.toLowerCase() === userIdOrNim.toLowerCase())
+  );
+
+  const coinsDelta = Number(delta.greenCoins || 0);
+  const satDelta = Number(delta.satPoints || 0);
+  const carbonDelta = Number(delta.carbonSaved || 0);
+
+  let updatedProfile: UserProfile | null = null;
+
+  if (index !== -1) {
+    const target = accounts[index];
+    const newGreenCoins = Math.max(0, (target.totalGreenCoins || 0) + coinsDelta);
+    const newSatPoints = Math.max(0, (target.totalSatPoints || 0) + satDelta);
+    const newCarbonSaved = Math.max(0, Number(((target.totalCarbonSaved || 0) + carbonDelta).toFixed(2)));
+
+    accounts[index] = {
+      ...target,
+      totalGreenCoins: newGreenCoins,
+      totalSatPoints: newSatPoints,
+      totalCarbonSaved: newCarbonSaved,
+    };
+    localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+    const { passwordHash: _, ...prof } = accounts[index];
+    updatedProfile = prof;
+  }
+
+  // Update in Supabase if configured
+  if (isConfigured) {
+    try {
+      const { data: dbRows } = await supabase
+        .from('users')
+        .select('id, nim, total_green_coins, total_sat_points, total_carbon_saved')
+        .or(`id.eq.${userIdOrNim},nim.eq.${userIdOrNim}`);
+
+      const dbUser = dbRows && dbRows.length > 0 ? dbRows[0] : null;
+      if (dbUser) {
+        const nextCoins = Math.max(0, (dbUser.total_green_coins || 0) + coinsDelta);
+        const nextSat = Math.max(0, (dbUser.total_sat_points || 0) + satDelta);
+        const nextCarbon = Math.max(
+          0,
+          Number(((Number(dbUser.total_carbon_saved) || 0) + carbonDelta).toFixed(2))
+        );
+
+        await supabase
+          .from('users')
+          .update({
+            total_green_coins: nextCoins,
+            total_sat_points: nextSat,
+            total_carbon_saved: nextCarbon,
+          })
+          .eq('id', dbUser.id);
+      }
+    } catch (err) {
+      console.warn('[authService] Failed to sync rewards to Supabase:', err);
+    }
+  }
+
+  // Sync active user session in localStorage if active user matches
+  if (typeof window !== 'undefined') {
+    const rawActive = localStorage.getItem('i_can_user');
+    if (rawActive) {
+      try {
+        const active = JSON.parse(rawActive);
+        if (
+          active.id === userIdOrNim ||
+          (active.nim && active.nim.toLowerCase() === userIdOrNim.toLowerCase())
+        ) {
+          const syncedActive = {
+            ...active,
+            totalGreenCoins: Math.max(0, (active.totalGreenCoins || 0) + coinsDelta),
+            totalSatPoints: Math.max(0, (active.totalSatPoints || 0) + satDelta),
+            totalCarbonSaved: Math.max(0, Number(((active.totalCarbonSaved || 0) + carbonDelta).toFixed(2))),
+          };
+          localStorage.setItem('i_can_user', JSON.stringify(syncedActive));
+        }
+      } catch {}
+    }
+
+    // Trigger local update event for any active page
+    window.dispatchEvent(new CustomEvent('ican:actions-updated'));
+  }
+
+  return updatedProfile;
+}
+
 export interface UpdateOwnProfileParams {
   fullName?: string;
   email?: string;

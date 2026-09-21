@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore, DEMO_PROFILES } from '@/stores/authStore';
 import { getActions, updateActionVerification } from '@/services/actionService';
-import { getStoredAccounts, syncAccountsToSupabase, getNeutralAvatarUrl } from '@/services/authService';
+import { getStoredAccounts, syncAccountsToSupabase, getNeutralAvatarUrl, applyRewardToUser } from '@/services/authService';
+import { uploadAvatarPhoto } from '@/services/storageService';
 import { GreenAction, UserProfile, UserRole, CampusEvent, EventActivity, EventStatus, DailyQuest, ActionProgram, ActionType } from '@/types';
 import { getEvents, getEventsByOrganizer, createEvent, updateEvent, deleteEvent, getEventTimelineCategory } from '@/services/eventService';
 import {
@@ -57,6 +58,8 @@ import {
   Pencil,
   RotateCcw,
   UserX,
+  UploadCloud,
+  Camera,
   Shield,
   Filter,
   Zap,
@@ -144,6 +147,38 @@ export const AdminLtePage: React.FC = () => {
   const [isAdminChangingPass, setIsAdminChangingPass] = useState(false);
   const [adminPassSuccess, setAdminPassSuccess] = useState<string | null>(null);
   const [adminPassError, setAdminPassError] = useState<string | null>(null);
+
+  // Admin Avatar Upload State
+  const adminAvatarFileRef = React.useRef<HTMLInputElement>(null);
+  const [isUploadingAdminAvatar, setIsUploadingAdminAvatar] = useState(false);
+  const [adminAvatarUploadNote, setAdminAvatarUploadNote] = useState<string | null>(null);
+
+  const handleAdminAvatarFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingAdminAvatar(true);
+    setAdminProfileError(null);
+    setAdminAvatarUploadNote(null);
+
+    try {
+      const res = await uploadAvatarPhoto(user?.nim || user?.id || 'admin', file);
+      setAdminAvatarUrl(res.url);
+      if (res.isCloud) {
+        setAdminAvatarUploadNote(`Foto berhasil diunggah ke Supabase Storage (${res.fileSizeKb} KB)`);
+      } else {
+        setAdminAvatarUploadNote(`Foto berhasil dioptimasi lokal (${res.fileSizeKb} KB)`);
+      }
+      setTimeout(() => setAdminAvatarUploadNote(null), 4000);
+    } catch (err: any) {
+      setAdminProfileError(err.message || 'Gagal memproses foto avatar');
+    } finally {
+      setIsUploadingAdminAvatar(false);
+      if (adminAvatarFileRef.current) {
+        adminAvatarFileRef.current.value = '';
+      }
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -618,6 +653,12 @@ export const AdminLtePage: React.FC = () => {
         greenCoins: Number(grantCoinsAmount),
       });
     }
+
+    // Persist reward to Supabase & local storage via central helper
+    applyRewardToUser(selectedUserForGrant, {
+      greenCoins: Number(grantCoinsAmount),
+      satPoints: Number(grantSatAmount),
+    }).catch(console.warn);
 
     setGrantSuccessMsg(`Sukses menambahkan +${grantSatAmount} SAT dan +${grantCoinsAmount} GC ke ${targetUser.fullName}`);
     setTimeout(() => setGrantSuccessMsg(null), 3500);
@@ -3456,28 +3497,71 @@ export const AdminLtePage: React.FC = () => {
                       </div>
 
                       <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-1">
-                          Foto Profil (Avatar URL)
+                        <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                          Foto Profil (Avatar Administrator)
                         </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="url"
-                            value={adminAvatarUrl}
-                            onChange={(e) => setAdminAvatarUrl(e.target.value)}
-                            placeholder="https://... URL gambar avatar"
-                            className="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-mono"
+                        <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                          <img
+                            src={adminAvatarUrl || getNeutralAvatarUrl(adminFullName || user?.fullName || 'Admin', user?.nim, user?.role)}
+                            alt="Avatar Preview"
+                            className="w-12 h-12 rounded-xl object-cover ring-2 ring-blue-400 shrink-0 bg-white"
                           />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (user) {
-                                setAdminAvatarUrl(getNeutralAvatarUrl(adminFullName || user.fullName, user.nim, user.role));
-                              }
-                            }}
-                            className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold whitespace-nowrap transition-colors"
-                          >
-                            Reset Avatar Inisial
-                          </button>
+                          <div className="flex-1 space-y-1.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => adminAvatarFileRef.current?.click()}
+                                disabled={isUploadingAdminAvatar}
+                                className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                              >
+                                {isUploadingAdminAvatar ? (
+                                  <>
+                                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                    <span>Mengunggah...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <UploadCloud className="w-3.5 h-3.5" />
+                                    <span>Upload Foto</span>
+                                  </>
+                                )}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (user) {
+                                    setAdminAvatarUrl(getNeutralAvatarUrl(adminFullName || user.fullName, user.nim, user.role));
+                                    setAdminAvatarUploadNote('Avatar direset ke inisial nama');
+                                    setTimeout(() => setAdminAvatarUploadNote(null), 3000);
+                                  }
+                                }}
+                                disabled={isUploadingAdminAvatar}
+                                className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-200 border border-slate-300 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                              >
+                                Reset Inisial
+                              </button>
+                            </div>
+
+                            <input
+                              ref={adminAvatarFileRef}
+                              type="file"
+                              accept="image/png, image/jpeg, image/jpg, image/webp"
+                              onChange={handleAdminAvatarFileSelect}
+                              className="hidden"
+                            />
+
+                            {adminAvatarUploadNote && (
+                              <p className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                <span>{adminAvatarUploadNote}</span>
+                              </p>
+                            )}
+
+                            <p className="text-[10px] text-slate-400">
+                              Mendukung JPG, PNG, WebP. Tersimpan otomatis di <strong>Supabase Storage</strong>.
+                            </p>
+                          </div>
                         </div>
                       </div>
 
