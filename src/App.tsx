@@ -334,7 +334,7 @@ export const App: React.FC = () => {
             path="/profile"
             element={
               <ProtectedRoute>
-                <AppLayout title="Profil Mahasiswa" subtitle="Rekam Jejak & Rarity Badges">
+                <AppLayout title="Profil Pengguna" subtitle="Identitas & Pengaturan Akun">
                   <ProfilePage />
                 </AppLayout>
               </ProtectedRoute>

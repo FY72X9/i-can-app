@@ -106,6 +106,34 @@ const DEFAULT_SEEDED_ACCOUNTS: Omit<StoredAuthAccount, 'passwordHash'>[] = [
     streakDays: 28,
     createdAt: '2026-06-01T00:00:00Z',
   },
+  {
+    id: 'usr-student-001',
+    nim: '2602158890',
+    email: 'budi.santoso@binus.ac.id',
+    fullName: 'Budi Santoso',
+    facultyName: 'School of Computer Science',
+    role: 'MAHASISWA',
+    avatarUrl: getNeutralAvatarUrl('Budi Santoso', '2602158890', 'MAHASISWA'),
+    totalGreenCoins: 120,
+    totalSatPoints: 9,
+    totalCarbonSaved: 12.50,
+    streakDays: 5,
+    createdAt: '2026-06-01T00:00:00Z',
+  },
+  {
+    id: 'usr-organizer-002',
+    nim: 'BN089123456',
+    email: 'sso.verifier@binus.ac.id',
+    fullName: 'Siti Rahmawati, S.Kom (SSO)',
+    facultyName: 'Student Service Office (SSO)',
+    role: 'ORGANIZER',
+    avatarUrl: getNeutralAvatarUrl('Siti Rahmawati, S.Kom', 'BN089123456', 'ORGANIZER'),
+    totalGreenCoins: 850,
+    totalSatPoints: 45,
+    totalCarbonSaved: 30.00,
+    streakDays: 14,
+    createdAt: '2026-06-01T00:00:00Z',
+  },
 ];
 
 /**
@@ -173,15 +201,41 @@ function mapDbUserToAccount(row: any, existingHash?: string): StoredAuthAccount 
  * falls back to the localStorage-only copy when Supabase is unreachable.
  */
 export async function getStoredAccounts(): Promise<StoredAuthAccount[]> {
-  const local = readLocalAccounts();
+  let local = readLocalAccounts();
+
+  // Ensure default seeded accounts exist in local store and have up-to-date emails
+  if (local) {
+    let changed = false;
+    for (const seed of DEFAULT_SEEDED_ACCOUNTS) {
+      const existingIdx = local.findIndex(
+        (a) => a.nim.toLowerCase() === seed.nim.toLowerCase() || a.email?.toLowerCase() === seed.email.toLowerCase()
+      );
+      if (existingIdx === -1) {
+        const pass = seed.role === 'SUPERADMIN' ? 'admin123' : 'binus123';
+        const passwordHash = await hashPassword(pass);
+        local.push({ ...seed, passwordHash });
+        changed = true;
+      } else {
+        // Ensure email is accurately set if missing or mismatched
+        if (!local[existingIdx].email || local[existingIdx].email !== seed.email) {
+          local[existingIdx].email = seed.email;
+          changed = true;
+        }
+      }
+    }
+    if (changed) {
+      localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(local));
+    }
+  }
 
   if (isConfigured) {
     try {
       const { data, error } = await supabase.from('users').select('*');
       if (!error && data) {
         const localByNim = new Map((local || []).map((a) => [a.nim.toLowerCase(), a]));
+        const localByEmail = new Map((local || []).map((a) => [a.email.toLowerCase(), a]));
         const merged = data.map((row: any) => {
-          const existing = localByNim.get(String(row.nim).toLowerCase());
+          const existing = localByNim.get(String(row.nim).toLowerCase()) || localByEmail.get(String(row.email).toLowerCase());
           return mapDbUserToAccount(row, existing?.passwordHash);
         });
         localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(merged));
@@ -194,12 +248,14 @@ export async function getStoredAccounts(): Promise<StoredAuthAccount[]> {
 
   if (local) return local;
 
-  // Pre-seed default accounts with hashed passwords (Default passwords: 'binus123' & 'admin123')
+  // Pre-seed default accounts with hashed passwords
   const defaultAdminHash = await hashPassword('admin123');
+  const defaultUserHash = await hashPassword('binus123');
 
-  const seeded: StoredAuthAccount[] = [
-    { ...DEFAULT_SEEDED_ACCOUNTS[0], passwordHash: defaultAdminHash },
-  ];
+  const seeded: StoredAuthAccount[] = DEFAULT_SEEDED_ACCOUNTS.map((acc) => ({
+    ...acc,
+    passwordHash: acc.role === 'SUPERADMIN' ? defaultAdminHash : defaultUserHash,
+  }));
 
   localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(seeded));
   return seeded;
@@ -445,7 +501,7 @@ export async function loginWithCredentials(
   password: string
 ): Promise<{ user?: UserProfile; error?: string }> {
   if (!identifier || !password) {
-    return { error: 'Masukkan NIM/Email dan kata sandi Anda' };
+    return { error: 'Masukkan NIM, Binus Number, atau Email BINUS dan kata sandi Anda' };
   }
 
   const cleanIdentifier = identifier.trim();
@@ -516,14 +572,20 @@ export async function loginWithCredentials(
   // 3. Offline / not-yet-synced local store fallback
   const accounts = await getStoredAccounts();
 
+  const cleanLower = cleanIdentifier.toLowerCase();
   const matchedAccount = accounts.find(
     (acc) =>
-      acc.nim.toLowerCase() === cleanIdentifier.toLowerCase() ||
-      acc.email.toLowerCase() === cleanIdentifier.toLowerCase()
+      acc.nim?.toLowerCase() === cleanLower ||
+      (Boolean(acc.email) && acc.email.toLowerCase() === cleanLower)
   );
 
   if (!matchedAccount) {
-    return { error: 'NIM / Email tidak ditemukan. Silakan daftar akun baru.' };
+    if (cleanIdentifier.includes('@')) {
+      return { 
+        error: 'Akun dengan email tersebut belum terdaftar. Silakan periksa kembali email Anda atau masuk menggunakan NIM.' 
+      };
+    }
+    return { error: 'NIM / Binus Number tidak ditemukan. Silakan periksa kembali atau daftar akun baru.' };
   }
 
   if (matchedAccount.passwordHash !== inputHash) {
@@ -570,6 +632,103 @@ export async function updateStoredUserAccount(
 
   const { passwordHash: _, ...profile } = updated;
   return profile;
+}
+
+export interface UpdateOwnProfileParams {
+  fullName?: string;
+  email?: string;
+  facultyName?: string;
+  avatarUrl?: string;
+}
+
+/**
+ * Update current user's own profile (works for Mahasiswa, Organizer SSO, & Superadmin)
+ */
+export async function updateOwnProfile(
+  userId: string,
+  updates: UpdateOwnProfileParams
+): Promise<{ user?: UserProfile; error?: string }> {
+  const accounts = await getStoredAccounts();
+  const index = accounts.findIndex((a) => a.id === userId);
+  if (index === -1) return { error: 'Akun tidak ditemukan' };
+
+  const account = accounts[index];
+
+  if (updates.fullName !== undefined) {
+    const cleanName = updates.fullName.trim().replace(/\s+/g, ' ');
+    if (cleanName.length < 3 || cleanName.length > 100) {
+      return { error: 'Nama lengkap harus terdiri dari 3-100 karakter' };
+    }
+    account.fullName = cleanName;
+  }
+
+  if (updates.email !== undefined && updates.email.trim() !== '') {
+    const cleanEmail = updates.email.trim().toLowerCase();
+    if (!cleanEmail.includes('@') || !cleanEmail.endsWith('@binus.ac.id')) {
+      return { error: 'Gunakan email resmi BINUS dengan format nama@binus.ac.id' };
+    }
+    // Check duplication with other accounts
+    const duplicate = accounts.find((a) => a.id !== userId && a.email.toLowerCase() === cleanEmail);
+    if (duplicate) {
+      return { error: 'Alamat email sudah digunakan oleh akun lain' };
+    }
+    account.email = cleanEmail;
+  }
+
+  if (updates.facultyName !== undefined && updates.facultyName.trim() !== '') {
+    account.facultyName = updates.facultyName.trim();
+  }
+
+  if (updates.avatarUrl !== undefined && updates.avatarUrl.trim() !== '') {
+    account.avatarUrl = updates.avatarUrl.trim();
+  }
+
+  accounts[index] = account;
+  localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+
+  // Sync with Supabase
+  await upsertLocalAccountToSupabase(account, account.passwordHash);
+
+  const { passwordHash: _, ...userProfile } = account;
+  return { user: userProfile };
+}
+
+/**
+ * Change current user's own password (requires current password validation)
+ */
+export async function changeOwnPassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<{ success?: boolean; error?: string }> {
+  if (!currentPassword) {
+    return { error: 'Kata sandi saat ini wajib diisi' };
+  }
+  if (!newPassword || newPassword.length < 6) {
+    return { error: 'Kata sandi baru minimal 6 karakter' };
+  }
+
+  const accounts = await getStoredAccounts();
+  const index = accounts.findIndex((a) => a.id === userId);
+  if (index === -1) return { error: 'Akun tidak ditemukan' };
+
+  const account = accounts[index];
+  const inputHash = await hashPassword(currentPassword);
+
+  // If the account has a stored password hash, verify it matches
+  if (account.passwordHash && account.passwordHash !== inputHash) {
+    return { error: 'Kata sandi saat ini tidak cocok. Silakan periksa kembali.' };
+  }
+
+  const newHash = await hashPassword(newPassword);
+  account.passwordHash = newHash;
+  accounts[index] = account;
+  localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+
+  // Sync with Supabase credentials
+  await upsertLocalAccountToSupabase(account, newHash);
+
+  return { success: true };
 }
 
 /**

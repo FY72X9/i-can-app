@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore, DEMO_PROFILES } from '@/stores/authStore';
 import { getActions, updateActionVerification } from '@/services/actionService';
-import { getStoredAccounts, syncAccountsToSupabase } from '@/services/authService';
+import { getStoredAccounts, syncAccountsToSupabase, getNeutralAvatarUrl } from '@/services/authService';
 import { GreenAction, UserProfile, UserRole, CampusEvent, EventActivity, EventStatus, DailyQuest, ActionProgram, ActionType } from '@/types';
 import { getEvents, getEventsByOrganizer, createEvent, updateEvent, deleteEvent, getEventTimelineCategory } from '@/services/eventService';
 import {
@@ -23,6 +23,9 @@ import {
   LayoutDashboard, 
   Users, 
   User,
+  UserCheck,
+  CheckCircle2,
+  KeyRound,
   CheckSquare, 
   GraduationCap, 
   BarChart3, 
@@ -119,9 +122,99 @@ const renderProgramIconHelper = (iconName: string, className = "w-5 h-5") => {
 
 export const AdminLtePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, loginAs, updateUserStats } = useAuthStore();
+  const { user, loginAs, updateUserStats, updateOwnProfile, changeOwnPassword } = useAuthStore();
 
-  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'users' | 'actions' | 'grant' | 'sdg' | 'events' | 'quests' | 'programs'>('dashboard');
+  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'users' | 'actions' | 'grant' | 'sdg' | 'events' | 'quests' | 'programs' | 'profile'>('dashboard');
+
+  // Admin / SSO Own Profile Form State
+  const [adminFullName, setAdminFullName] = useState(user?.fullName || '');
+  const [adminEmail, setAdminEmail] = useState(user?.email || '');
+  const [adminFaculty, setAdminFaculty] = useState(user?.facultyName || 'Student Service Office (SSO)');
+  const [adminAvatarUrl, setAdminAvatarUrl] = useState(user?.avatarUrl || '');
+  const [isAdminSavingProfile, setIsAdminSavingProfile] = useState(false);
+  const [adminProfileSuccess, setAdminProfileSuccess] = useState<string | null>(null);
+  const [adminProfileError, setAdminProfileError] = useState<string | null>(null);
+
+  // Admin / SSO Password Change State
+  const [adminCurrentPassword, setAdminCurrentPassword] = useState('');
+  const [adminNewPassword, setAdminNewPassword] = useState('');
+  const [adminConfirmPassword, setAdminConfirmPassword] = useState('');
+  const [showAdminCurrentPass, setShowAdminCurrentPass] = useState(false);
+  const [showAdminNewPass, setShowAdminNewPass] = useState(false);
+  const [isAdminChangingPass, setIsAdminChangingPass] = useState(false);
+  const [adminPassSuccess, setAdminPassSuccess] = useState<string | null>(null);
+  const [adminPassError, setAdminPassError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      setAdminFullName(user.fullName || '');
+      setAdminEmail(user.email || '');
+      setAdminFaculty(user.facultyName || (user.role === 'SUPERADMIN' ? 'Direktorat Kemahasiswaan & SSO' : 'Student Service Office (SSO)'));
+      setAdminAvatarUrl(user.avatarUrl || '');
+    }
+  }, [user]);
+
+  const handleSaveAdminProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminProfileSuccess(null);
+    setAdminProfileError(null);
+
+    if (!adminFullName.trim()) {
+      setAdminProfileError('Nama lengkap tidak boleh kosong');
+      return;
+    }
+
+    setIsAdminSavingProfile(true);
+    const result = await updateOwnProfile({
+      fullName: adminFullName.trim(),
+      email: adminEmail.trim(),
+      facultyName: adminFaculty.trim(),
+      avatarUrl: adminAvatarUrl.trim(),
+    });
+    setIsAdminSavingProfile(false);
+
+    if (result.error) {
+      setAdminProfileError(result.error);
+    } else {
+      setAdminProfileSuccess('Profil berhasil diperbarui!');
+      setTimeout(() => setAdminProfileSuccess(null), 4000);
+    }
+  };
+
+  const handleAdminChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminPassSuccess(null);
+    setAdminPassError(null);
+
+    if (!adminCurrentPassword) {
+      setAdminPassError('Masukkan kata sandi saat ini');
+      return;
+    }
+
+    if (adminNewPassword.length < 6) {
+      setAdminPassError('Kata sandi baru minimal 6 karakter');
+      return;
+    }
+
+    if (adminNewPassword !== adminConfirmPassword) {
+      setAdminPassError('Konfirmasi kata sandi baru tidak cocok');
+      return;
+    }
+
+    setIsAdminChangingPass(true);
+    const result = await changeOwnPassword(adminCurrentPassword, adminNewPassword);
+    setIsAdminChangingPass(false);
+
+    if (result.error) {
+      setAdminPassError(result.error);
+    } else {
+      setAdminPassSuccess('Kata sandi berhasil diperbarui!');
+      setAdminCurrentPassword('');
+      setAdminNewPassword('');
+      setAdminConfirmPassword('');
+      setTimeout(() => setAdminPassSuccess(null), 5000);
+    }
+  };
   const [actionsList, setActionsList] = useState<GreenAction[]>([]);
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
   const [isWideView, setIsWideView] = useState(true);
@@ -982,6 +1075,20 @@ export const AdminLtePage: React.FC = () => {
             <span className="hidden sm:inline">Export myBINUS</span>
           </button>
 
+          {/* Profile Settings Button */}
+          <button
+            onClick={() => setActiveMenu('profile')}
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors ${
+              activeMenu === 'profile'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+            }`}
+            title="Buka Pengaturan Profil Saya"
+          >
+            <User className="w-3.5 h-3.5 text-blue-600" />
+            <span className="hidden sm:inline">Profil Saya</span>
+          </button>
+
           {/* Logout Button */}
           <button
             onClick={() => {
@@ -1002,19 +1109,26 @@ export const AdminLtePage: React.FC = () => {
         {/* Dark Navy AdminLTE Sidebar */}
         <aside className="w-full md:w-56 bg-[#343a40] text-[#c2c7d0] p-3 shrink-0 space-y-4">
           {/* User Profile Bar */}
-          <div className="flex items-center gap-2.5 pb-3 border-b border-[#4f5962]">
+          <div 
+            onClick={() => setActiveMenu('profile')}
+            className={`flex items-center gap-2.5 pb-3 border-b border-[#4f5962] cursor-pointer hover:bg-[#494e53] p-1.5 rounded-xl transition-all group ${
+              activeMenu === 'profile' ? 'bg-[#007bff]/25 ring-1 ring-[#007bff]' : ''
+            }`}
+            title="Klik untuk membuka Pengaturan Profil Saya"
+          >
             <img
               src={user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'Admin')}&background=7c3aed&color=fff&bold=true&size=150`}
               alt={user?.fullName || "User"}
-              className={`w-9 h-9 rounded-full object-cover ring-2 ${user?.role === 'SUPERADMIN' ? 'ring-[#007bff]' : 'ring-amber-500'}`}
+              className={`w-9 h-9 rounded-full object-cover ring-2 shrink-0 ${user?.role === 'SUPERADMIN' ? 'ring-[#007bff]' : 'ring-amber-500'}`}
             />
             <div className="min-w-0 flex-1">
-              <h4 className="text-xs font-bold text-white truncate">{user?.fullName || 'User Online'}</h4>
+              <h4 className="text-xs font-bold text-white truncate group-hover:text-blue-300 transition-colors">{user?.fullName || 'User Online'}</h4>
               <p className={`text-[10px] flex items-center gap-1 font-bold ${user?.role === 'SUPERADMIN' ? 'text-[#28a745]' : 'text-amber-400'}`}>
                 <span className={`w-1.5 h-1.5 rounded-full animate-ping ${user?.role === 'SUPERADMIN' ? 'bg-[#28a745]' : 'bg-amber-400'}`} />
                 {user?.role === 'SUPERADMIN' ? 'Super Admin Online' : 'Organizer Online'}
               </p>
             </div>
+            <Settings className="w-3.5 h-3.5 text-slate-400 group-hover:text-white shrink-0" />
           </div>
 
           {/* Navigation Menu */}
@@ -1128,6 +1242,16 @@ export const AdminLtePage: React.FC = () => {
               <span>Analitik SDG Kampus</span>
             </button>
 
+            <button
+              onClick={() => setActiveMenu('profile')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left ${
+                activeMenu === 'profile' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+              }`}
+            >
+              <UserCheck className="w-4 h-4 text-cyan-400" />
+              <span>Profil & Akun Saya</span>
+            </button>
+
             <div className="pt-4 mt-4 border-t border-[#4f5962]">
               <button
                 onClick={() => {
@@ -1157,6 +1281,7 @@ export const AdminLtePage: React.FC = () => {
                 {activeMenu === 'programs' && 'Manajemen Program Aksi Nyata'}
                 {activeMenu === 'sdg' && 'Metrik & Dampak Berkelanjutan SDG Kampus'}
                 {activeMenu === 'events' && 'Manajemen Event Kampus & QR Pos'}
+                {activeMenu === 'profile' && 'Pengaturan Profil & Akun Administrator'}
               </h1>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
                 Panel Administrasi Terpusat • BINUS University
@@ -3183,6 +3308,318 @@ export const AdminLtePage: React.FC = () => {
                     </button>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* 9. Profile & Account Settings (SSO Organizer & Super Admin) */}
+          {activeMenu === 'profile' && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column: Identity & Access Card */}
+                <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm text-center space-y-4">
+                  <div className="relative inline-block mx-auto">
+                    <img
+                      src={adminAvatarUrl || getNeutralAvatarUrl(adminFullName || user?.fullName || 'Admin', user?.nim, user?.role)}
+                      alt={user?.fullName || "User Avatar"}
+                      className={`w-24 h-24 rounded-full object-cover mx-auto ring-4 shadow-md ${
+                        user?.role === 'SUPERADMIN' ? 'ring-purple-400' : 'ring-amber-400'
+                      }`}
+                    />
+                    <span className={`absolute bottom-0 right-0 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full ring-2 ring-white shadow-xs ${
+                      user?.role === 'SUPERADMIN' ? 'bg-purple-700' : 'bg-amber-600'
+                    }`}>
+                      {user?.role}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-base font-black text-slate-800">{user?.fullName}</h3>
+                    <p className="text-xs text-slate-500 font-mono mt-0.5">Binus Number: {user?.nim}</p>
+                    <p className="text-xs font-bold text-blue-600 mt-1">{user?.facultyName}</p>
+                    <p className="text-xs text-slate-400 font-mono">{user?.email}</p>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-left text-xs">
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[10px] text-slate-400 block font-bold uppercase">Status</span>
+                      <span className="font-bold text-emerald-600">Aktif Terverifikasi</span>
+                    </div>
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[10px] text-slate-400 block font-bold uppercase">Role Akses</span>
+                      <span className="font-bold text-slate-700">{user?.role}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-4 text-left text-xs space-y-2">
+                    <div className="font-black text-blue-950 flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-blue-700 shrink-0" />
+                      <span>Hak Otoritas & Privilese</span>
+                    </div>
+                    <p className="text-[11px] text-blue-900 leading-relaxed">
+                      {user?.role === 'SUPERADMIN'
+                        ? 'Super Administrator memiliki wewenang menyeluruh untuk mengelola pengguna, memvalidasi bukti aksi, mengatur program & misi harian, serta mengekspor transkrip SAT ke myBINUS.'
+                        : 'Tim Member SSO & Verifikator memiliki hak untuk memverifikasi bukti aksi mahasiswa, mengelola campus events, dan memantau analitik keberlanjutan kampus.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right Column: Edit Profile & Password Cards */}
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Card 1: Data Profil */}
+                  <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
+                          <UserCheck className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-black text-slate-800">Perbarui Profil Akun</h4>
+                          <p className="text-xs text-slate-500">Nama lengkap, unit kerja, email, dan foto profil</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                        {user?.role}
+                      </span>
+                    </div>
+
+                    {adminProfileSuccess && (
+                      <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-2 text-xs text-emerald-800 font-medium">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>{adminProfileSuccess}</span>
+                      </div>
+                    )}
+                    {adminProfileError && (
+                      <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-2 text-xs text-rose-800 font-medium">
+                        <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                        <span>{adminProfileError}</span>
+                      </div>
+                    )}
+
+                    <form onSubmit={handleSaveAdminProfile} className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 block mb-1">
+                            Nama Lengkap & Gelar
+                          </label>
+                          <input
+                            type="text"
+                            value={adminFullName}
+                            onChange={(e) => setAdminFullName(e.target.value)}
+                            required
+                            minLength={3}
+                            maxLength={100}
+                            className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-bold"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 block mb-1">
+                            Binus Number (Terkunci)
+                          </label>
+                          <input
+                            type="text"
+                            value={user?.nim || ''}
+                            disabled
+                            className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed font-mono font-bold"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 block mb-1">
+                            Unit Kerja / Divisi
+                          </label>
+                          <input
+                            type="text"
+                            value={adminFaculty}
+                            onChange={(e) => setAdminFaculty(e.target.value)}
+                            required
+                            className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-bold"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 block mb-1">
+                            Alamat Email Institusi
+                          </label>
+                          <input
+                            type="email"
+                            value={adminEmail}
+                            onChange={(e) => setAdminEmail(e.target.value)}
+                            required
+                            placeholder="nama@binus.ac.id"
+                            className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Foto Profil (Avatar URL)
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="url"
+                            value={adminAvatarUrl}
+                            onChange={(e) => setAdminAvatarUrl(e.target.value)}
+                            placeholder="https://... URL gambar avatar"
+                            className="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-mono"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (user) {
+                                setAdminAvatarUrl(getNeutralAvatarUrl(adminFullName || user.fullName, user.nim, user.role));
+                              }
+                            }}
+                            className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold whitespace-nowrap transition-colors"
+                          >
+                            Reset Avatar Inisial
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex justify-end">
+                        <button
+                          type="submit"
+                          disabled={isAdminSavingProfile}
+                          className="px-5 py-2.5 rounded-xl bg-[#007bff] hover:bg-blue-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+                        >
+                          {isAdminSavingProfile ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>Menyimpan...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Simpan Perubahan</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
+                  {/* Card 2: Keamanan & Ganti Kata Sandi */}
+                  <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold">
+                          <KeyRound className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-black text-slate-800">Ganti Kata Sandi</h4>
+                          <p className="text-xs text-slate-500">Perbarui kata sandi akun administratif Anda</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                        SHA-256
+                      </span>
+                    </div>
+
+                    {adminPassSuccess && (
+                      <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-2 text-xs text-emerald-800 font-medium">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>{adminPassSuccess}</span>
+                      </div>
+                    )}
+                    {adminPassError && (
+                      <div className="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-2 text-xs text-rose-800 font-medium">
+                        <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                        <span>{adminPassError}</span>
+                      </div>
+                    )}
+
+                    <form onSubmit={handleAdminChangePassword} className="space-y-4">
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Kata Sandi Saat Ini
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showAdminCurrentPass ? 'text' : 'password'}
+                            value={adminCurrentPassword}
+                            onChange={(e) => setAdminCurrentPassword(e.target.value)}
+                            required
+                            placeholder="Masukkan kata sandi saat ini"
+                            className="w-full text-xs p-2.5 pr-9 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowAdminCurrentPass(!showAdminCurrentPass)}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                          >
+                            {showAdminCurrentPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 block mb-1">
+                            Kata Sandi Baru
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showAdminNewPass ? 'text' : 'password'}
+                              value={adminNewPassword}
+                              onChange={(e) => setAdminNewPassword(e.target.value)}
+                              required
+                              minLength={6}
+                              placeholder="Minimal 6 karakter"
+                              className="w-full text-xs p-2.5 pr-9 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowAdminNewPass(!showAdminNewPass)}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                            >
+                              {showAdminNewPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 block mb-1">
+                            Konfirmasi Kata Sandi Baru
+                          </label>
+                          <input
+                            type={showAdminNewPass ? 'text' : 'password'}
+                            value={adminConfirmPassword}
+                            onChange={(e) => setAdminConfirmPassword(e.target.value)}
+                            required
+                            minLength={6}
+                            placeholder="Ulangi kata sandi baru"
+                            className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex justify-end">
+                        <button
+                          type="submit"
+                          disabled={isAdminChangingPass}
+                          className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+                        >
+                          {isAdminChangingPass ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>Memproses...</span>
+                            </>
+                          ) : (
+                            <>
+                              <KeyRound className="w-3.5 h-3.5" />
+                              <span>Perbarui Kata Sandi</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
               </div>
             </div>
           )}
