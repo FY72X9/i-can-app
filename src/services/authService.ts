@@ -32,6 +32,7 @@ export interface StoredAuthAccount {
   passwordHash: string;
   avatarUrl?: string;
   totalGreenCoins: number;
+  lifetimeGreenCoins?: number;
   totalComservHours?: number;
   totalCarbonSaved: number;
   streakDays: number;
@@ -59,18 +60,34 @@ export async function hashPassword(password: string): Promise<string> {
  * - MAHASISWA: NIM must be exactly 10 digits (^\d{10}$)
  * - ORGANIZER/SUPERADMIN: Binus Number must start with BN followed by 1-9 digits (^BN\d{1,9}$)
  */
-export function validateUserIdentifier(identifier: string, role: UserRole): { valid: boolean; error?: string } {
+export function validateIdentifierByRole(
+  identifier: string,
+  role: UserRole
+): { valid: boolean; error?: string } {
+  const clean = identifier.trim();
+
   if (role === 'MAHASISWA') {
-    if (!/^\d{10}$/.test(identifier)) {
-      return { valid: false, error: 'NIM harus tepat 10 digit angka (contoh: 2602158890)' };
+    if (!/^\d{10}$/.test(clean)) {
+      return {
+        valid: false,
+        error: 'NIM Mahasiswa harus tepat 10 digit angka (contoh: 2602158890)',
+      };
     }
   } else {
-    // ORGANIZER or SUPERADMIN → Binus Number (BN)
-    if (!/^BN\d{1,9}$/i.test(identifier)) {
-      return { valid: false, error: 'Binus Number harus diawali "BN" diikuti maksimal 9 digit angka (contoh: BN123456789)' };
+    // ORGANIZER or SUPERADMIN: BN + 1 to 9 digits
+    if (!/^BN\d{1,9}$/i.test(clean)) {
+      return {
+        valid: false,
+        error: 'Binus Number verifikator/admin harus diawali BN diikuti angka (contoh: BN089123456)',
+      };
     }
   }
+
   return { valid: true };
+}
+
+export function validateUserIdentifier(identifier: string, role: UserRole): { valid: boolean; error?: string } {
+  return validateIdentifierByRole(identifier, role);
 }
 
 export interface EditUserParams {
@@ -90,6 +107,7 @@ export function getNeutralAvatarUrl(name: string = 'User', identifier?: string, 
 
 /**
  * In-memory / localStorage seed accounts for instant demo & testing
+ * Includes registered students across all BINUS faculties
  */
 const DEFAULT_SEEDED_ACCOUNTS: Omit<StoredAuthAccount, 'passwordHash'>[] = [
   {
@@ -101,23 +119,10 @@ const DEFAULT_SEEDED_ACCOUNTS: Omit<StoredAuthAccount, 'passwordHash'>[] = [
     role: 'SUPERADMIN',
     avatarUrl: getNeutralAvatarUrl('Hendra Kusuma, M.Kom', '1980010101', 'SUPERADMIN'),
     totalGreenCoins: 2400,
+    lifetimeGreenCoins: 2400,
     totalComservHours: 40,
     totalCarbonSaved: 62.00,
     streakDays: 28,
-    createdAt: '2026-06-01T00:00:00Z',
-  },
-  {
-    id: 'usr-student-001',
-    nim: '2602158890',
-    email: 'budi.santoso@binus.ac.id',
-    fullName: 'Budi Santoso',
-    facultyName: 'School of Computer Science',
-    role: 'MAHASISWA',
-    avatarUrl: getNeutralAvatarUrl('Budi Santoso', '2602158890', 'MAHASISWA'),
-    totalGreenCoins: 120,
-    totalComservHours: 12,
-    totalCarbonSaved: 12.50,
-    streakDays: 5,
     createdAt: '2026-06-01T00:00:00Z',
   },
   {
@@ -129,9 +134,130 @@ const DEFAULT_SEEDED_ACCOUNTS: Omit<StoredAuthAccount, 'passwordHash'>[] = [
     role: 'ORGANIZER',
     avatarUrl: getNeutralAvatarUrl('Siti Rahmawati, S.Kom', 'BN089123456', 'ORGANIZER'),
     totalGreenCoins: 850,
+    lifetimeGreenCoins: 850,
     totalComservHours: 35,
     totalCarbonSaved: 30.00,
     streakDays: 14,
+    createdAt: '2026-06-01T00:00:00Z',
+  },
+  {
+    id: 'usr-student-001',
+    nim: '2602158890',
+    email: 'budi.santoso@binus.ac.id',
+    fullName: 'Budi Santoso',
+    facultyName: 'School of Computer Science',
+    role: 'MAHASISWA',
+    avatarUrl: getNeutralAvatarUrl('Budi Santoso', '2602158890', 'MAHASISWA'),
+    totalGreenCoins: 120,
+    lifetimeGreenCoins: 170, // 170 earned, 50 claimed for comserv
+    totalComservHours: 12,
+    totalCarbonSaved: 12.50,
+    streakDays: 5,
+    createdAt: '2026-06-01T00:00:00Z',
+  },
+  {
+    id: 'usr-student-002',
+    nim: '2602159933',
+    email: 'maya.safitri@binus.ac.id',
+    fullName: 'Maya Safitri',
+    facultyName: 'School of Computer Science',
+    role: 'MAHASISWA',
+    avatarUrl: getNeutralAvatarUrl('Maya Safitri', '2602159933', 'MAHASISWA'),
+    totalGreenCoins: 620,
+    lifetimeGreenCoins: 670,
+    totalComservHours: 24,
+    totalCarbonSaved: 48.20,
+    streakDays: 12,
+    createdAt: '2026-06-01T00:00:00Z',
+  },
+  {
+    id: 'usr-student-003',
+    nim: '2602167711',
+    email: 'siti.nurhaliza@binus.ac.id',
+    fullName: 'Siti Nurhaliza',
+    facultyName: 'School of Information Systems',
+    role: 'MAHASISWA',
+    avatarUrl: getNeutralAvatarUrl('Siti Nurhaliza', '2602167711', 'MAHASISWA'),
+    totalGreenCoins: 480,
+    lifetimeGreenCoins: 530,
+    totalComservHours: 18,
+    totalCarbonSaved: 42.00,
+    streakDays: 9,
+    createdAt: '2026-06-01T00:00:00Z',
+  },
+  {
+    id: 'usr-student-004',
+    nim: '2602174422',
+    email: 'kevin.jonathan@binus.ac.id',
+    fullName: 'Kevin Jonathan',
+    facultyName: 'School of Design',
+    role: 'MAHASISWA',
+    avatarUrl: getNeutralAvatarUrl('Kevin Jonathan', '2602174422', 'MAHASISWA'),
+    totalGreenCoins: 410,
+    lifetimeGreenCoins: 460,
+    totalComservHours: 15,
+    totalCarbonSaved: 35.50,
+    streakDays: 7,
+    createdAt: '2026-06-01T00:00:00Z',
+  },
+  {
+    id: 'usr-student-005',
+    nim: '2602183355',
+    email: 'amanda.putri@binus.ac.id',
+    fullName: 'Amanda Putri',
+    facultyName: 'BINUS Business School',
+    role: 'MAHASISWA',
+    avatarUrl: getNeutralAvatarUrl('Amanda Putri', '2602183355', 'MAHASISWA'),
+    totalGreenCoins: 360,
+    lifetimeGreenCoins: 410,
+    totalComservHours: 14,
+    totalCarbonSaved: 28.00,
+    streakDays: 6,
+    createdAt: '2026-06-01T00:00:00Z',
+  },
+  {
+    id: 'usr-student-006',
+    nim: '2602196688',
+    email: 'rizky.pratama@binus.ac.id',
+    fullName: 'Rizky Pratama',
+    facultyName: 'Faculty of Engineering',
+    role: 'MAHASISWA',
+    avatarUrl: getNeutralAvatarUrl('Rizky Pratama', '2602196688', 'MAHASISWA'),
+    totalGreenCoins: 310,
+    lifetimeGreenCoins: 360,
+    totalComservHours: 10,
+    totalCarbonSaved: 24.50,
+    streakDays: 4,
+    createdAt: '2026-06-01T00:00:00Z',
+  },
+  {
+    id: 'usr-student-007',
+    nim: '2602201199',
+    email: 'nabila.syahrani@binus.ac.id',
+    fullName: 'Nabila Syahrani',
+    facultyName: 'Faculty of Humanities',
+    role: 'MAHASISWA',
+    avatarUrl: getNeutralAvatarUrl('Nabila Syahrani', '2602201199', 'MAHASISWA'),
+    totalGreenCoins: 260,
+    lifetimeGreenCoins: 310,
+    totalComservHours: 8,
+    totalCarbonSaved: 19.00,
+    streakDays: 3,
+    createdAt: '2026-06-01T00:00:00Z',
+  },
+  {
+    id: 'usr-student-008',
+    nim: '2602219944',
+    email: 'daniel.setiawan@binus.ac.id',
+    fullName: 'Daniel Setiawan',
+    facultyName: 'Faculty of Digital Communication & Hotel & Tourism',
+    role: 'MAHASISWA',
+    avatarUrl: getNeutralAvatarUrl('Daniel Setiawan', '2602219944', 'MAHASISWA'),
+    totalGreenCoins: 210,
+    lifetimeGreenCoins: 260,
+    totalComservHours: 7,
+    totalCarbonSaved: 16.50,
+    streakDays: 2,
     createdAt: '2026-06-01T00:00:00Z',
   },
 ];
@@ -185,6 +311,7 @@ function mapDbUserToAccount(row: any, existingHash?: string): StoredAuthAccount 
     passwordHash: existingHash || '',
     avatarUrl: row.avatar_url || undefined,
     totalGreenCoins: row.total_green_coins || 0,
+    lifetimeGreenCoins: row.lifetime_green_coins ?? row.total_green_coins ?? 0,
     totalComservHours: row.total_comserv_hours || 0,
     totalCarbonSaved: row.total_carbon_saved || 0,
     streakDays: row.streak_days || 0,
@@ -634,7 +761,7 @@ export async function updateStoredUserAccount(
 }
 
 /**
- * Apply reward delta (Green Coins, SAT Points, Carbon Saved) to a user account
+ * Apply reward delta (Green Coins, Comserv Hours, Carbon Saved) to a user account
  * both locally and in Supabase public.users.
  */
 export async function applyRewardToUser(
@@ -662,12 +789,15 @@ export async function applyRewardToUser(
   if (index !== -1) {
     const target = accounts[index];
     const newGreenCoins = Math.max(0, (target.totalGreenCoins || 0) + coinsDelta);
+    const curLifetime = target.lifetimeGreenCoins ?? target.totalGreenCoins ?? 0;
+    const newLifetime = coinsDelta > 0 ? curLifetime + coinsDelta : curLifetime;
     const newComserv = Math.max(0, Number(((target.totalComservHours || 0) + comservDelta).toFixed(1)));
     const newCarbonSaved = Math.max(0, Number(((target.totalCarbonSaved || 0) + carbonDelta).toFixed(2)));
 
     accounts[index] = {
       ...target,
       totalGreenCoins: newGreenCoins,
+      lifetimeGreenCoins: newLifetime,
       totalComservHours: newComserv,
       totalCarbonSaved: newCarbonSaved,
     };
@@ -687,6 +817,8 @@ export async function applyRewardToUser(
       const dbUser = dbRows && dbRows.length > 0 ? (dbRows[0] as any) : null;
       if (dbUser) {
         const nextCoins = Math.max(0, (dbUser.total_green_coins || 0) + coinsDelta);
+        const curLife = dbUser.lifetime_green_coins ?? dbUser.total_green_coins ?? 0;
+        const nextLifetime = coinsDelta > 0 ? curLife + coinsDelta : curLife;
         const nextComserv = Math.max(0, (dbUser.total_comserv_hours ?? dbUser.total_sat_points ?? 0) + comservDelta);
         const nextCarbon = Math.max(
           0,
@@ -697,7 +829,8 @@ export async function applyRewardToUser(
           .from('users')
           .update({
             total_green_coins: nextCoins,
-            total_sat_points: nextComserv,
+            lifetime_green_coins: nextLifetime,
+            total_comserv_hours: nextComserv,
             total_carbon_saved: nextCarbon,
           })
           .eq('id', dbUser.id);
@@ -717,9 +850,12 @@ export async function applyRewardToUser(
           active.id === userIdOrNim ||
           (active.nim && active.nim.toLowerCase() === userIdOrNim.toLowerCase())
         ) {
+          const curLife = active.lifetimeGreenCoins ?? active.totalGreenCoins ?? 0;
+          const nextLife = coinsDelta > 0 ? curLife + coinsDelta : curLife;
           const syncedActive = {
             ...active,
             totalGreenCoins: Math.max(0, (active.totalGreenCoins || 0) + coinsDelta),
+            lifetimeGreenCoins: nextLife,
             totalComservHours: Math.max(0, Number(((active.totalComservHours || 0) + comservDelta).toFixed(1))),
             totalCarbonSaved: Math.max(0, Number(((active.totalCarbonSaved || 0) + carbonDelta).toFixed(2))),
           };

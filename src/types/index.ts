@@ -14,6 +14,7 @@ export interface UserProfile {
   facultyName?: string;
   avatarUrl?: string;
   totalGreenCoins: number;
+  lifetimeGreenCoins?: number; // Total akumulasi kotor Green Coins yang pernah diraih (tidak berkurang saat klaim Comserv)
   totalComservHours?: number; // Total Jam Community Service (TFI)
   totalCarbonSaved: number; // in kg CO2e
   streakDays: number;

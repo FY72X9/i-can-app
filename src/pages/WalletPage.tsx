@@ -23,9 +23,28 @@ import {
 } from 'lucide-react';
 
 export const WalletPage: React.FC = () => {
-  const { user, loadUsersList } = useAuthStore();
+  const { user, loadUsersList, updateUserStats } = useAuthStore();
   const [verifiedActions, setVerifiedActions] = useState<GreenAction[]>([]);
   const [copiedTranscript, setCopiedTranscript] = useState(false);
+  const [claimSuccessMsg, setClaimSuccessMsg] = useState<string | null>(null);
+
+  const handleClaimComserv = (hours: number, coinsCost: number) => {
+    if (!user) return;
+    if ((user.totalGreenCoins || 0) < coinsCost) {
+      alert(`Saldo Green Coins tidak mencukupi (butuh ${coinsCost} GC)`);
+      return;
+    }
+
+    updateUserStats({
+      greenCoins: -coinsCost,
+      comservHours: hours,
+    });
+
+    setClaimSuccessMsg(
+      `Berhasil klaim ${hours} Jam Comserv TFI! Saldo terpotong ${coinsCost} GC. Total akumulasi Green Coins & status Badge di Profil Anda tetap aman.`
+    );
+    setTimeout(() => setClaimSuccessMsg(null), 6000);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -127,6 +146,68 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
               <span className="text-xs text-eco-neon font-black mt-1.5 inline-block">Target 30 Jam Kelulusan</span>
             </div>
           </div>
+        </div>
+      </Card>
+
+      {/* 1B. Konversi Green Coins ke Jam Comserv TFI Card */}
+      <Card className="p-5 sm:p-6 bg-white space-y-4 border-surface-border shadow-eco-card">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold shadow-xs">
+              <Zap className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <h3 className="text-xs sm:text-sm font-black text-text-primary">Klaim Jam Comserv TFI dari Green Coins</h3>
+              <p className="text-xs text-text-secondary mt-0.5">Kurs: 50 Green Coins = 1 Jam Community Service TFI</p>
+            </div>
+          </div>
+          <Badge variant="gold" size="sm">
+            50 GC = 1 Jam
+          </Badge>
+        </div>
+
+        {claimSuccessMsg && (
+          <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-start gap-2.5 text-xs text-emerald-800 animate-in fade-in">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <p className="font-bold">{claimSuccessMsg}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-surface-subtle p-3.5 rounded-2xl border border-surface-border space-y-3">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-text-secondary">Saldo Green Coins Tersedia:</span>
+            <span className="font-black text-amber-800 font-mono text-sm">{user?.totalGreenCoins ?? 0} GC</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={(user?.totalGreenCoins ?? 0) < 50}
+              onClick={() => handleClaimComserv(1, 50)}
+              className="w-full py-2.5 text-xs font-black flex items-center justify-center gap-1.5 shadow-eco-sm"
+            >
+              <Award className="w-3.5 h-3.5" />
+              <span>Klaim 1 Jam Comserv (-50 GC)</span>
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={(user?.totalGreenCoins ?? 0) < 100}
+              onClick={() => handleClaimComserv(2, 100)}
+              className="w-full py-2.5 text-xs font-black flex items-center justify-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-gold-neon" />
+              <span>Klaim 2 Jam Comserv (-100 GC)</span>
+            </Button>
+          </div>
+
+          <p className="text-[11px] text-text-muted leading-relaxed">
+            🛡️ <b>Ketentuan Badge & Leaderboard:</b> Penukaran Green Coins ini hanya memotong saldo dompet Anda untuk klaim jam Comserv TFI. <b>Total perolehan kotor (Lifetime Green Coins) dan perolehan Badge di Profile Anda tetap aman dan tidak akan berkurang.</b>
+          </p>
         </div>
       </Card>
 

@@ -224,14 +224,74 @@ export const ProfilePage: React.FC = () => {
     }
   };
 
-  const badges = [
-    { name: 'First Step Green', icon: Award, desc: 'Aksi pertama diunggah ke I-CAN', unlocked: true, level: 'Bronze', rarity: 'Common' },
-    { name: 'Streak Champion', icon: Flame, desc: '5 hari aktif berturut-turut', unlocked: true, level: 'Gold', rarity: 'Rare' },
-    { name: 'Carbon Hero', icon: Leaf, desc: 'Hemat akumulasi 10 kg CO2e', unlocked: true, level: 'Silver', rarity: 'Rare' },
-    { name: 'TFI Tree Planter', icon: ShieldCheck, desc: 'Tanam 5 bibit pohon berbatang keras', unlocked: true, level: 'Gold', rarity: 'Epic' },
-    { name: 'Comserv Champion', icon: Trophy, desc: 'Kumpulkan 20 Jam Comserv TFI', unlocked: false, level: 'Platinum', rarity: 'Epic' },
-    { name: 'BEKEN Finalist', icon: Sparkles, desc: 'Masuk Top 10% Leaderboard tahunan', unlocked: false, level: 'Diamond', rarity: 'Legendary' },
+  // Gross cumulative Green Coins achieved (does NOT decrease when comserv hours are claimed)
+  const totalAchievedGreenCoins = Math.max(
+    user?.lifetimeGreenCoins ?? 0,
+    user?.totalGreenCoins ?? 0
+  );
+
+  const BADGE_DEFINITIONS = [
+    { 
+      id: 'b-1', 
+      name: 'Tunas Hijau', 
+      icon: Leaf, 
+      threshold: 25, 
+      level: 'Lv. 1', 
+      rarity: 'Common' as const, 
+      desc: 'Akumulasi 25 Green Coins dari langkah awal aksi ramah lingkungan.' 
+    },
+    { 
+      id: 'b-2', 
+      name: 'Ksatria Lestari', 
+      icon: Award, 
+      threshold: 100, 
+      level: 'Lv. 2', 
+      rarity: 'Common' as const, 
+      desc: 'Akumulasi 100 Green Coins dari aksi iklim dan kampanye nyata.' 
+    },
+    { 
+      id: 'b-3', 
+      name: 'Pelindung Bumi', 
+      icon: ShieldCheck, 
+      threshold: 250, 
+      level: 'Lv. 3', 
+      rarity: 'Rare' as const, 
+      desc: 'Akumulasi 250 Green Coins dedikasi pelestarian lingkungan kampus.' 
+    },
+    { 
+      id: 'b-4', 
+      name: 'Pejuang SDG', 
+      icon: Flame, 
+      threshold: 500, 
+      level: 'Lv. 4', 
+      rarity: 'Epic' as const, 
+      desc: 'Akumulasi 500 Green Coins kontribusi nyata target Net-Zero kampus.' 
+    },
+    { 
+      id: 'b-5', 
+      name: 'Duta Lingkungan', 
+      icon: Trophy, 
+      threshold: 1000, 
+      level: 'Lv. 5', 
+      rarity: 'Epic' as const, 
+      desc: 'Akumulasi 1.000 Green Coins pelopor gaya hidup netral karbon.' 
+    },
+    { 
+      id: 'b-6', 
+      name: 'Legenda BEKEN', 
+      icon: Sparkles, 
+      threshold: 2000, 
+      level: 'Lv. 6', 
+      rarity: 'Legendary' as const, 
+      desc: 'Pencapaian luar biasa 2.000 Green Coins menuju BEKEN Award tertinggi.' 
+    },
   ];
+
+  const unlockedBadges = BADGE_DEFINITIONS.filter((b) => totalAchievedGreenCoins >= b.threshold);
+  const currentBadge = unlockedBadges.length > 0 
+    ? unlockedBadges[unlockedBadges.length - 1] 
+    : { level: 'Lv. 0', name: 'Pemula Hijau' };
+  const nextBadge = BADGE_DEFINITIONS.find((b) => totalAchievedGreenCoins < b.threshold) || null;
 
   const isStudent = user?.role === 'MAHASISWA' || !user?.role;
   const isOrganizer = user?.role === 'ORGANIZER';
@@ -270,7 +330,7 @@ export const ProfilePage: React.FC = () => {
             }}
           >
             {isAdmin ? <Shield className="w-3.5 h-3.5 text-purple-700" /> : isOrganizer ? <ShieldCheck className="w-3.5 h-3.5 text-amber-700" /> : <Zap className="w-3 h-3 fill-eco-900" />}
-            {isAdmin ? 'Super Administrator' : isOrganizer ? 'Tim SSO & Verifikator Resmi' : 'Lv. 3 Eco-Ksatria'}
+            {isAdmin ? 'Super Administrator' : isOrganizer ? 'Tim SSO & Verifikator Resmi' : `${currentBadge.level} ${currentBadge.name}`}
           </div>
           <h2 className="text-lg sm:text-xl font-black text-text-primary">{user?.fullName || 'Budi Santoso'}</h2>
           <p className="text-xs sm:text-sm text-text-secondary font-mono">
@@ -282,20 +342,25 @@ export const ProfilePage: React.FC = () => {
 
         {/* Stats Row Bento (Adaptive by Role) */}
         {isStudent ? (
-          <div className="grid grid-cols-3 gap-2.5 pt-3 border-t border-surface-border/60 relative z-10">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-3 border-t border-surface-border/60 relative z-10">
             <div className="bg-surface-subtle p-3 rounded-2xl border border-surface-border/60">
-              <span className="text-[9px] text-text-secondary uppercase font-bold block mb-0.5">CO2e Hemat</span>
-              <p className="text-sm sm:text-base font-black text-eco-800 font-mono">{user?.totalCarbonSaved ?? 0} kg</p>
+              <span className="text-[9px] text-text-secondary uppercase font-bold block mb-0.5">Saldo Green Coins</span>
+              <p className="text-sm sm:text-base font-black text-amber-800 font-mono">{user?.totalGreenCoins ?? 0} GC</p>
             </div>
 
             <div className="bg-surface-subtle p-3 rounded-2xl border border-surface-border/60">
-              <span className="text-[9px] text-text-secondary uppercase font-bold block mb-0.5">Green Coins</span>
-              <p className="text-sm sm:text-base font-black text-amber-800 font-mono">{user?.totalGreenCoins ?? 0} GC</p>
+              <span className="text-[9px] text-text-secondary uppercase font-bold block mb-0.5">Total GC Diraih</span>
+              <p className="text-sm sm:text-base font-black text-emerald-800 font-mono">{totalAchievedGreenCoins} GC</p>
             </div>
 
             <div className="bg-surface-subtle p-3 rounded-2xl border border-surface-border/60">
               <span className="text-[9px] text-text-secondary uppercase font-bold block mb-0.5">Jam Comserv</span>
               <p className="text-sm sm:text-base font-black text-blue-700 font-mono">{user?.totalComservHours ?? 0} Jam</p>
+            </div>
+
+            <div className="bg-surface-subtle p-3 rounded-2xl border border-surface-border/60">
+              <span className="text-[9px] text-text-secondary uppercase font-bold block mb-0.5">CO2e Hemat</span>
+              <p className="text-sm sm:text-base font-black text-eco-800 font-mono">{user?.totalCarbonSaved ?? 0} kg</p>
             </div>
           </div>
         ) : (
@@ -789,50 +854,110 @@ export const ProfilePage: React.FC = () => {
                   <p className="text-xs text-text-secondary mt-0.5">Pencapaian Aksi Berkelanjutan Kampus</p>
                 </div>
                 <Badge variant="success" size="sm">
-                  4 / 6 Terbuka
+                  {unlockedBadges.length} / {BADGE_DEFINITIONS.length} Terbuka
                 </Badge>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                {badges.map((badge, i) => {
+              {/* Progress to Next Badge Banner */}
+              <div className="p-3.5 rounded-2xl bg-surface-subtle border border-surface-border space-y-2">
+                <div className="flex items-center justify-between text-xs font-black">
+                  <div className="flex items-center gap-1.5 text-text-primary">
+                    <Coins className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                    <span>Total Green Coins Diraih: <strong className="text-amber-800 font-mono">{totalAchievedGreenCoins} GC</strong></span>
+                  </div>
+                  {nextBadge ? (
+                    <span className="text-text-muted text-[11px]">
+                      Menuju {nextBadge.name} ({nextBadge.threshold - totalAchievedGreenCoins} GC lagi)
+                    </span>
+                  ) : (
+                    <span className="text-gold-neon font-black text-[11px]">Maksimal (Semua Badge Terbuka) 👑</span>
+                  )}
+                </div>
+
+                {nextBadge && (
+                  <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-amber-400 to-eco-600 h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${Math.min(100, Math.round((totalAchievedGreenCoins / nextBadge.threshold) * 100))}%`,
+                      }}
+                    />
+                  </div>
+                )}
+
+                <p className="text-[11px] text-text-muted leading-relaxed">
+                  💡 <b>Poin Permanen:</b> Badge dihitung dari akumulasi kotor Green Coins yang pernah Anda peroleh ({totalAchievedGreenCoins} GC). Poin badge <b>tidak akan berkurang</b> meskipun Anda menukarkan Green Coins dengan Jam Comserv.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {BADGE_DEFINITIONS.map((badge) => {
                   const Icon = badge.icon;
+                  const isUnlocked = totalAchievedGreenCoins >= badge.threshold;
+                  const progressPct = Math.min(100, Math.round((totalAchievedGreenCoins / badge.threshold) * 100));
+
                   return (
                     <div
-                      key={i}
-                      className={`p-3.5 sm:p-4 rounded-2xl border text-center space-y-2 transition-all relative overflow-hidden ${
-                        badge.unlocked
-                          ? 'bg-amber-50/50 border-amber-200 shadow-xs hover:border-amber-400 hover:shadow-gold-glow'
-                          : 'bg-slate-50 border-slate-200/60 opacity-60'
+                      key={badge.id}
+                      className={`p-4 rounded-2xl border text-left space-y-2.5 transition-all relative overflow-hidden ${
+                        isUnlocked
+                          ? 'bg-amber-50/40 border-amber-300 shadow-xs hover:border-amber-400'
+                          : 'bg-slate-50/80 border-slate-200/80 opacity-70'
                       }`}
                     >
-                      {!badge.unlocked && (
-                        <div className="absolute top-2.5 right-2.5 text-slate-400">
-                          <Lock className="w-3.5 h-3.5" />
+                      <div className="flex items-center justify-between">
+                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
+                          badge.rarity === 'Legendary' ? 'bg-purple-100 text-purple-900 border border-purple-300' :
+                          badge.rarity === 'Epic' ? 'bg-amber-100 text-amber-900 border border-amber-300' :
+                          badge.rarity === 'Rare' ? 'bg-cyan-100 text-cyan-900 border border-cyan-300' :
+                          'bg-slate-200 text-slate-700'
+                        }`}>
+                          {badge.level} • {badge.rarity}
+                        </span>
+
+                        <div className="flex items-center gap-1">
+                          {isUnlocked ? (
+                            <span className="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-300">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Terbuka
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-black text-slate-600 bg-slate-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <Lock className="w-3 h-3 text-slate-400" /> {badge.threshold} GC
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <div
+                          className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-xs ${
+                            isUnlocked 
+                              ? 'bg-gradient-to-tr from-amber-200 to-amber-100 text-amber-900 ring-2 ring-amber-300/80 shadow-xs' 
+                              : 'bg-slate-200 text-slate-500'
+                          }`}
+                        >
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-xs sm:text-sm font-black text-text-primary leading-snug">{badge.name}</h4>
+                          <p className="text-[11px] text-text-secondary leading-relaxed mt-0.5">{badge.desc}</p>
+                        </div>
+                      </div>
+
+                      {!isUnlocked && (
+                        <div className="pt-1 space-y-1">
+                          <div className="flex justify-between text-[10px] font-bold text-text-muted">
+                            <span>Progres Terbuka</span>
+                            <span>{totalAchievedGreenCoins} / {badge.threshold} GC ({progressPct}%)</span>
+                          </div>
+                          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                            <div
+                              className="bg-slate-400 h-full rounded-full"
+                              style={{ width: `${progressPct}%` }}
+                            />
+                          </div>
                         </div>
                       )}
-
-                      <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
-                        badge.rarity === 'Legendary' ? 'bg-purple-100 text-purple-900 border border-purple-300' :
-                        badge.rarity === 'Epic' ? 'bg-amber-100 text-amber-900 border border-amber-300' :
-                        badge.rarity === 'Rare' ? 'bg-cyan-100 text-cyan-900 border border-cyan-300' :
-                        'bg-slate-200 text-slate-700'
-                      }`}>
-                        {badge.rarity}
-                      </span>
-
-                      <div
-                        className={`w-11 h-11 rounded-2xl flex items-center justify-center mx-auto shadow-xs ${
-                          badge.unlocked 
-                            ? 'bg-gradient-to-tr from-amber-200 to-amber-100 text-amber-800 ring-2 ring-amber-300/60 shadow-xs' 
-                            : 'bg-slate-200 text-slate-500'
-                        }`}
-                      >
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h4 className="text-xs sm:text-sm font-black text-text-primary leading-snug">{badge.name}</h4>
-                        <p className="text-xs text-text-secondary leading-relaxed mt-0.5">{badge.desc}</p>
-                      </div>
                     </div>
                   );
                 })}

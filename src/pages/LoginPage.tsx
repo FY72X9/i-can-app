@@ -210,7 +210,7 @@ export const LoginPage: React.FC = () => {
           </Badge>
           <h1 className="text-xl font-black text-text-primary mt-0.5">I-CAN Platform</h1>
           <p className="text-[11px] text-text-secondary max-w-xs mx-auto mt-0.5 leading-relaxed">
-            Portal Aksi Hijau & Pengabdian TFI Menjadi <b>SAT Points</b> & Portofolio myBINUS.
+            Portal Aksi Hijau & Pengabdian TFI Menjadi <b>Jam Comserv TFI</b> & Portofolio myBINUS.
           </p>
         </div>
       </div>

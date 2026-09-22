@@ -894,7 +894,7 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
               }
             }}
           >
-            {submittedPillar === 'EVENT' ? 'Kembali ke Event →' : submittedPillar === 'QUEST' ? 'Cek Misi Lain →' : 'Cek Transkrip SAT →'}
+            {submittedPillar === 'EVENT' ? 'Kembali ke Event →' : submittedPillar === 'QUEST' ? 'Cek Misi Lain →' : 'Cek Transkrip Comserv →'}
           </Button>
         </div>
       </div>
@@ -981,7 +981,7 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
                 1. Pilih Program Aksi Nyata (Superadmin)
               </label>
               <span className="text-[11px] font-black text-eco-700 bg-eco-50 px-2.5 py-0.5 rounded-full border border-eco-200">
-                Poin SAT & Comserv
+                Jam Comserv & Green Coins
               </span>
             </div>
 

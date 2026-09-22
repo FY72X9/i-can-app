@@ -35,6 +35,7 @@ export const DEMO_PROFILES: Record<string, UserProfile> = {
     facultyName: 'Student Service Office (SSO)',
     avatarUrl: getNeutralAvatarUrl('Hendra Kusuma, M.Kom', '1980010101', 'SUPERADMIN'),
     totalGreenCoins: 2400,
+    lifetimeGreenCoins: 2400,
     totalComservHours: 40,
     totalCarbonSaved: 62.00,
     streakDays: 28,
@@ -51,6 +52,7 @@ export const DEMO_PROFILES: Record<string, UserProfile> = {
     facultyName: 'School of Computer Science',
     avatarUrl: getNeutralAvatarUrl('Budi Santoso', '2602158890', 'MAHASISWA'),
     totalGreenCoins: 120,
+    lifetimeGreenCoins: 170,
     totalComservHours: 12,
     totalCarbonSaved: 12.50,
     streakDays: 5,
@@ -67,6 +69,7 @@ export const DEMO_PROFILES: Record<string, UserProfile> = {
     facultyName: 'Student Service Office (SSO)',
     avatarUrl: getNeutralAvatarUrl('Siti Rahmawati, S.Kom', 'BN089123456', 'ORGANIZER'),
     totalGreenCoins: 850,
+    lifetimeGreenCoins: 850,
     totalComservHours: 35,
     totalCarbonSaved: 30.00,
     streakDays: 14,
@@ -252,9 +255,15 @@ export const useAuthStore = create<AuthState>((set, get) => {
     updateUserStats: (stats) => {
       set((state) => {
         if (!state.user) return state;
+        const currentLifetime = state.user.lifetimeGreenCoins ?? state.user.totalGreenCoins ?? 0;
+        const additionalCoins = stats.greenCoins || 0;
+        // Lifetime coins only increases when positive coins are earned (not decreased if spent on comserv claims)
+        const nextLifetime = additionalCoins > 0 ? currentLifetime + additionalCoins : currentLifetime;
+
         const updated = {
           ...state.user,
-          totalGreenCoins: (state.user.totalGreenCoins || 0) + (stats.greenCoins || 0),
+          totalGreenCoins: Math.max(0, (state.user.totalGreenCoins || 0) + additionalCoins),
+          lifetimeGreenCoins: nextLifetime,
           totalComservHours: (state.user.totalComservHours || 0) + (stats.comservHours || 0),
           totalCarbonSaved: Number(((state.user.totalCarbonSaved || 0) + (stats.carbonSaved || 0)).toFixed(2)),
           streakDays: stats.streakDays !== undefined ? stats.streakDays : state.user.streakDays,
