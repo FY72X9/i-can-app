@@ -1,10 +1,10 @@
-# React Type Definitions
+# UI/UX Accessibility Feedback
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **UI/UX Accessibility & Role Neutrality Refinement** (0 connections) — `docs/feedback_22082026.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `package.json`
+- `docs/feedback_22082026.md`
 
 ## Audit Trail
 

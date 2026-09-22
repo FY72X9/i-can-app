@@ -1,10 +1,10 @@
-# React Type Definitions
+# PostCSS Pipeline Config
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **postcss.config.js** (0 connections) — `postcss.config.js`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `package.json`
+- `postcss.config.js`
 
 ## Audit Trail
 

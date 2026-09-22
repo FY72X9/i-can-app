@@ -1,39 +1,53 @@
 # useAuthStore
 
-> God node · 4 connections · [D:\Codes\i-can-app\src\stores\authStore.ts](file:///D:/Codes/i-can-app/src/stores/authStore.ts#L103)
+> God node · 40 connections · `src/stores/authStore.ts`
 
-## Call Trace Diagram
-
-```mermaid
-sequenceDiagram
-    participant P0 as useAuthStore
-    participant P1 as AppLayout()
-    participant P2 as ProtectedRoute()
-    participant P3 as CallbackPage()
-    P0->>+ P1: calls
-    P1-->>- P0: return
-    P1->>+ P0: calls
-    P0-->>- P1: return
-    P0->>+ P2: calls
-    P2-->>- P0: return
-    P2->>+ P0: calls
-    P0-->>- P2: return
-    P0->>+ P3: calls
-    P3-->>- P0: return
-    P3->>+ P0: calls
-    P0-->>- P3: return
-```
+**Community:** [Authentication & Role Guards](Authentication_&_Role_Guards.md)
 
 ## Connections by Relation
 
 ### calls
-- [[AppLayout()]] `INFERRED`
-- [[ProtectedRoute()]] `INFERRED`
-- [[CallbackPage()]] `INFERRED`
+- [AdminLtePage()](AdminLtePage.md) `EXTRACTED`
+- [UploadPage()](UploadPage.md) `EXTRACTED`
+- getNeutralAvatarUrl() `EXTRACTED`
+- HomePage() `EXTRACTED`
+- normalizeUserRole() `EXTRACTED`
+- ProfilePage() `EXTRACTED`
+- LeaderboardPage() `EXTRACTED`
+- registerUser() `EXTRACTED`
+- createAccountByAdmin() `EXTRACTED`
+- batchImportAccounts() `EXTRACTED`
+- EventDetailPage() `EXTRACTED`
+- loginWithCredentials() `EXTRACTED`
+- editAccountByAdmin() `EXTRACTED`
+- VerificationPage() `EXTRACTED`
+- FeedPage() `EXTRACTED`
+- WalletPage() `EXTRACTED`
+- getAllUsersList() `EXTRACTED`
+- TopNavbar() `EXTRACTED`
+- updateStoredUserAccount() `EXTRACTED`
+- softDeleteAccountByAdmin() `EXTRACTED`
+- *…and 5 more `calls` connection(s) not listed (lowest-degree first to go)*
 
 ### contains
-- [[authStore.ts]] `EXTRACTED`
+- authStore.ts `EXTRACTED`
+
+### imports
+- AdminLtePage.tsx `EXTRACTED`
+- App.tsx `EXTRACTED`
+- UploadPage.tsx `EXTRACTED`
+- HomePage.tsx `EXTRACTED`
+- ProfilePage.tsx `EXTRACTED`
+- LeaderboardPage.tsx `EXTRACTED`
+- VerificationPage.tsx `EXTRACTED`
+- LoginPage.tsx `EXTRACTED`
+- EventDetailPage.tsx `EXTRACTED`
+- FeedPage.tsx `EXTRACTED`
+- WalletPage.tsx `EXTRACTED`
+- ImportUsersModal.tsx `EXTRACTED`
+- CallbackPage.tsx `EXTRACTED`
+- TopNavbar.tsx `EXTRACTED`
 
 ---
 
-*Part of the graphify knowledge wiki. See [[index]] to navigate.*
+*Part of the graphify knowledge wiki. See [index](index.md) to navigate.*

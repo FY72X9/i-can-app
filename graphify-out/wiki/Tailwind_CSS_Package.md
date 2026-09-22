@@ -1,10 +1,10 @@
-# React Type Definitions
+# Tailwind CSS Package
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **tailwindcss** (0 connections) — `package.json`
 
 ## Relationships
 

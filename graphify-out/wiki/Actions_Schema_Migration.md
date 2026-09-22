@@ -1,10 +1,10 @@
-# React Type Definitions
+# Actions Schema Migration
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **fix_actions_schema_mismatch.sql** (0 connections) — `supabase/fix_actions_schema_mismatch.sql`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `package.json`
+- `supabase/fix_actions_schema_mismatch.sql`
 
 ## Audit Trail
 

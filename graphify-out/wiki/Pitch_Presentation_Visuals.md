@@ -1,10 +1,10 @@
-# React Type Definitions
+# Pitch Presentation Visuals
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **Pitch Deck Slides & Supporting Visual Assets** (0 connections) — `docs/presentation/presentation_material.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `package.json`
+- `docs/presentation/presentation_material.md`
 
 ## Audit Trail
 

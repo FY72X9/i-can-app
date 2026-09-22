@@ -1,10 +1,11 @@
-# React Type Definitions
+# Partner Database Tables
 
-> 1 nodes · cohesion 1.00
+> 2 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **partners.sql** (1 connections) — `supabase/partners.sql`
+- **public.partners** (1 connections) — `supabase/partners.sql`
 
 ## Relationships
 
@@ -12,11 +13,11 @@
 
 ## Source Files
 
-- `package.json`
+- `supabase/partners.sql`
 
 ## Audit Trail
 
-- EXTRACTED: 0 (0%)
+- EXTRACTED: 1 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

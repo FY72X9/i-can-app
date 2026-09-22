@@ -1,10 +1,10 @@
-# React Type Definitions
+# React DOM Type Definitions
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **@types/react-dom** (0 connections) — `package.json`
 
 ## Relationships
 

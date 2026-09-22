@@ -1,10 +1,10 @@
-# React Type Definitions
+# Tailwind Merge Utility
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **tailwind-merge** (0 connections) — `package.json`
 
 ## Relationships
 

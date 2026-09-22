@@ -1,10 +1,10 @@
-# React Type Definitions
+# Institutional Value Revision
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **Institutional Value Transformation** (0 connections) — `docs/idea_revision.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `package.json`
+- `docs/idea_revision.md`
 
 ## Audit Trail
 

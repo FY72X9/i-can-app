@@ -1,10 +1,10 @@
-# React Type Definitions
+# Canvas Confetti Types
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **@types/canvas-confetti** (0 connections) — `package.json`
 
 ## Relationships
 

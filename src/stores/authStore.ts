@@ -196,9 +196,9 @@ export const useAuthStore = create<AuthState>((set, get) => {
         } else if (cleanTarget === 'admin' || cleanTarget === 'superadmin') {
           matched = list.find((u) => u.role === 'SUPERADMIN');
         } else if (cleanTarget === 'nadia') {
-          matched = list.find((u) => u.id === 'usr-student-003');
+          matched = list.find((u) => u.fullName.toLowerCase().includes('nadia')) || list.find((u) => u.id === 'usr-student-009') || list.find((u) => u.id === 'usr-student-003');
         } else if (cleanTarget === 'farhan') {
-          matched = list.find((u) => u.id === 'usr-student-004');
+          matched = list.find((u) => u.fullName.toLowerCase().includes('farhan')) || list.find((u) => u.id === 'usr-student-004');
         }
       }
 

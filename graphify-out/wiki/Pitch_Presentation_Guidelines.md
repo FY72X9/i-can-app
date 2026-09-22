@@ -1,10 +1,10 @@
-# React Type Definitions
+# Pitch Presentation Guidelines
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **Presentation & Demo Pitch Deck Guidelines** (0 connections) — `docs/presentation/presentation_guideline.md`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `package.json`
+- `docs/presentation/presentation_guideline.md`
 
 ## Audit Trail
 

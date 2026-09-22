@@ -1,18 +1,14 @@
-# React Type Definitions
+# Public Users Fix Script
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **public.users** (0 connections)
 
 ## Relationships
 
 - No strong cross-community connections detected
-
-## Source Files
-
-- `package.json`
 
 ## Audit Trail
 

@@ -1,10 +1,10 @@
-# React Type Definitions
+# TypeScript Core Package
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **typescript** (0 connections) — `package.json`
 
 ## Relationships
 

@@ -1,10 +1,10 @@
-# React Type Definitions
+# PostCSS Core Plugin
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **postcss** (0 connections) — `package.json`
 
 ## Relationships
 

@@ -1,10 +1,10 @@
-# React Type Definitions
+# ClassNames Helper Clsx
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **clsx** (0 connections) — `package.json`
 
 ## Relationships
 

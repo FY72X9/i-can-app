@@ -1,463 +1,174 @@
-# Graph Report - D:\Codes\i-can-app  (2026-09-14)
+# Graph Report - i-can-app  (2026-09-22)
 
 ## Corpus Check
-- 42 files · ~132,662 words
+- 62 files · ~115,611 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 453 nodes · 514 edges · 58 communities detected
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 22 edges (avg confidence: 0.8)
-- Token cost: 0 input · 0 output
+- 406 nodes · 1061 edges · 46 communities (17 shown, 29 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 14 edges (avg confidence: 0.86)
+- Token cost: 1,250 input · 850 output
 
 ## Community Hubs (Navigation)
-- [[_COMMUNITY_Community 0|Community 0]]
-- [[_COMMUNITY_Community 1|Community 1]]
-- [[_COMMUNITY_Community 2|Community 2]]
-- [[_COMMUNITY_Community 3|Community 3]]
-- [[_COMMUNITY_Community 4|Community 4]]
-- [[_COMMUNITY_Community 5|Community 5]]
-- [[_COMMUNITY_Community 6|Community 6]]
-- [[_COMMUNITY_Community 7|Community 7]]
-- [[_COMMUNITY_Community 8|Community 8]]
-- [[_COMMUNITY_Community 9|Community 9]]
-- [[_COMMUNITY_Community 10|Community 10]]
-- [[_COMMUNITY_Community 11|Community 11]]
-- [[_COMMUNITY_Community 12|Community 12]]
-- [[_COMMUNITY_Community 13|Community 13]]
-- [[_COMMUNITY_Community 14|Community 14]]
-- [[_COMMUNITY_Community 15|Community 15]]
-- [[_COMMUNITY_Community 16|Community 16]]
-- [[_COMMUNITY_Community 17|Community 17]]
-- [[_COMMUNITY_Community 18|Community 18]]
-- [[_COMMUNITY_Community 19|Community 19]]
-- [[_COMMUNITY_Community 20|Community 20]]
-- [[_COMMUNITY_Community 21|Community 21]]
-- [[_COMMUNITY_Community 22|Community 22]]
-- [[_COMMUNITY_Community 23|Community 23]]
-- [[_COMMUNITY_Community 24|Community 24]]
-- [[_COMMUNITY_Community 25|Community 25]]
-- [[_COMMUNITY_Community 26|Community 26]]
-- [[_COMMUNITY_Community 27|Community 27]]
-- [[_COMMUNITY_Community 28|Community 28]]
-- [[_COMMUNITY_Community 29|Community 29]]
-- [[_COMMUNITY_Community 30|Community 30]]
-- [[_COMMUNITY_Community 31|Community 31]]
-- [[_COMMUNITY_Community 32|Community 32]]
-- [[_COMMUNITY_Community 33|Community 33]]
-- [[_COMMUNITY_Community 34|Community 34]]
-- [[_COMMUNITY_Community 35|Community 35]]
-- [[_COMMUNITY_Community 36|Community 36]]
-- [[_COMMUNITY_Community 37|Community 37]]
-- [[_COMMUNITY_Community 38|Community 38]]
-- [[_COMMUNITY_Community 39|Community 39]]
-- [[_COMMUNITY_Community 40|Community 40]]
-- [[_COMMUNITY_Community 41|Community 41]]
-- [[_COMMUNITY_Community 42|Community 42]]
-- [[_COMMUNITY_Community 43|Community 43]]
-- [[_COMMUNITY_Community 44|Community 44]]
-- [[_COMMUNITY_Community 45|Community 45]]
-- [[_COMMUNITY_Community 46|Community 46]]
-- [[_COMMUNITY_Community 47|Community 47]]
-- [[_COMMUNITY_Community 48|Community 48]]
-- [[_COMMUNITY_Community 49|Community 49]]
-- [[_COMMUNITY_Community 50|Community 50]]
-- [[_COMMUNITY_Community 51|Community 51]]
-- [[_COMMUNITY_Community 52|Community 52]]
-- [[_COMMUNITY_Community 53|Community 53]]
-- [[_COMMUNITY_Community 54|Community 54]]
-- [[_COMMUNITY_Community 55|Community 55]]
-- [[_COMMUNITY_Community 56|Community 56]]
-- [[_COMMUNITY_Community 57|Community 57]]
+- Core React & UI Framework
+- AdminLTE 3.4 & Supabase Services
+- Authentication & Role Guards
+- Upload & Multimodal AI Verification
+- User Import & State Stores
+- Partner Form & QR Modals
+- SDG 17 Partner Dashboard Widgets
+- TypeScript Compiler Options
+- Database Schema & Actions Table
+- SSO & TFI Governance Documents
+- Auth Users & Action Categories
+- TypeScript Node Configuration
+- Faculties & Quest Programs
+- Bottom Navigation Elements
+- Online Multiuser Account Sync
+- Button Component Styles
+- Vite Bundler Configuration
+- IPCC Carbon Calculator
+- Route Protection System
+- Partner Database Tables
+- Vercel Deployment Rewrites
+- UI/UX Accessibility Feedback
+- Institutional Value Revision
+- Pitch Presentation Guidelines
+- Pitch Presentation Visuals
+- Autoprefixer CSS Tool
+- ClassNames Helper Clsx
+- PostCSS Core Plugin
+- Tailwind Merge Utility
+- Tailwind CSS Package
+- Canvas Confetti Types
+- Node Type Definitions
+- React Type Definitions
+- React DOM Type Definitions
+- TypeScript Core Package
+- Public Actions Table Migration
+- Public Actions Fix Script
+- Public Users Fix Script
 
 ## God Nodes (most connected - your core abstractions)
-1. `getStoredAccounts()` - 14 edges
-2. `getActions()` - 8 edges
-3. `getLocalEvents()` - 8 edges
-4. `hashPassword()` - 7 edges
-5. `createAccountByAdmin()` - 7 edges
-6. `registerUser()` - 7 edges
-7. `navigate` - 6 edges
-8. `normalizeUserRole()` - 6 edges
-9. `loginWithCredentials()` - 6 edges
-10. `editAccountByAdmin()` - 6 edges
+1. `useAuthStore` - 40 edges
+2. `AdminLtePage()` - 35 edges
+3. `getActions()` - 25 edges
+4. `react` - 22 edges
+5. `lucide-react` - 21 edges
+6. `getStoredAccounts()` - 20 edges
+7. `compilerOptions` - 17 edges
+8. `react-router-dom` - 14 edges
+9. `getDailyQuests()` - 14 edges
+10. `UploadPage()` - 13 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `useAuthStore` --calls--> `ProtectedRoute()`  [INFERRED]
-  D:\Codes\i-can-app\src\stores\authStore.ts → D:\Codes\i-can-app\src\components\common\ProtectedRoute.tsx
-- `loadActiveEvents()` --calls--> `getActiveEvents()`  [INFERRED]
-  D:\Codes\i-can-app\src\components\common\QrScannerModal.tsx → D:\Codes\i-can-app\src\services\eventService.ts
-- `loadEvent()` --calls--> `getActions()`  [INFERRED]
-  D:\Codes\i-can-app\src\pages\EventDetailPage.tsx → D:\Codes\i-can-app\src\services\actionService.ts
-- `loadEvents()` --calls--> `getEvents()`  [INFERRED]
-  D:\Codes\i-can-app\src\pages\EventsPage.tsx → D:\Codes\i-can-app\src\services\eventService.ts
-- `loadEventLeaderboard()` --calls--> `getActions()`  [INFERRED]
-  D:\Codes\i-can-app\src\pages\LeaderboardPage.tsx → D:\Codes\i-can-app\src\services\actionService.ts
+- `I-CAN MVP Core Implementation Checklist` --references--> `I-CAN Platform (Integrated Gamified Carbon-Neutral Campus)`  [EXTRACTED]
+  docs/MVP_IMPLEMENTATION_CHECKLIST.md → README.md
+- `5-Minute Pitch Narrative for BINUS Stakeholders & Jury` --references--> `I-CAN Platform (Integrated Gamified Carbon-Neutral Campus)`  [EXTRACTED]
+  docs/presentation/presentation_5min_pitch.md → README.md
+- `I-CAN PWA Web Application Shell` --references--> `I-CAN Platform (Integrated Gamified Carbon-Neutral Campus)`  [EXTRACTED]
+  index.html → README.md
+- `SSO & TFI Regulation Alignment v2.0` --rationale_for--> `Dual-Track Recognition System`  [INFERRED]
+  docs/FEATURE_REVISION_NOTES.md → README.md
+- `3-Branch Verifier Approval Decision Flow` --conceptually_related_to--> `Multimodal Vision AI Pre-Scan & Verification`  [INFERRED]
+  docs/FEATURE_REVISION_NOTES.md → README.md
 
-## Communities
+## Import Cycles
+- None detected.
 
-### Community 0 - "Community 0"
+## Hyperedges (group relationships)
+- **Dual-Track SSO/TFI Academic & Gamification Governance** — readme_dual_track_system, readme_tfi_two_phase_flow, docs_feature_revision_notes_sso_tfi_regulation, docs_feature_revision_notes_three_way_approval [EXTRACTED 1.00]
+- **AdminLTE 3.4 SDG 17 & Campus Activity Oversight** — readme_sdg17_partner_management, readme_student_activity_monitor, readme_trial_demo_accounts [INFERRED 0.95]
 
-Cohesion: 0.03
-Nodes (56): verifyActionWithGemini, act, actId, active, activeEvents, [activePillar, setActivePillar], activityIdParam, additionalFileInputRef (+48 more)
+## Communities (46 total, 29 thin omitted)
 
-### Community 1 - "Community 1"
-
-Cohesion: 0.05
-Nodes (40): generateActionId(), getActions(), getUserActions(), LOCAL_ACTIONS_KEY, SEED_VERSION_KEY, SEEDED_INITIAL_ACTIONS, submitGreenAction(), updateActionVerification() (+32 more)
-
-### Community 2 - "Community 2"
-
+### Community 0 - "Core React & UI Framework"
 Cohesion: 0.08
-Nodes (27): [activeTab, setActiveTab], async(), FACULTIES, [formValidationMsg, setFormValidationMsg], handleDemoStudent(), handleDemoVerifier(), handleLoginSubmit(), handleRegisterSubmit() (+19 more)
+Nodes (54): @logto/react, lucide-react, react, react-dom, react-router-dom, App(), AppLayout(), StudentGreenActivityMonitor() (+46 more)
 
-### Community 3 - "Community 3"
+### Community 1 - "AdminLTE 3.4 & Supabase Services"
+Cohesion: 0.10
+Nodes (46): @supabase/supabase-js, AdminLtePage(), PROGRAM_COLORS_LIST, PROGRAM_ICONS_LIST, renderProgramIconHelper(), applyRewardToUser(), addDocumentToPartner(), addProgramToPartner() (+38 more)
 
-Cohesion: 0.13
-Nodes (24): loadEvent(), computeEventLeaderboard(), createEvent(), DEFAULT_CAMPUS_EVENTS, deleteEvent(), generateId(), getActiveEvents(), getCategorizedEvents() (+16 more)
-
-### Community 4 - "Community 4"
-
-Cohesion: 0.2
-Nodes (25): batchImportAccounts(), createAccountByAdmin(), DEFAULT_SEEDED_ACCOUNTS, deleteAccountFromSupabase(), editAccountByAdmin(), getAllUsersList(), getNeutralAvatarUrl(), getStoredAccounts() (+17 more)
-
-### Community 5 - "Community 5"
-
-Cohesion: 0.09
-Nodes (17): cellToString(), matchHeaders(), parseStudentExcel(), [customPassword, setCustomPassword], displayedRows, [dragActive, setDragActive], [duplicateAction, setDuplicateAction], fileInputRef (+9 more)
-
-### Community 6 - "Community 6"
-
-Cohesion: 0.08
-Nodes (22): [activeTab, setActiveTab], [cheers, setCheers], computedFaculties, computedStudents, currentUserRank, [eventLeaderboard, setEventLeaderboard], [events, setEvents], f (+14 more)
-
-### Community 7 - "Community 7"
-
-Cohesion: 0.15
-Nodes (18): completeDailyQuest(), createActionProgram(), createDailyQuest(), DEFAULT_ACTION_PROGRAMS, DEFAULT_DAILY_QUESTS, deleteActionProgram(), deleteDailyQuest(), getActionPrograms() (+10 more)
-
-### Community 8 - "Community 8"
-_Unable to determine domain due to missing code entities._
-Cohesion: 0.1
-Nodes (16): [activeTab, setActiveTab], filteredPosts, handleManualRefresh(), [hasLiked, setHasLiked], [isLoading, setIsLoading], [isRealtimeActive, setIsRealtimeActive], [isRefreshing, setIsRefreshing], [likes, setLikes] (+8 more)
-
-### Community 9 - "Community 9"
-
-Cohesion: 0.12
-Nodes (12): AdminLtePage(), canDeactivate, canRestore, category, isDeactivated, isLastSuperadmin, isSelf, PROGRAM_COLORS_LIST (+4 more)
-
-### Community 10 - "Community 10"
-
-Cohesion: 0.13
-Nodes (13): [activeTab, setActiveTab], category, [event, setEvent], { id }, isActionOpen, isMe, [leaderboard, setLeaderboard], [loading, setLoading] (+5 more)
-
-### Community 11 - "Community 11"
-
+### Community 2 - "Authentication & Role Guards"
 Cohesion: 0.16
-Nodes (11): accountDropdownRef, canSwitchRoles, dropdownRef, handleAvatarClick(), handleNotificationClick(), { mode, isDemoMode, isPrototypeMode, toggleMode }, navigate, { 
-    notifications, 
-    unreadCount, 
-    loadUserNotifications,
-    markAsRead, 
-    markAllAsRead, 
-    deleteNotification, 
-    clearAll, 
-    simulateIncomingNotification 
-  } (+3 more)
+Nodes (41): src_components_common_protectedroute_getroledefaultpath, CallbackPage(), ProfilePage(), loadActivities(), batchImportAccounts(), BatchImportOptions, BatchImportResult, BatchImportUserItem (+33 more)
 
-### Community 12 - "Community 12"
+### Community 3 - "Upload & Multimodal AI Verification"
+Cohesion: 0.12
+Nodes (25): canvas-confetti, jspdf, ActionPillar, resolveIcon(), UploadPage(), generateActionId(), submitGreenAction(), AiVerificationResult (+17 more)
 
-Cohesion: 0.22
-Nodes (9): [activeEvents, setActiveEvents], [cameraError, setCameraError], handleSimulationSelect(), loadActiveEvents(), navigate, [showSimulation, setShowSimulation], stopCamera(), streamRef (+1 more)
+### Community 4 - "User Import & State Stores"
+Cohesion: 0.12
+Nodes (24): xlsx, zustand, ImportUsersModal(), ImportUsersModalProps, cellToString(), downloadStudentTemplate(), ExcelParseResult, matchHeaders() (+16 more)
 
-### Community 13 - "Community 13"
-_Unable to determine domain due to missing code entities._
+### Community 5 - "Partner Form & QR Modals"
+Cohesion: 0.17
+Nodes (24): PartnerFormModalProps, QrScannerModal(), QrScannerModalProps, EventsPage(), HomePage(), resolveProgramIcon(), CategorizedEvents, createEvent() (+16 more)
+
+### Community 6 - "SDG 17 Partner Dashboard Widgets"
+Cohesion: 0.15
+Nodes (19): CATEGORY_COLORS, CATEGORY_NAMES, PartnerDashboardWidget(), PartnerDashboardWidgetProps, CATEGORY_LABELS, PartnerDetailModal(), PartnerDetailModalProps, CATEGORY_OPTIONS (+11 more)
+
+### Community 7 - "TypeScript Compiler Options"
+Cohesion: 0.10
+Nodes (19): compilerOptions, baseUrl, isolatedModules, jsx, lib, module, moduleResolution, noEmit (+11 more)
+
+### Community 8 - "Database Schema & Actions Table"
 Cohesion: 0.18
-Nodes (9): [actionPrograms, setActionPrograms], [categorizedEvents, setCategorizedEvents], category, [dailyQuests, setDailyQuests], endDateFormatted, [eventTimelineFilter, setEventTimelineFilter], Icon, startDateFormatted (+1 more)
+Nodes (12): public.action_categories, public.action_programs, public.actions, public.badges, public.daily_quests, public.events, public.faculties, public.sat_recognitions (+4 more)
 
-### Community 14 - "Community 14"
-_Unable to determine domain due to missing code entities._
-Cohesion: 0.31
-Nodes (9): buildVerificationPrompt(), callGemini(), callNvidiaNim(), callOpenRouter(), generateActionCaption(), mockSimulationAnalysis(), parseAiJsonResponse(), verifyActionWithMultimodalAI() (+1 more)
+### Community 9 - "SSO & TFI Governance Documents"
+Cohesion: 0.14
+Nodes (14): 3 Mandatory TFI Official Campaign Hashtags, SSO & TFI Regulation Alignment v2.0, 3-Branch Verifier Approval Decision Flow, I-CAN MVP Core Implementation Checklist, 5-Minute Pitch Narrative for BINUS Stakeholders & Jury, I-CAN PWA Web Application Shell, Dual-Track Recognition System, I-CAN Platform (Integrated Gamified Carbon-Neutral Campus) (+6 more)
 
-### Community 15 - "Community 15"
-_Unable to determine domain due to missing code entities._
-Cohesion: 0.29
-Nodes (6): canSwitchAccounts, isActive, isAdmin, isOrganizer, { mode, isDemoMode, isPrototypeMode, toggleMode }, { user, usersList, loadUsersList, loginAs }
+### Community 10 - "Auth Users & Action Categories"
+Cohesion: 0.40
+Nodes (9): auth.users, public.action_categories, public.actions, public.badges, public.faculties, public.sat_recognitions, public.user_badges, public.users (+1 more)
 
-### Community 16 - "Community 16"
-_Unable to determine domain due to missing code entities._
-Cohesion: 0.29
-Nodes (6): Icon, isApprovedFull, isCoinsOnly, isPending, isRejected, ProfilePage
+### Community 11 - "TypeScript Node Configuration"
+Cohesion: 0.22
+Nodes (8): compilerOptions, allowSyntheticDefaultImports, composite, module, moduleResolution, skipLibCheck, strict, include
 
-### Community 17 - "Community 17"
-_Unable to determine domain due to missing code entities._
-Cohesion: 0.4
+### Community 12 - "Faculties & Quest Programs"
+Cohesion: 0.33
+Nodes (5): public.faculties, public.action_programs, public.daily_quests, public.events, public.users
+
+### Community 13 - "Bottom Navigation Elements"
+Cohesion: 0.40
 Nodes (4): Icon, isOrganizer, navItems, { user }
 
-### Community 18 - "Community 18"
-_Unable to determine domain due to missing code entities._
-Cohesion: 0.4
-Nodes (4): isLogtoConfigured, logtoAppId, logtoConfig, logtoEndpoint
+### Community 14 - "Online Multiuser Account Sync"
+Cohesion: 0.50
+Nodes (3): public.login_local_account(), public.user_credentials, public.users
 
-### Community 19 - "Community 19"
-_Unable to determine domain due to missing code entities._
-Cohesion: 0.6
-Nodes (4): downloadActionPdfReport(), loadImage(), sanitizeText(), handleDownloadPdfReport()
-
-### Community 20 - "Community 20"
-_Unable to determine domain due to missing code entities._
-Cohesion: 0.4
-Nodes (4): isConfigured, supabase, supabaseAnonKey, supabaseUrl
-
-### Community 21 - "Community 21"
-_Unable to determine domain due to missing code entities._
-Cohesion: 0.5
+### Community 15 - "Button Component Styles"
+Cohesion: 0.50
 Nodes (3): baseStyles, sizeStyles, variantStyles
 
-### Community 22 - "Community 22"
-_Unable to determine domain due to missing code entities._
-Cohesion: 0.67
-Nodes (1): FormattedText
-
-### Community 23 - "Community 23"
-
-Cohesion: 0.67
-Nodes (2): APP_MODE_KEY, useAppModeStore
-
-### Community 24 - "Community 24"
-_Unable to determine domain due to missing code entities._
-Cohesion: 0.67
-Nodes (2): NOTIFICATIONS_PREFIX, useNotificationStore
-
-### Community 25 - "Community 25"
-
-Cohesion: 0.67
-Nodes (1): EMISSION_FACTORS
-
-### Community 26 - "Community 26"
-_Unable to determine domain due to missing code entities._
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 27 - "Community 27"
-_Unable to determine domain due to missing code entities._
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 28 - "Community 28"
-
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 29 - "Community 29"
-_Unable to determine domain due to missing code entities._
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 30 - "Community 30"
-_Unable to determine domain due to missing code entities._
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 31 - "Community 31"
-_Unable to determine domain due to missing code entities._
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 32 - "Community 32"
-_Unable to determine domain due to missing code entities._
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 33 - "Community 33"
-_Unable to determine domain due to missing code entities._
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 34 - "Community 34"
-_Unable to determine domain due to missing code entities._
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 35 - "Community 35"
-
-Cohesion: 1.0
-Nodes (1): @logto/react
-
-### Community 36 - "Community 36"
-
-Cohesion: 1.0
-Nodes (1): zustand
-
-### Community 37 - "Community 37"
-_It constructs a valid class name string from mixed boolean, string, and array inputs, filtering out falsey values, commonly used in UI frameworks._
-Cohesion: 1.0
-Nodes (1): clsx
-
-### Community 38 - "Community 38"
-_Provides a set of SVG icons packaged as React components for consistent icon usage across applications._
-Cohesion: 1.0
-Nodes (1): lucide-react
-
-### Community 39 - "Community 39"
-_Unable to determine domain due to missing code entities._
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 40 - "Community 40"
-_Handles navigation, URL routing, and view rendering in React web applications._
-Cohesion: 1.0
-Nodes (1): react-router-dom
-
-### Community 41 - "Community 41"
-_Merges Tailwind utility classes, resolving conflicts and ensuring a single, optimized class string._
-Cohesion: 1.0
-Nodes (1): tailwind-merge
-
-### Community 42 - "Community 42"
-
-Cohesion: 1.0
-Nodes (1): xlsx
-
-### Community 43 - "Community 43"
-_Adds vendor prefixes to CSS rules for cross-browser compatibility._
-Cohesion: 1.0
-Nodes (1): autoprefixer
-
-### Community 44 - "Community 44"
-
-Cohesion: 1.0
-Nodes (1): postcss
-
-### Community 45 - "Community 45"
-_Provides the interface for rendering React components to the browser's DOM, handling mounting, updating, and unmounting logic._
-Cohesion: 1.0
-Nodes (1): react-dom
-
-### Community 46 - "Community 46"
-_Provides low-level utility classes for styling UI elements in web applications._
-Cohesion: 1.0
-Nodes (1): tailwindcss
-
-### Community 47 - "Community 47"
-
-Cohesion: 1.0
-Nodes (1): @types/canvas-confetti
-
-### Community 48 - "Community 48"
-_Provides type declarations for Node.js core modules, enabling TypeScript to type-check Node runtime APIs._
-Cohesion: 1.0
-Nodes (1): @types/node
-
-### Community 49 - "Community 49"
-_Provides TypeScript type definitions for the React library, enabling static type checking and IntelliSense for React components._
-Cohesion: 1.0
-Nodes (1): @types/react
-
-### Community 50 - "Community 50"
-_Provides TypeScript type definitions for React's DOM rendering API, enabling type safety and editor IntelliSense in React applications._
-Cohesion: 1.0
-Nodes (1): @types/react-dom
-
-### Community 51 - "Community 51"
-_It provides optional static typing, transpilation to JavaScript, and tooling support to improve code safety and developer experience._
-Cohesion: 1.0
-Nodes (1): typescript
-
-### Community 52 - "Community 52"
-
-Cohesion: 1.0
-Nodes (1): vite
-
-### Community 53 - "Community 53"
-_Enables seamless integration of React into Vite projects, handling JSX compilation and hot module replacement._
-Cohesion: 1.0
-Nodes (1): @vitejs/plugin-react
-
-### Community 54 - "Community 54"
-
-Cohesion: 1.0
-Nodes (1): canvas-confetti
-
-### Community 55 - "Community 55"
-
-Cohesion: 1.0
-Nodes (1): @supabase/supabase-js
-
-### Community 56 - "Community 56"
-
-Cohesion: 1.0
-Nodes (1): jspdf
-
-### Community 57 - "Community 57"
-
-Cohesion: 1.0
-Nodes (1): i-can-app Repository
+### Community 16 - "Vite Bundler Configuration"
+Cohesion: 0.50
+Nodes (3): ref_path, vite, @vitejs/plugin-react
 
 ## Knowledge Gaps
-- **258 isolated node(s):** `{ user, usersList, loadUsersList, loginAs }`, `{ mode, isDemoMode, isPrototypeMode, toggleMode }`, `canSwitchAccounts`, `isActive`, `isOrganizer` (+253 more)
-  These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `Community 26`** (2 nodes): `Badge()`, `Badge.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 27`** (2 nodes): `Card()`, `Card.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 28`** (2 nodes): `imageCompressor.ts`, `compressImage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 29`** (1 nodes): `postcss.config.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 30`** (1 nodes): `tailwind.config.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 31`** (1 nodes): `vite.config.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 32`** (1 nodes): `main.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 33`** (1 nodes): `vite-env.d.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 34`** (1 nodes): `index.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 35`** (1 nodes): `@logto/react`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 36`** (1 nodes): `zustand`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 37`** (1 nodes): `clsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 38`** (1 nodes): `lucide-react`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 39`** (1 nodes): `react`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 40`** (1 nodes): `react-router-dom`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 41`** (1 nodes): `tailwind-merge`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 42`** (1 nodes): `xlsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 43`** (1 nodes): `autoprefixer`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 44`** (1 nodes): `postcss`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 45`** (1 nodes): `react-dom`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 46`** (1 nodes): `tailwindcss`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 47`** (1 nodes): `@types/canvas-confetti`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 48`** (1 nodes): `@types/node`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 49`** (1 nodes): `@types/react`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 50`** (1 nodes): `@types/react-dom`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 51`** (1 nodes): `typescript`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 52`** (1 nodes): `vite`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 53`** (1 nodes): `@vitejs/plugin-react`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 54`** (1 nodes): `canvas-confetti`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 55`** (1 nodes): `@supabase/supabase-js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 56`** (1 nodes): `jspdf`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 57`** (1 nodes): `i-can-app Repository`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **107 isolated node(s):** `{ user }`, `isOrganizer`, `navItems`, `Icon`, `baseStyles` (+102 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 141 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **29 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+
+## Suggested Questions
+_Questions this graph is uniquely positioned to answer:_
+
+- **Why does `useAuthStore` connect `Authentication & Role Guards` to `Core React & UI Framework`, `AdminLTE 3.4 & Supabase Services`, `Upload & Multimodal AI Verification`, `User Import & State Stores`, `Partner Form & QR Modals`, `Route Protection System`?**
+  _High betweenness centrality (0.036) - this node is a cross-community bridge._
+- **Why does `AdminLtePage()` connect `AdminLTE 3.4 & Supabase Services` to `Core React & UI Framework`, `Authentication & Role Guards`, `Partner Form & QR Modals`?**
+  _High betweenness centrality (0.017) - this node is a cross-community bridge._
+- **Why does `react` connect `Core React & UI Framework` to `AdminLTE 3.4 & Supabase Services`, `Authentication & Role Guards`, `Upload & Multimodal AI Verification`, `User Import & State Stores`, `Partner Form & QR Modals`, `SDG 17 Partner Dashboard Widgets`?**
+  _High betweenness centrality (0.015) - this node is a cross-community bridge._
+- **What connects `{ user }`, `isOrganizer`, `navItems` to the rest of the system?**
+  _107 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Core React & UI Framework` be split into smaller, more focused modules?**
+  _Cohesion score 0.08209255533199195 - nodes in this community are weakly interconnected._
+- **Should `AdminLTE 3.4 & Supabase Services` be split into smaller, more focused modules?**
+  _Cohesion score 0.10105580693815988 - nodes in this community are weakly interconnected._
+- **Should `Upload & Multimodal AI Verification` be split into smaller, more focused modules?**
+  _Cohesion score 0.12433862433862433 - nodes in this community are weakly interconnected._

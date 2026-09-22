@@ -1,10 +1,11 @@
-# React Type Definitions
+# Card UI Component
 
-> 1 nodes · cohesion 1.00
+> 2 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **Card()** (1 connections) — `src/components/common/Card.tsx`
+- **Card.tsx** (1 connections) — `src/components/common/Card.tsx`
 
 ## Relationships
 
@@ -12,11 +13,11 @@
 
 ## Source Files
 
-- `package.json`
+- `src/components/common/Card.tsx`
 
 ## Audit Trail
 
-- EXTRACTED: 0 (0%)
+- EXTRACTED: 1 (100%)
 - INFERRED: 0 (0%)
 - AMBIGUOUS: 0 (0%)
 

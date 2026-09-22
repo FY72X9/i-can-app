@@ -1,10 +1,10 @@
-# React Type Definitions
+# Vite Environment Types
 
 > 1 nodes · cohesion 1.00
 
 ## Key Concepts
 
-- **@types/react** (0 connections) — `package.json`
+- **vite-env.d.ts** (0 connections) — `src/vite-env.d.ts`
 
 ## Relationships
 
@@ -12,7 +12,7 @@
 
 ## Source Files
 
-- `package.json`
+- `src/vite-env.d.ts`
 
 ## Audit Trail
 
