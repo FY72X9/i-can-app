@@ -94,68 +94,79 @@ async function callOpenRouter(
   if (!apiKey) return null;
 
   const endpoint = import.meta.env.VITE_OPENROUTER_ENDPOINT || 'https://openrouter.ai/api/v1/chat/completions';
-  const model = import.meta.env.VITE_OPENROUTER_MODEL || 'meta-llama/llama-3.2-11b-vision-instruct:free';
+  const configuredModel = import.meta.env.VITE_OPENROUTER_MODEL || 'inclusionai/ling-3.0-flash-vl:free';
+  const candidateModels = Array.from(
+    new Set([configuredModel, 'inclusionai/ling-3.0-flash-vl:free', 'openrouter/free'])
+  );
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-      'HTTP-Referer': 'https://i-can.binus.ac.id',
-      'X-Title': 'I-CAN Campus Platform',
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: prompt },
+  const formattedImageUrl = base64DataUrl.startsWith('data:') ? base64DataUrl : `data:image/jpeg;base64,${base64DataUrl}`;
+
+  for (const model of candidateModels) {
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': 'https://i-can.binus.ac.id',
+          'X-Title': 'I-CAN Campus Platform',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
             {
-              type: 'image_url',
-              image_url: {
-                url: base64DataUrl.startsWith('data:') ? base64DataUrl : `data:image/jpeg;base64,${base64DataUrl}`,
-              },
+              role: 'user',
+              content: [
+                { type: 'text', text: prompt },
+                {
+                  type: 'image_url',
+                  image_url: { url: formattedImageUrl },
+                },
+              ],
             },
           ],
-        },
-      ],
-      temperature: 0.2,
-      response_format: { type: 'json_object' },
-    }),
-  });
+          temperature: 0.2,
+        }),
+      });
 
-  if (!response.ok) {
-    throw new Error(`OpenRouter Error ${response.status}: ${response.statusText}`);
+      if (!response.ok) {
+        console.warn(`OpenRouter model "${model}" returned ${response.status}. Trying next candidate...`);
+        continue;
+      }
+
+      const data = await response.json();
+      const rawContent = data.choices?.[0]?.message?.content;
+      const parsed = parseAiJsonResponse(rawContent);
+
+      const actMatch = Boolean(parsed.isActivityMatch ?? true);
+      const authentic = Boolean(parsed.isAuthentic ?? true);
+
+      return {
+        isValid: actMatch && authentic,
+        confidence: Number(parsed.confidence) || 0.90,
+        isActivityMatch: actMatch,
+        activityMatchScore: Number(parsed.activityMatchScore) || (actMatch ? 0.92 : 0.4),
+        isAuthentic: authentic,
+        authenticityScore: Number(parsed.authenticityScore) || (authentic ? 0.95 : 0.3),
+        antiFraudFlags: parsed.antiFraudFlags || ['REAL_CAMERA_PROOF'],
+        guidelineConfidence: Number(parsed.guidelineConfidence) || 0.88,
+        completenessScore: Number(parsed.completenessScore) || 0.85,
+        reason: parsed.reason || 'Foto bukti fisik terverifikasi cocok dengan kegiatan dan lolos validasi anti-fraud.',
+        suggestedCoins: Number(parsed.suggestedCoins) || 20,
+        suggestedSat: Number(parsed.suggestedSat) || 4,
+        detectedObjects: parsed.detectedObjects || ['bukti_fisik', 'kegiatan_kampus'],
+        hashtagsFound: parsed.hashtagsFound || [],
+        almamaterDetected: Boolean(parsed.almamaterDetected),
+        tfiLogoDetected: Boolean(parsed.tfiLogoDetected),
+        providerUsed: 'openrouter',
+        modelUsed: model,
+      };
+    } catch (err) {
+      console.warn(`OpenRouter attempt with model "${model}" failed:`, err);
+    }
   }
 
-  const data = await response.json();
-  const rawContent = data.choices?.[0]?.message?.content;
-  const parsed = parseAiJsonResponse(rawContent);
-
-  const actMatch = Boolean(parsed.isActivityMatch ?? true);
-  const authentic = Boolean(parsed.isAuthentic ?? true);
-
-  return {
-    isValid: actMatch && authentic,
-    confidence: Number(parsed.confidence) || 0.90,
-    isActivityMatch: actMatch,
-    activityMatchScore: Number(parsed.activityMatchScore) || (actMatch ? 0.92 : 0.4),
-    isAuthentic: authentic,
-    authenticityScore: Number(parsed.authenticityScore) || (authentic ? 0.95 : 0.3),
-    antiFraudFlags: parsed.antiFraudFlags || ['REAL_CAMERA_PROOF'],
-    guidelineConfidence: Number(parsed.guidelineConfidence) || 0.88,
-    completenessScore: Number(parsed.completenessScore) || 0.85,
-    reason: parsed.reason || 'Foto bukti fisik terverifikasi cocok dengan kegiatan dan lolos validasi anti-fraud.',
-    suggestedCoins: Number(parsed.suggestedCoins) || 20,
-    suggestedSat: Number(parsed.suggestedSat) || 4,
-    detectedObjects: parsed.detectedObjects || ['bukti_fisik', 'kegiatan_kampus'],
-    hashtagsFound: parsed.hashtagsFound || [],
-    almamaterDetected: Boolean(parsed.almamaterDetected),
-    tfiLogoDetected: Boolean(parsed.tfiLogoDetected),
-    providerUsed: 'openrouter',
-    modelUsed: model,
-  };
+  return null;
 }
 
 // ------------------------------------------------------------------------------
