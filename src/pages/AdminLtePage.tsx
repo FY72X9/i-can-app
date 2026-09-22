@@ -2143,8 +2143,8 @@ export const AdminLtePage: React.FC = () => {
                 </button>
               </div>
 
-              {/* 4 Prioritized Campus SDG Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              {/* 2 Campus SDG Cards (Live Backend Data Only) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {/* 1. SDG 13: Climate Action (Dynamic from Backend) */}
                 <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-3">
                   <div className="flex items-center justify-between">
@@ -2195,50 +2195,6 @@ export const AdminLtePage: React.FC = () => {
                     </p>
                     <p className="text-[11px] text-purple-700 font-medium">
                       {sdgMetrics.sdg4.apaStyleCompliancePercent}% berstandar APA Style ({sdgMetrics.sdg4.totalComservHours} jam)
-                    </p>
-                  </div>
-                </div>
-
-                {/* 3. SDG 15: Life on Land (Dynamic from Backend) */}
-                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-3">
-                  <span className="text-xs sm:text-sm font-black text-emerald-800 block">SDG 15: Life on Land</span>
-                  <div className="text-2xl sm:text-3xl font-black text-slate-900">
-                    {sdgMetrics.sdg15.totalTreesPlanted.toLocaleString()} <span className="text-sm font-bold text-slate-500">Pohon</span>
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className="bg-emerald-600 h-2.5 rounded-full transition-all duration-500"
-                      style={{ width: `${sdgMetrics.sdg15.progressPercent}%` }}
-                    />
-                  </div>
-                  <div className="space-y-1 text-xs">
-                    <p className="text-slate-600 font-bold">
-                      {sdgMetrics.sdg15.progressPercent}% dari target {sdgMetrics.sdg15.targetTrees.toLocaleString()} pohon tahun 2026
-                    </p>
-                    <p className="text-[11px] text-emerald-700 font-medium">
-                      Reforestasi kampus & kemitraan taman kota
-                    </p>
-                  </div>
-                </div>
-
-                {/* 4. SDG 6: Clean Water (Dynamic from Backend) */}
-                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-3">
-                  <span className="text-xs sm:text-sm font-black text-cyan-800 block">SDG 6: Clean Water</span>
-                  <div className="text-2xl sm:text-3xl font-black text-slate-900">
-                    {sdgMetrics.sdg6.totalBioporiInstalled.toLocaleString()} <span className="text-sm font-bold text-slate-500">Biopori</span>
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className="bg-cyan-600 h-2.5 rounded-full transition-all duration-500"
-                      style={{ width: `${sdgMetrics.sdg6.progressPercent}%` }}
-                    />
-                  </div>
-                  <div className="space-y-1 text-xs">
-                    <p className="text-slate-600 font-bold">
-                      {sdgMetrics.sdg6.progressPercent}% dari target {sdgMetrics.sdg6.targetBiopori.toLocaleString()} lubang biopori
-                    </p>
-                    <p className="text-[11px] text-cyan-700 font-medium">
-                      Resapan air tanah & instalasi wastafel
                     </p>
                   </div>
                 </div>
