@@ -32,7 +32,7 @@ export interface StoredAuthAccount {
   passwordHash: string;
   avatarUrl?: string;
   totalGreenCoins: number;
-  totalSatPoints: number;
+  totalComservHours?: number;
   totalCarbonSaved: number;
   streakDays: number;
   createdAt: string;
@@ -101,7 +101,7 @@ const DEFAULT_SEEDED_ACCOUNTS: Omit<StoredAuthAccount, 'passwordHash'>[] = [
     role: 'SUPERADMIN',
     avatarUrl: getNeutralAvatarUrl('Hendra Kusuma, M.Kom', '1980010101', 'SUPERADMIN'),
     totalGreenCoins: 2400,
-    totalSatPoints: 120,
+    totalComservHours: 40,
     totalCarbonSaved: 62.00,
     streakDays: 28,
     createdAt: '2026-06-01T00:00:00Z',
@@ -115,7 +115,7 @@ const DEFAULT_SEEDED_ACCOUNTS: Omit<StoredAuthAccount, 'passwordHash'>[] = [
     role: 'MAHASISWA',
     avatarUrl: getNeutralAvatarUrl('Budi Santoso', '2602158890', 'MAHASISWA'),
     totalGreenCoins: 120,
-    totalSatPoints: 9,
+    totalComservHours: 12,
     totalCarbonSaved: 12.50,
     streakDays: 5,
     createdAt: '2026-06-01T00:00:00Z',
@@ -129,7 +129,7 @@ const DEFAULT_SEEDED_ACCOUNTS: Omit<StoredAuthAccount, 'passwordHash'>[] = [
     role: 'ORGANIZER',
     avatarUrl: getNeutralAvatarUrl('Siti Rahmawati, S.Kom', 'BN089123456', 'ORGANIZER'),
     totalGreenCoins: 850,
-    totalSatPoints: 45,
+    totalComservHours: 35,
     totalCarbonSaved: 30.00,
     streakDays: 14,
     createdAt: '2026-06-01T00:00:00Z',
@@ -185,7 +185,7 @@ function mapDbUserToAccount(row: any, existingHash?: string): StoredAuthAccount 
     passwordHash: existingHash || '',
     avatarUrl: row.avatar_url || undefined,
     totalGreenCoins: row.total_green_coins || 0,
-    totalSatPoints: row.total_sat_points || 0,
+    totalComservHours: row.total_comserv_hours || 0,
     totalCarbonSaved: row.total_carbon_saved || 0,
     streakDays: row.streak_days || 0,
     createdAt: row.created_at || new Date().toISOString(),
@@ -280,7 +280,6 @@ async function syncSingleAccountToSupabase(acc: StoredAuthAccount): Promise<void
       role: mapRoleToSupabase(acc.role),
       avatar_url: acc.avatarUrl || null,
       total_green_coins: acc.totalGreenCoins || 0,
-      total_sat_points: acc.totalSatPoints || 0,
       total_carbon_saved: acc.totalCarbonSaved || 0.0,
       streak_days: acc.streakDays || 1,
       created_at: acc.createdAt || new Date().toISOString(),
@@ -351,7 +350,7 @@ export async function createAccountByAdmin(params: RegisterParams): Promise<{ us
     passwordHash,
     avatarUrl: getNeutralAvatarUrl(fullName.trim(), cleanNim, targetRole),
     totalGreenCoins: 50,
-    totalSatPoints: 0,
+    totalComservHours: 0,
     totalCarbonSaved: 0.0,
     streakDays: 1,
     createdAt: new Date().toISOString(),
@@ -430,7 +429,7 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
           role,
           facultyName,
           totalGreenCoins: 50,
-          totalSatPoints: 0,
+          totalComservHours: 0,
           totalCarbonSaved: 0.0,
           streakDays: 1,
           createdAt: new Date().toISOString(),
@@ -474,7 +473,7 @@ export async function registerUser(params: RegisterParams): Promise<{ user?: Use
     passwordHash,
     avatarUrl: getNeutralAvatarUrl(fullName.trim(), cleanNim, role),
     totalGreenCoins: 50, // Welcome bonus
-    totalSatPoints: 0,
+    totalComservHours: 0,
     totalCarbonSaved: 0.0,
     streakDays: 1,
     createdAt: new Date().toISOString(),
@@ -524,7 +523,7 @@ export async function loginWithCredentials(
           role: normalizeUserRole(metadata.role),
           facultyName: metadata.faculty_name || 'School of Computer Science',
           totalGreenCoins: 50,
-          totalSatPoints: 0,
+          totalComservHours: 0,
           totalCarbonSaved: 0.0,
           streakDays: 1,
           createdAt: data.user.created_at || new Date().toISOString(),
@@ -642,7 +641,7 @@ export async function applyRewardToUser(
   userIdOrNim: string,
   delta: {
     greenCoins?: number;
-    satPoints?: number;
+    comservHours?: number;
     carbonSaved?: number;
   }
 ): Promise<UserProfile | null> {
@@ -655,7 +654,7 @@ export async function applyRewardToUser(
   );
 
   const coinsDelta = Number(delta.greenCoins || 0);
-  const satDelta = Number(delta.satPoints || 0);
+  const comservDelta = Number(delta.comservHours || 0);
   const carbonDelta = Number(delta.carbonSaved || 0);
 
   let updatedProfile: UserProfile | null = null;
@@ -663,13 +662,13 @@ export async function applyRewardToUser(
   if (index !== -1) {
     const target = accounts[index];
     const newGreenCoins = Math.max(0, (target.totalGreenCoins || 0) + coinsDelta);
-    const newSatPoints = Math.max(0, (target.totalSatPoints || 0) + satDelta);
+    const newComserv = Math.max(0, Number(((target.totalComservHours || 0) + comservDelta).toFixed(1)));
     const newCarbonSaved = Math.max(0, Number(((target.totalCarbonSaved || 0) + carbonDelta).toFixed(2)));
 
     accounts[index] = {
       ...target,
       totalGreenCoins: newGreenCoins,
-      totalSatPoints: newSatPoints,
+      totalComservHours: newComserv,
       totalCarbonSaved: newCarbonSaved,
     };
     localStorage.setItem(STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
@@ -682,13 +681,13 @@ export async function applyRewardToUser(
     try {
       const { data: dbRows } = await supabase
         .from('users')
-        .select('id, nim, total_green_coins, total_sat_points, total_carbon_saved')
+        .select('*')
         .or(`id.eq.${userIdOrNim},nim.eq.${userIdOrNim}`);
 
-      const dbUser = dbRows && dbRows.length > 0 ? dbRows[0] : null;
+      const dbUser = dbRows && dbRows.length > 0 ? (dbRows[0] as any) : null;
       if (dbUser) {
         const nextCoins = Math.max(0, (dbUser.total_green_coins || 0) + coinsDelta);
-        const nextSat = Math.max(0, (dbUser.total_sat_points || 0) + satDelta);
+        const nextComserv = Math.max(0, (dbUser.total_comserv_hours ?? dbUser.total_sat_points ?? 0) + comservDelta);
         const nextCarbon = Math.max(
           0,
           Number(((Number(dbUser.total_carbon_saved) || 0) + carbonDelta).toFixed(2))
@@ -698,7 +697,7 @@ export async function applyRewardToUser(
           .from('users')
           .update({
             total_green_coins: nextCoins,
-            total_sat_points: nextSat,
+            total_sat_points: nextComserv,
             total_carbon_saved: nextCarbon,
           })
           .eq('id', dbUser.id);
@@ -721,7 +720,7 @@ export async function applyRewardToUser(
           const syncedActive = {
             ...active,
             totalGreenCoins: Math.max(0, (active.totalGreenCoins || 0) + coinsDelta),
-            totalSatPoints: Math.max(0, (active.totalSatPoints || 0) + satDelta),
+            totalComservHours: Math.max(0, Number(((active.totalComservHours || 0) + comservDelta).toFixed(1))),
             totalCarbonSaved: Math.max(0, Number(((active.totalCarbonSaved || 0) + carbonDelta).toFixed(2))),
           };
           localStorage.setItem('i_can_user', JSON.stringify(syncedActive));
@@ -1074,7 +1073,7 @@ export async function batchImportAccounts(
       passwordHash: finalHash,
       avatarUrl: getNeutralAvatarUrl(cleanName, cleanNim, role),
       totalGreenCoins: 50,
-      totalSatPoints: 0,
+      totalComservHours: 0,
       totalCarbonSaved: 0.0,
       streakDays: 1,
       createdAt: new Date().toISOString(),
@@ -1132,7 +1131,7 @@ function mapRoleFromSupabase(role: string): UserRole {
  * is immediately visible/usable for login from any other device or browser.
  */
 async function upsertLocalAccountToSupabase(
-  acc: Pick<StoredAuthAccount, 'nim' | 'email' | 'fullName' | 'facultyName' | 'role' | 'avatarUrl' | 'totalGreenCoins' | 'totalSatPoints' | 'totalCarbonSaved' | 'streakDays'> & { id?: string },
+  acc: Pick<StoredAuthAccount, 'nim' | 'email' | 'fullName' | 'facultyName' | 'role' | 'avatarUrl' | 'totalGreenCoins' | 'totalComservHours' | 'totalCarbonSaved' | 'streakDays'> & { id?: string },
   passwordHash?: string
 ): Promise<{ error?: string }> {
   if (!isConfigured) return {};
@@ -1146,7 +1145,7 @@ async function upsertLocalAccountToSupabase(
       p_avatar_url: acc.avatarUrl || null,
       p_password_hash: passwordHash || null,
       p_total_green_coins: acc.totalGreenCoins || 0,
-      p_total_sat_points: acc.totalSatPoints || 0,
+      p_total_sat_points: acc.totalComservHours || 0,
       p_total_carbon_saved: acc.totalCarbonSaved || 0,
       p_streak_days: acc.streakDays || 1,
       p_id: acc.id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(acc.id)

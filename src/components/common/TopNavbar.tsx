@@ -215,7 +215,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ title, subtitle }) => {
                         <div className="min-w-0 flex-1">
                           <div className="text-xs font-black truncate">{profile.fullName}</div>
                           <div className={`text-[10px] truncate ${user?.id === profile.id ? 'text-eco-100' : 'text-slate-500'}`}>
-                            {profile.role} • {profile.totalSatPoints || 0} SAT
+                            {profile.role} • {profile.totalComservHours || 0} Jam • {profile.totalGreenCoins || 0} GC
                           </div>
                         </div>
                       </button>

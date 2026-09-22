@@ -35,7 +35,7 @@ export const DEMO_PROFILES: Record<string, UserProfile> = {
     facultyName: 'Student Service Office (SSO)',
     avatarUrl: getNeutralAvatarUrl('Hendra Kusuma, M.Kom', '1980010101', 'SUPERADMIN'),
     totalGreenCoins: 2400,
-    totalSatPoints: 120,
+    totalComservHours: 40,
     totalCarbonSaved: 62.00,
     streakDays: 28,
     lastActionAt: new Date().toISOString(),
@@ -51,7 +51,7 @@ export const DEMO_PROFILES: Record<string, UserProfile> = {
     facultyName: 'School of Computer Science',
     avatarUrl: getNeutralAvatarUrl('Budi Santoso', '2602158890', 'MAHASISWA'),
     totalGreenCoins: 120,
-    totalSatPoints: 9,
+    totalComservHours: 12,
     totalCarbonSaved: 12.50,
     streakDays: 5,
     lastActionAt: new Date().toISOString(),
@@ -67,7 +67,7 @@ export const DEMO_PROFILES: Record<string, UserProfile> = {
     facultyName: 'Student Service Office (SSO)',
     avatarUrl: getNeutralAvatarUrl('Siti Rahmawati, S.Kom', 'BN089123456', 'ORGANIZER'),
     totalGreenCoins: 850,
-    totalSatPoints: 45,
+    totalComservHours: 35,
     totalCarbonSaved: 30.00,
     streakDays: 14,
     lastActionAt: new Date().toISOString(),
@@ -87,7 +87,7 @@ interface AuthState {
   register: (params: RegisterParams) => Promise<boolean>;
   logout: () => void;
   clearError: () => void;
-  updateUserStats: (stats: { greenCoins?: number; satPoints?: number; carbonSaved?: number; streakDays?: number }) => void;
+  updateUserStats: (stats: { greenCoins?: number; comservHours?: number; carbonSaved?: number; streakDays?: number }) => void;
   updateUserRole: (userId: string, newRole: UserRole) => Promise<void>;
   updateOwnProfile: (updates: UpdateOwnProfileParams) => Promise<{ user?: UserProfile; error?: string }>;
   changeOwnPassword: (currentPassword: string, newPassword: string) => Promise<{ success?: boolean; error?: string }>;
@@ -255,7 +255,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         const updated = {
           ...state.user,
           totalGreenCoins: (state.user.totalGreenCoins || 0) + (stats.greenCoins || 0),
-          totalSatPoints: (state.user.totalSatPoints || 0) + (stats.satPoints || 0),
+          totalComservHours: (state.user.totalComservHours || 0) + (stats.comservHours || 0),
           totalCarbonSaved: Number(((state.user.totalCarbonSaved || 0) + (stats.carbonSaved || 0)).toFixed(2)),
           streakDays: stats.streakDays !== undefined ? stats.streakDays : state.user.streakDays,
         };

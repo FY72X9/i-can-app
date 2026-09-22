@@ -92,7 +92,6 @@ export async function getActions(): Promise<GreenAction[]> {
             aiAnalysisReason: item.ai_analysis_reason,
             greenCoinsEarned: item.green_coins_earned,
             carbonImpactKg: item.carbon_impact_kg,
-            satPointsEarned: item.sat_points_earned,
             comservHoursEarned: item.comserv_hours,
             guidelineComplied: item.guideline_complied,
             realActivityVerified: item.real_activity_verified,
@@ -200,7 +199,6 @@ export async function submitGreenAction(
           ai_analysis_reason: newAction.aiAnalysisReason,
           green_coins_earned: newAction.greenCoinsEarned,
           carbon_impact_kg: newAction.carbonImpactKg,
-          sat_points_earned: newAction.satPointsEarned,
           comserv_hours: newAction.comservHoursEarned,
           guideline_complied: newAction.guidelineComplied,
           real_activity_verified: newAction.realActivityVerified,
@@ -277,7 +275,7 @@ export async function updateActionVerification(
           status: dbAct.status,
           decision: dbAct.decision,
           greenCoinsEarned: dbAct.green_coins_earned,
-          satPointsEarned: dbAct.sat_points_earned,
+          comservHoursEarned: dbAct.comserv_hours_earned ?? 0,
           carbonImpactKg: dbAct.carbon_impact_kg,
         } as any;
       }
@@ -338,8 +336,7 @@ export async function updateActionVerification(
       verifiedAt: now,
       verifiedBy: finalVerifierName,
       rejectionReason: finalReason || target.rejectionReason,
-      // If coins only, sat points becomes 0
-      satPointsEarned: decision === 'APPROVED_COINS_ONLY' ? 0 : target.satPointsEarned,
+      // If coins only, comserv hours becomes 0
       comservHoursEarned: decision === 'APPROVED_COINS_ONLY' ? 0 : target.comservHoursEarned,
       realActivityVerified: decision === 'APPROVED_FULL',
     };
@@ -355,33 +352,33 @@ export async function updateActionVerification(
   if (previousAction && previousAction.userId) {
     const wasApproved = previousAction.status === 'APPROVED';
     let coinsDelta = 0;
-    let satDelta = 0;
+    let comservDelta = 0;
     let carbonDelta = 0;
 
     if (!wasApproved && isApproved) {
-      // Newly APPROVED: Credit coins, SAT (if FULL), and carbon
+      // Newly APPROVED: Credit coins, Comserv (if FULL), and carbon
       coinsDelta = Number(previousAction.greenCoinsEarned || 0);
-      satDelta = decision === 'APPROVED_FULL' ? Number(previousAction.satPointsEarned || 0) : 0;
+      comservDelta = decision === 'APPROVED_FULL' ? Number(previousAction.comservHoursEarned || 0) : 0;
       carbonDelta = Number(previousAction.carbonImpactKg || 0);
     } else if (wasApproved && !isApproved) {
-      // REJECTED from previously approved: Revert coins & SAT
+      // REJECTED from previously approved: Revert coins & Comserv
       coinsDelta = -Number(previousAction.greenCoinsEarned || 0);
-      satDelta = previousAction.decision === 'APPROVED_FULL' ? -Number(previousAction.satPointsEarned || 0) : 0;
+      comservDelta = previousAction.decision === 'APPROVED_FULL' ? -Number(previousAction.comservHoursEarned || 0) : 0;
       carbonDelta = -Number(previousAction.carbonImpactKg || 0);
     } else if (wasApproved && isApproved) {
       // Changed between COINS_ONLY and FULL
       if (previousAction.decision === 'APPROVED_COINS_ONLY' && decision === 'APPROVED_FULL') {
-        satDelta = Number(previousAction.satPointsEarned || 0);
+        comservDelta = Number(previousAction.comservHoursEarned || 0);
       } else if (previousAction.decision === 'APPROVED_FULL' && decision === 'APPROVED_COINS_ONLY') {
-        satDelta = -Number(previousAction.satPointsEarned || 0);
+        comservDelta = -Number(previousAction.comservHoursEarned || 0);
       }
     }
 
-    if (coinsDelta !== 0 || satDelta !== 0 || carbonDelta !== 0) {
+    if (coinsDelta !== 0 || comservDelta !== 0 || carbonDelta !== 0) {
       try {
         await applyRewardToUser(previousAction.userId, {
           greenCoins: coinsDelta,
-          satPoints: satDelta,
+          comservHours: comservDelta,
           carbonSaved: carbonDelta,
         });
       } catch (rewardErr) {

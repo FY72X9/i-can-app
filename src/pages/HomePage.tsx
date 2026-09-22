@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/common/Card';
-import { Badge } from '@/components/common/Badge';
 import { useAuthStore } from '@/stores/authStore';
 import { getCategorizedEvents, CategorizedEvents, getEventTimelineCategory } from '@/services/eventService';
 import { CampusEvent, DailyQuest, ActionProgram, GreenAction } from '@/types';
 import { getDailyQuests, getActionPrograms } from '@/services/questProgramService';
 import { getActions, subscribeToActions } from '@/services/actionService';
+import { Partner } from '@/types/partner';
+import { getPartners } from '@/services/partnerService';
 import { 
   TreePine, 
   Droplets, 
@@ -15,7 +16,6 @@ import {
   Sparkles, 
   Flame, 
   Coins, 
-  GraduationCap, 
   Award, 
   Clock, 
   CheckCircle2, 
@@ -25,10 +25,14 @@ import {
   Heart, 
   BookOpen, 
   ArrowRight, 
-  ShieldCheck, 
   Calendar, 
   Trash2, 
-  Leaf 
+  Leaf,
+  Handshake,
+  QrCode,
+  FileCheck2,
+  Trophy,
+  ExternalLink
 } from 'lucide-react';
 
 const resolveProgramIcon = (iconName: string) => {
@@ -59,9 +63,13 @@ export const HomePage: React.FC = () => {
   const [eventTimelineFilter, setEventTimelineFilter] = useState<'ALL' | 'TODAY' | 'UPCOMING' | 'PAST'>('ALL');
   const [dailyQuests, setDailyQuests] = useState<DailyQuest[]>([]);
   const [actionPrograms, setActionPrograms] = useState<ActionProgram[]>([]);
+  const [partners, setPartners] = useState<Partner[]>([]);
 
   useEffect(() => {
     getCategorizedEvents().then(setCategorizedEvents);
+    getPartners().then((list) => {
+      setPartners(list.filter((p) => p.status === 'ACTIVE'));
+    }).catch(console.warn);
   }, []);
 
   useEffect(() => {
@@ -73,7 +81,7 @@ export const HomePage: React.FC = () => {
     });
   }, []);
 
-  // Synchronize actual user actions & approved coin balance
+  // Synchronize actual user actions & approved balances
   useEffect(() => {
     let isMounted = true;
 
@@ -121,18 +129,27 @@ export const HomePage: React.FC = () => {
     (sum, a) => sum + (Number(a.greenCoinsEarned) || 0),
     0
   );
-  const approvedSatFromActions = userApprovedActions.reduce(
-    (sum, a) => sum + (a.decision === 'APPROVED_COINS_ONLY' ? 0 : (Number(a.satPointsEarned) || 0)),
+  const approvedComservFromActions = userApprovedActions.reduce(
+    (sum, a) => sum + (a.decision === 'APPROVED_COINS_ONLY' ? 0 : (Number(a.comservHoursEarned) || 0)),
+    0
+  );
+  const approvedCarbonFromActions = userApprovedActions.reduce(
+    (sum, a) => sum + (Number(a.carbonImpactKg) || 0),
     0
   );
 
   const totalGreenCoins = Math.max(user?.totalGreenCoins ?? 0, approvedCoinsFromActions);
-  const totalSatPoints = Math.max(user?.totalSatPoints ?? 0, approvedSatFromActions);
+  const totalComservHours = Math.max(user?.totalComservHours ?? 0, approvedComservFromActions);
+  const totalCarbonSaved = Math.max(user?.totalCarbonSaved ?? 0, approvedCarbonFromActions);
   const streakDays = user?.streakDays ?? 1;
+
+  // Standar target kelulusan Teach For Indonesia (TFI)
+  const COMSERV_TARGET_HOURS = 30;
+  const comservProgressPercent = Math.min(100, Math.round((totalComservHours / COMSERV_TARGET_HOURS) * 100));
 
   return (
     <div className="space-y-6 sm:space-y-7 pb-8">
-      {/* 1. Gen Z Eco-Flex Hero Card with Clean Bento */}
+      {/* 1. High-Impact Eco Hero Bento Card */}
       <Card variant="eco" className="relative overflow-hidden p-6 sm:p-7 shadow-eco-float border-white/20">
         <div className="absolute -top-12 -right-12 w-48 h-48 bg-eco-neon/30 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -left-10 w-44 h-44 bg-gold-neon/25 rounded-full blur-3xl pointer-events-none" />
@@ -151,63 +168,134 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Dual Balance Numbers Bento */}
-          <div className="grid grid-cols-2 gap-3.5">
-            {/* Green Coins (BEKEN Track) */}
-            <div className="bg-black/25 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-white/15 text-left transition-all hover:bg-black/30">
+          {/* 3-Pillar Balance Numbers Bento */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* 1. Green Coins */}
+            <div className="bg-black/25 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-left transition-all hover:bg-black/30">
               <div className="flex items-center justify-between">
-                <span className="text-xs uppercase font-black tracking-wider text-eco-200">
+                <span className="text-[11px] uppercase font-black tracking-wider text-eco-200">
                   Green Coins
                 </span>
                 <Coins className="w-4 h-4 text-gold-neon fill-gold-neon" />
               </div>
-              <div className="text-2xl sm:text-3xl font-black text-white mt-2">
+              <div className="text-2xl sm:text-3xl font-black text-white mt-1.5">
                 {totalGreenCoins} <span className="text-xs font-semibold text-gold-300">GC</span>
               </div>
-              <span className="text-xs text-gold-neon font-black mt-1.5 inline-block">
-                {totalGreenCoins >= 500 ? '👑 Top 5% Champion' : totalGreenCoins >= 100 ? '⚡ Top 15% Nominee' : '🌱 Eco-Ksatria Pemula'}
+              <span className="text-[11px] text-gold-neon font-black mt-1 inline-block">
+                {totalGreenCoins >= 500 ? '👑 Top 5% Champion' : totalGreenCoins >= 100 ? '⚡ Top 15% Nominee' : '🌱 Eco-Ksatria'}
               </span>
             </div>
 
-            {/* SAT Academic Points Track */}
-            <div className="bg-black/25 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-white/15 text-left transition-all hover:bg-black/30">
+            {/* 2. Jam Comserv TFI Track */}
+            <div className="bg-black/25 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-left transition-all hover:bg-black/30">
               <div className="flex items-center justify-between">
-                <span className="text-xs uppercase font-black tracking-wider text-eco-200">
-                  Poin SAT Riil
+                <span className="text-[11px] uppercase font-black tracking-wider text-eco-200">
+                  Jam Comserv TFI
                 </span>
-                <GraduationCap className="w-4 h-4 text-eco-neon" />
+                <Clock className="w-4 h-4 text-cyan-300" />
               </div>
-              <div className="text-2xl sm:text-3xl font-black text-white mt-2">
-                {totalSatPoints} <span className="text-xs font-semibold text-eco-200">/ 120 SAT</span>
+              <div className="text-2xl sm:text-3xl font-black text-white mt-1.5">
+                {totalComservHours} <span className="text-xs font-semibold text-eco-200">/ {COMSERV_TARGET_HOURS} Jam</span>
               </div>
-              <span className="text-xs text-eco-neon font-black mt-1.5 inline-block">
-                {totalSatPoints >= 120 ? '🎉 Syarat SAT Terpenuhi' : '🎓 Target Kelulusan'}
+              <span className="text-[11px] text-cyan-300 font-black mt-1 inline-block">
+                {totalComservHours >= COMSERV_TARGET_HOURS ? '🎉 Target Terpenuhi' : '🎓 Target Kelulusan TFI'}
+              </span>
+            </div>
+
+            {/* 3. Reduksi Karbon */}
+            <div className="bg-black/25 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-left transition-all hover:bg-black/30">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] uppercase font-black tracking-wider text-eco-200">
+                  Reduksi CO2e
+                </span>
+                <Leaf className="w-4 h-4 text-eco-neon" />
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-white mt-1.5">
+                {totalCarbonSaved.toFixed(1)} <span className="text-xs font-semibold text-eco-200">kg</span>
+              </div>
+              <span className="text-[11px] text-eco-neon font-black mt-1 inline-block">
+                Dampak Lingkungan Riil
               </span>
             </div>
           </div>
 
-          {/* SAT Progress Bar to Graduation */}
+          {/* Comserv Progress Bar towards 30 Jam TFI Requirement */}
           <div className="bg-black/30 backdrop-blur-md rounded-2xl p-4 border border-white/10 space-y-2.5">
             <div className="flex justify-between text-xs sm:text-sm text-eco-100 font-black">
               <span className="flex items-center gap-2">
                 <Target className="w-4 h-4 text-eco-neon" />
-                Target 120 Poin SAT Kelulusan
+                Target {COMSERV_TARGET_HOURS} Jam Community Service (Comserv TFI)
               </span>
               <span className="font-mono text-eco-neon font-bold">
-                {Math.round((totalSatPoints / 120) * 100)}%
+                {comservProgressPercent}% ({totalComservHours}/{COMSERV_TARGET_HOURS} Jam)
               </span>
             </div>
             <div className="w-full bg-white/15 h-3 rounded-full overflow-hidden p-0.5">
               <div
                 className="bg-gradient-to-r from-eco-neon via-emerald-400 to-cyan-300 h-full rounded-full transition-all duration-500 shadow-neon-glow"
-                style={{ width: `${Math.min(100, (totalSatPoints / 120) * 100)}%` }}
+                style={{ width: `${comservProgressPercent}%` }}
               />
             </div>
           </div>
         </div>
       </Card>
 
-      {/* Event Kampus Section (Today, Upcoming, Past) */}
+      {/* 2. Quick Action Shortcuts Strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <Link
+          to="/upload"
+          className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:border-eco-400 hover:shadow-xs transition-all group"
+        >
+          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <TreePine className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-xs font-black text-slate-800 block truncate">Lapor Aksi</span>
+            <span className="text-[10px] text-slate-400 font-medium block truncate">Unggah Bukti Fisik</span>
+          </div>
+        </Link>
+
+        <Link
+          to="/events"
+          className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:border-blue-400 hover:shadow-xs transition-all group"
+        >
+          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <Calendar className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-xs font-black text-slate-800 block truncate">Event Kampus</span>
+            <span className="text-[10px] text-slate-400 font-medium block truncate">Pos QR & Kegiatan</span>
+          </div>
+        </Link>
+
+        <Link
+          to="/wallet"
+          className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:border-amber-400 hover:shadow-xs transition-all group"
+        >
+          <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <FileCheck2 className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-xs font-black text-slate-800 block truncate">Transkrip TFI</span>
+            <span className="text-[10px] text-slate-400 font-medium block truncate">Rekap Jam Comserv</span>
+          </div>
+        </Link>
+
+        <Link
+          to="/leaderboard"
+          className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:border-purple-400 hover:shadow-xs transition-all group"
+        >
+          <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <Trophy className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-xs font-black text-slate-800 block truncate">Leaderboard</span>
+            <span className="text-[10px] text-slate-400 font-medium block truncate">Klasemen Mahasiswa</span>
+          </div>
+        </Link>
+      </div>
+
+      {/* 3. Event Kampus Section (Today, Upcoming, Past) */}
       {(() => {
         const displayedEvents =
           eventTimelineFilter === 'ALL'
@@ -224,7 +312,7 @@ export const HomePage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-black text-text-primary flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4 text-eco-neon" />
-                  Event Kampus
+                  Event Kampus & Pos Kegiatan
                 </h3>
                 {categorizedEvents.today.length > 0 && (
                   <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
@@ -350,7 +438,7 @@ export const HomePage: React.FC = () => {
                                 : `${startDateFormatted} - ${endDateFormatted}`}
                             </span>
                             <span className="text-eco-700 font-bold">
-                              {evt.activities.length} Pos
+                              {evt.activities.length} Pos Kegiatan
                             </span>
                           </div>
                         </div>
@@ -393,12 +481,12 @@ export const HomePage: React.FC = () => {
         );
       })()}
 
-      {/* 2. ⚡ Daily Quests Section */}
+      {/* 4. Daily Quests Section */}
       <div className="space-y-3.5">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
             <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
-            Daily Quests (Misi Kampus)
+            Daily Quests (Misi Kampus Harian)
           </h2>
           <span className="text-xs font-black text-eco-900 bg-eco-neon/20 px-2.5 py-0.5 rounded-full border border-eco-neon/40">
             Bonus Aktif
@@ -447,7 +535,7 @@ export const HomePage: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. TFI Action Hub Cards */}
+      {/* 5. TFI Action Hub Cards */}
       <div className="space-y-3.5">
         <div className="flex items-center justify-between px-1">
           <div>
@@ -455,7 +543,7 @@ export const HomePage: React.FC = () => {
               <TreePine className="w-4 h-4 text-eco-700" />
               Pilihan Program Aksi Nyata
             </h2>
-            <p className="text-xs text-text-secondary mt-0.5">Pilih program, unggah bukti fisik & klaim SAT resmi</p>
+            <p className="text-xs text-text-secondary mt-0.5">Pilih program resmi TFI, unggah bukti fisik & raih Jam Comserv</p>
           </div>
           {actionPrograms.length > 0 && (
             <Link to="/upload?source=program" className="text-xs font-black text-eco-800 hover:text-eco-950 flex items-center gap-0.5">
@@ -489,7 +577,10 @@ export const HomePage: React.FC = () => {
 
                   {/* Rewards Breakdown Bar */}
                   <div className="bg-surface-subtle p-3 rounded-2xl flex items-center justify-between text-xs font-black border border-surface-border/60">
-                    <span className="text-blue-700">+{prog.satPoints} SAT ({prog.comservHours} Jam Comserv)</span>
+                    <span className="text-blue-700 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      +{prog.comservHours} Jam Comserv TFI
+                    </span>
                     <span className="text-amber-800">+{prog.coins} Green Coins</span>
                   </div>
 
@@ -513,6 +604,58 @@ export const HomePage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* 6. SDG 17 Partners Showcase Section */}
+      {partners.length > 0 && (
+        <div className="space-y-3.5">
+          <div className="flex items-center justify-between px-1">
+            <div>
+              <h2 className="text-xs sm:text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
+                <Handshake className="w-4 h-4 text-cyan-600" />
+                Kolaborasi Mitra SDG 17
+              </h2>
+              <p className="text-xs text-text-secondary mt-0.5">Kemitraan strategis BINUS University dengan lembaga peduli lingkungan</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {partners.slice(0, 4).map((partner) => (
+              <Card key={partner.id} className="p-4 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-3">
+                <div className="flex items-start gap-3">
+                  <img
+                    src={partner.logoUrl || 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=200&q=80'}
+                    alt={partner.name}
+                    className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-cyan-800 bg-cyan-50 px-2 py-0.5 rounded border border-cyan-200 inline-block mb-1">
+                      {partner.category}
+                    </span>
+                    <h4 className="text-xs sm:text-sm font-black text-slate-800 truncate">{partner.name}</h4>
+                    <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5">{partner.description}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs font-bold text-slate-600">
+                  <span className="text-[11px] text-slate-500">
+                    {partner.programs.length} Program Bersama
+                  </span>
+                  {partner.websiteUrl && (
+                    <a
+                      href={partner.websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-eco-700 hover:text-eco-900 font-bold flex items-center gap-1 text-[11px]"
+                    >
+                      Website <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

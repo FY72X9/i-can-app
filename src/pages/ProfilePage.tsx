@@ -229,7 +229,7 @@ export const ProfilePage: React.FC = () => {
     { name: 'Streak Champion', icon: Flame, desc: '5 hari aktif berturut-turut', unlocked: true, level: 'Gold', rarity: 'Rare' },
     { name: 'Carbon Hero', icon: Leaf, desc: 'Hemat akumulasi 10 kg CO2e', unlocked: true, level: 'Silver', rarity: 'Rare' },
     { name: 'TFI Tree Planter', icon: ShieldCheck, desc: 'Tanam 5 bibit pohon berbatang keras', unlocked: true, level: 'Gold', rarity: 'Epic' },
-    { name: 'SAT Master', icon: Trophy, desc: 'Kumpulkan 50 SAT Points riil', unlocked: false, level: 'Platinum', rarity: 'Epic' },
+    { name: 'Comserv Champion', icon: Trophy, desc: 'Kumpulkan 20 Jam Comserv TFI', unlocked: false, level: 'Platinum', rarity: 'Epic' },
     { name: 'BEKEN Finalist', icon: Sparkles, desc: 'Masuk Top 10% Leaderboard tahunan', unlocked: false, level: 'Diamond', rarity: 'Legendary' },
   ];
 
@@ -294,8 +294,8 @@ export const ProfilePage: React.FC = () => {
             </div>
 
             <div className="bg-surface-subtle p-3 rounded-2xl border border-surface-border/60">
-              <span className="text-[9px] text-text-secondary uppercase font-bold block mb-0.5">Total SAT</span>
-              <p className="text-sm sm:text-base font-black text-blue-700 font-mono">{user?.totalSatPoints ?? 0} SAT</p>
+              <span className="text-[9px] text-text-secondary uppercase font-bold block mb-0.5">Jam Comserv</span>
+              <p className="text-sm sm:text-base font-black text-blue-700 font-mono">{user?.totalComservHours ?? 0} Jam</p>
             </div>
           </div>
         ) : (
@@ -904,7 +904,7 @@ export const ProfilePage: React.FC = () => {
                             isPending ? 'bg-blue-100 text-blue-900 border border-blue-300' :
                             'bg-rose-100 text-rose-900 border border-rose-300'
                           }`}>
-                            {isApprovedFull ? '+SAT & Coins' :
+                            {isApprovedFull ? '+Comserv & GC' :
                              isCoinsOnly ? 'Coins Only' :
                              isPending ? 'Pending' : 'Ditolak'}
                           </span>

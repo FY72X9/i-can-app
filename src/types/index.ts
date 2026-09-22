@@ -14,7 +14,7 @@ export interface UserProfile {
   facultyName?: string;
   avatarUrl?: string;
   totalGreenCoins: number;
-  totalSatPoints: number;
+  totalComservHours?: number; // Total Jam Community Service (TFI)
   totalCarbonSaved: number; // in kg CO2e
   streakDays: number;
   lastActionAt?: string;
@@ -39,7 +39,6 @@ export interface ActionCategory {
   icon: string; // Lucide icon name (e.g., 'TreePine', 'Droplets', 'Video', 'CupSoda', 'Bus', 'Trash2', 'Zap')
   emissionFactor: number; // kg CO2e per action
   baseCoins: number;
-  satEquivalent: number;
   comservHours?: number;
   sdgTarget?: string; // e.g., 'SDG 13', 'SDG 15', 'SDG 6', 'SDG 4'
   description: string;
@@ -75,7 +74,6 @@ export interface GreenAction {
   aiAnalysisReason?: string;
   greenCoinsEarned: number;
   carbonImpactKg: number;
-  satPointsEarned: number;
   comservHoursEarned?: number;
   guidelineComplied?: boolean;
   realActivityVerified?: boolean;
@@ -117,7 +115,7 @@ export interface EventActivity {
   description: string;
   qrCodeValue: string;      // Unique QR token, e.g. "ican-evt01-act01"
   coinsReward: number;      // Green Coins reward for completing this activity
-  satPointsReward?: number; // Optional: SAT Points if applicable
+  comservHoursReward?: number; // Jam Community Service TFI jika ada
   order: number;            // Display order within the event
 }
 
@@ -142,12 +140,11 @@ export interface CampusEvent {
   createdAt: string;
 }
 
-export interface SatRecognition {
+export interface ComservRecognition {
   id: string;
   userId: string;
   actionId: string;
   activityTitle: string;
-  satPointsAwarded: number;
   comservHoursAwarded: number;
   status: 'VERIFIED' | 'EXPORTED' | 'SYNCED';
   recognizedAt: string;
@@ -195,7 +192,7 @@ export interface DailyQuest {
   desc: string;
   reward: string; // e.g., '+15 Green Coins'
   coinsReward: number;
-  satReward?: number;
+  comservReward?: number;
   deadline: string; // e.g., 'Sisa 3 Jam', 'Sisa Hari Ini', '23:59 WIB'
   completed?: boolean;
   actionUrl?: string;
@@ -210,7 +207,6 @@ export interface ActionProgram {
   title: string;
   category: string; // e.g. "Penyuluhan & Aksi Nyata", "Bina Lingkungan"
   categoryType: ActionType; // 'PENYULUHAN_AKSI_NYATA' | 'BINA_DIRI' | 'BINA_LINGKUNGAN' | 'SELF_GREEN_CAMPAIGN' | 'VIDEO_BASED_LEARNING'
-  satPoints: number;
   comservHours: number;
   coins: number;
   co2: string; // e.g. "5.0 kg", "0.5 kg"
@@ -250,4 +246,6 @@ export interface CaptionGenerationResult {
   hashtagsUsed: string[];
   sdgTag?: string;
 }
+
+export * from './partner';
 

@@ -8,7 +8,6 @@ export interface EmissionFactor {
   unit: string;
   sdgTargets: string[];
   baseCoins: number;
-  satPoints: number;
   comservHours: number;
   source: 'IPCC' | 'GHG_PROTOCOL' | 'BINUS_TFI_CUSTOM';
 }
@@ -19,7 +18,6 @@ export const EMISSION_FACTORS: Record<string, EmissionFactor> = {
     unit: 'per 5 bibit pohon berbatang keras/tahun',
     sdgTargets: ['SDG 15 (Life on Land)', 'SDG 13 (Climate Action)'],
     baseCoins: 25,
-    satPoints: 4,
     comservHours: 2.0,
     source: 'IPCC',
   },
@@ -28,7 +26,6 @@ export const EMISSION_FACTORS: Record<string, EmissionFactor> = {
     unit: 'per 5 lubang biopori',
     sdgTargets: ['SDG 15 (Life on Land)', 'SDG 6 (Clean Water)'],
     baseCoins: 20,
-    satPoints: 4,
     comservHours: 2.0,
     source: 'BINUS_TFI_CUSTOM',
   },
@@ -37,7 +34,6 @@ export const EMISSION_FACTORS: Record<string, EmissionFactor> = {
     unit: 'per 1 instalasi wastafel publik',
     sdgTargets: ['SDG 6 (Clean Water & Sanitation)', 'SDG 3 (Good Health)'],
     baseCoins: 20,
-    satPoints: 4,
     comservHours: 2.0,
     source: 'BINUS_TFI_CUSTOM',
   },
@@ -46,7 +42,6 @@ export const EMISSION_FACTORS: Record<string, EmissionFactor> = {
     unit: 'per video pembelajaran (5-10 min)',
     sdgTargets: ['SDG 4 (Quality Education)'],
     baseCoins: 25,
-    satPoints: 3,
     comservHours: 1.5,
     source: 'BINUS_TFI_CUSTOM',
   },
@@ -55,7 +50,6 @@ export const EMISSION_FACTORS: Record<string, EmissionFactor> = {
     unit: 'per pemakaian botol guna ulang',
     sdgTargets: ['SDG 12 (Responsible Consumption)'],
     baseCoins: 10,
-    satPoints: 0,
     comservHours: 0.0,
     source: 'GHG_PROTOCOL',
   },
@@ -64,7 +58,6 @@ export const EMISSION_FACTORS: Record<string, EmissionFactor> = {
     unit: 'per perjalanan shuttle bus kampus',
     sdgTargets: ['SDG 11 (Sustainable Cities)', 'SDG 13 (Climate Action)'],
     baseCoins: 15,
-    satPoints: 1,
     comservHours: 0.5,
     source: 'IPCC',
   },
@@ -73,7 +66,6 @@ export const EMISSION_FACTORS: Record<string, EmissionFactor> = {
     unit: 'per pemilahan sampah Eco Drop Box',
     sdgTargets: ['SDG 12 (Responsible Consumption)'],
     baseCoins: 10,
-    satPoints: 0,
     comservHours: 0.0,
     source: 'GHG_PROTOCOL',
   },
@@ -88,7 +80,6 @@ export function calculateActionImpact(categoryId: string, multiplier: number = 1
     unit: 'per aksi',
     sdgTargets: ['SDG 12 (Responsible Consumption)'],
     baseCoins: 10,
-    satPoints: 0,
     comservHours: 0.0,
     source: 'BINUS_TFI_CUSTOM',
   };
@@ -96,7 +87,6 @@ export function calculateActionImpact(categoryId: string, multiplier: number = 1
   return {
     totalCarbonKg: Number((factor.kgCO2e * multiplier).toFixed(2)),
     greenCoins: factor.baseCoins * multiplier,
-    satPoints: factor.satPoints * multiplier,
     comservHours: Number((factor.comservHours * multiplier).toFixed(1)),
     sdgTargets: factor.sdgTargets,
   };

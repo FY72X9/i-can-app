@@ -63,10 +63,6 @@ export const WalletPage: React.FC = () => {
     };
   }, [user?.id, user?.nim]);
 
-  const approvedSat = verifiedActions.reduce(
-    (acc, a) => acc + (a.decision === 'APPROVED_COINS_ONLY' ? 0 : (a.satPointsEarned || 0)),
-    0
-  );
   const approvedComserv = verifiedActions.reduce(
     (acc, a) => acc + (a.comservHoursEarned || 0),
     0
@@ -76,8 +72,7 @@ export const WalletPage: React.FC = () => {
     0
   );
 
-  const totalSat = Math.max(user?.totalSatPoints ?? 0, approvedSat);
-  const totalComserv = approvedComserv > 0 ? Number(approvedComserv.toFixed(1)) : 0;
+  const totalComserv = Math.max(user?.totalComservHours ?? 0, approvedComserv);
   const totalCoins = Math.max(user?.totalGreenCoins ?? 0, approvedCoins);
 
   const handleExportTranscript = () => {
@@ -85,12 +80,11 @@ export const WalletPage: React.FC = () => {
 Nama: ${user?.fullName || 'Budi Santoso'}
 NIM: ${user?.nim || '2602158890'}
 Fakultas: ${user?.facultyName || 'School of Computer Science'}
-Total Poin SAT: ${totalSat} SAT
-Total Jam Community Service: ${totalComserv} Jam
+Total Jam Community Service (Comserv TFI): ${totalComserv} Jam
 Total Saldo Green Coins: ${totalCoins} GC
 
 DAFTAR KEGIATAN RIIL TERVERIFIKASI:
-${verifiedActions.map((a, idx) => `${idx + 1}. [${a.categoryName}] +${a.satPointsEarned} SAT (${a.comservHoursEarned || 0} Jam Comserv) - ${new Date(a.submittedAt).toLocaleDateString('id-ID')}`).join('\n')}
+${verifiedActions.map((a, idx) => `${idx + 1}. [${a.categoryName}] +${a.comservHoursEarned || 0} Jam Comserv (+${a.greenCoinsEarned} GC) - ${new Date(a.submittedAt).toLocaleDateString('id-ID')}`).join('\n')}
 
 Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia (TFI).`;
 
@@ -122,15 +116,15 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
               <span className="text-xs text-gold-neon font-black mt-1.5 inline-block">⚡ Top 15% Nominee</span>
             </div>
 
-            {/* Track B: SAT & Comserv (Academic Track) */}
+            {/* Track B: Comserv TFI (Academic Track) */}
             <div className="bg-black/25 rounded-2xl p-4 sm:p-5 text-center border border-white/15 backdrop-blur-md">
               <span className="text-xs text-eco-200 font-black uppercase tracking-wider block mb-1">
-                Transkrip SAT
+                Jam Comserv TFI
               </span>
               <div className="text-2xl sm:text-3xl font-black text-white">
-                {totalSat} <span className="text-xs font-semibold text-eco-neon">SAT</span>
+                {totalComserv} <span className="text-xs font-semibold text-eco-neon">Jam</span>
               </div>
-              <span className="text-xs text-eco-neon font-black mt-1.5 inline-block">{totalComserv} Jam Comserv</span>
+              <span className="text-xs text-eco-neon font-black mt-1.5 inline-block">Target 30 Jam Kelulusan</span>
             </div>
           </div>
         </div>
@@ -189,7 +183,7 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
               </div>
               <h4 className="text-sm font-black text-text-primary">Belum Ada Aksi yang Diverifikasi</h4>
               <p className="text-xs text-text-secondary max-w-sm mx-auto">
-                Setelah bukti aksi nyata atau event kamu disetujui oleh Tim SSO & Verifikator, poin SAT resmi dan jam community service akan terdata di sini.
+                Setelah bukti aksi nyata atau event kamu disetujui oleh Tim SSO & Verifikator, jam community service dan Green Coins resmi akan terdata di sini.
               </p>
             </Card>
           ) : (
@@ -221,7 +215,7 @@ Status Regulasi: Sesuai Acuan Student Service Office (SSO) & Teach For Indonesia
                 {/* Award Badges */}
                 <div className="text-right shrink-0">
                   <span className="text-xs sm:text-sm font-black text-blue-700 block">
-                    {action.satPointsEarned > 0 ? `+${action.satPointsEarned} SAT` : '+0 SAT'}
+                    +{action.comservHoursEarned || 0} Jam Comserv
                   </span>
                   <p className="text-xs font-black text-amber-800 mt-0.5">+{action.greenCoinsEarned} GC</p>
                 </div>

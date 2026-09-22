@@ -62,7 +62,6 @@ export const VerificationPage: React.FC = () => {
       aiAnalysisReason: 'Terdeteksi 5 bibit pohon ditanam di tanah, caption IG memuat #TeachForIndonesia dan #BinusianCommunityService.',
       greenCoinsEarned: 25,
       carbonImpactKg: 5.0,
-      satPointsEarned: 4,
       comservHoursEarned: 2.0,
       submittedAt: new Date(Date.now() - 15 * 60000).toISOString(),
     },
@@ -96,11 +95,11 @@ export const VerificationPage: React.FC = () => {
     if (decision === 'APPROVED_FULL') {
       useNotificationStore.getState().addNotification({
         title: 'Aksi Nyata Disetujui Penuh! 🌳',
-        desc: `Selamat! Pengajuan aksi "${target?.categoryName || 'Aksi TFI'}" telah diverifikasi. +${target?.satPointsEarned || 4} SAT & +${target?.greenCoinsEarned || 25} GC masuk ke transkrip kamu!`,
-        type: 'sat',
+        desc: `Selamat! Pengajuan aksi "${target?.categoryName || 'Aksi TFI'}" telah diverifikasi. +${target?.comservHoursEarned || 2} Jam Comserv & +${target?.greenCoinsEarned || 25} GC masuk ke transkrip kamu!`,
+        type: 'tfi',
         actionUrl: '/wallet',
       });
-      alert('Aksi Disetujui Penuh! Notifikasi Poin SAT & Jam Comserv telah dikirim ke mahasiswa.');
+      alert('Aksi Disetujui Penuh! Notifikasi Jam Comserv & Green Coins telah dikirim ke mahasiswa.');
     } else if (decision === 'APPROVED_COINS_ONLY') {
       useNotificationStore.getState().addNotification({
         title: 'Aksi Harian Disetujui! 🪙',
@@ -154,10 +153,10 @@ export const VerificationPage: React.FC = () => {
     return verifiedDate >= today;
   }).length;
   
-  // Calculate total SAT points given
-  const totalSatGiven = history.reduce((total, action) => {
-    if (action.status === 'APPROVED' && action.decision === 'APPROVED_FULL' && action.satPointsEarned) {
-      return total + action.satPointsEarned;
+  // Calculate total Comserv hours given
+  const totalComservGiven = history.reduce((total, action) => {
+    if (action.status === 'APPROVED' && action.decision === 'APPROVED_FULL' && action.comservHoursEarned) {
+      return total + action.comservHoursEarned;
     }
     return total;
   }, 0);
@@ -193,8 +192,8 @@ export const VerificationPage: React.FC = () => {
             <span className="text-base font-black text-gold-300">{approvedTodayCount} Aksi</span>
           </div>
           <div className="bg-white/10 rounded-2xl p-3">
-            <span className="text-xs text-eco-100 block mb-0.5">SAT Diberikan</span>
-            <span className="text-base font-black text-white">{totalSatGiven} SAT</span>
+            <span className="text-xs text-eco-100 block mb-0.5">Comserv Diberikan</span>
+            <span className="text-base font-black text-white">{totalComservGiven} Jam</span>
           </div>
         </div>
       </Card>
@@ -255,7 +254,7 @@ export const VerificationPage: React.FC = () => {
                       variant={isApprovedFull ? 'success' : isCoinsOnly ? 'warning' : 'error'}
                       size="sm"
                     >
-                      {isApprovedFull ? 'Disetujui (+SAT & Coins)' : isCoinsOnly ? 'Disetujui (Coins Saja)' : 'Ditolak'}
+                      {isApprovedFull ? 'Disetujui (+Comserv & Coins)' : isCoinsOnly ? 'Disetujui (Coins Saja)' : 'Ditolak'}
                     </Badge>
                   </div>
 
@@ -278,8 +277,8 @@ export const VerificationPage: React.FC = () => {
                         "{item.story}"
                       </p>
                       <div className="flex items-center gap-3 text-xs font-bold pt-1">
-                        {item.satPointsEarned > 0 && (
-                          <span className="text-blue-700">+{item.satPointsEarned} SAT</span>
+                        {item.comservHoursEarned && item.comservHoursEarned > 0 && (
+                          <span className="text-blue-700">+{item.comservHoursEarned} Jam Comserv</span>
                         )}
                         <span className="text-amber-800">+{item.greenCoinsEarned} GC</span>
                         {item.carbonImpactKg > 0 && (
@@ -534,23 +533,21 @@ export const VerificationPage: React.FC = () => {
 
               {/* Reward Potential Strip */}
               <div className="flex items-center justify-between text-xs font-extrabold bg-slate-50 p-3 rounded-2xl border border-slate-200">
-                <span className="text-blue-700">Potensi: +{action.satPointsEarned} SAT ({action.comservHoursEarned || 0} Jam Comserv)</span>
+                <span className="text-blue-700">Potensi: +{action.comservHoursEarned || 2} Jam Comserv TFI</span>
                 <span className="text-amber-800">+{action.greenCoinsEarned} Green Coins</span>
               </div>
 
               {/* Decision Action Buttons */}
               <div className="space-y-2 pt-1">
-                {action.satPointsEarned > 0 && (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    className="w-full text-xs sm:text-sm font-extrabold py-3 rounded-2xl"
-                    onClick={() => handleDecision(action.id, 'APPROVED_FULL')}
-                  >
-                    <Check className="w-4 h-4" />
-                    Approve Full (Green Coins + SAT Points + Comserv)
-                  </Button>
-                )}
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="w-full text-xs sm:text-sm font-extrabold py-3 rounded-2xl"
+                  onClick={() => handleDecision(action.id, 'APPROVED_FULL')}
+                >
+                  <Check className="w-4 h-4" />
+                  Approve Full (Green Coins + Jam Comserv TFI)
+                </Button>
 
                 <div className="grid grid-cols-2 gap-2.5">
                   <Button

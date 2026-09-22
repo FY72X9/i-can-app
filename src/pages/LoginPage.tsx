@@ -557,7 +557,7 @@ export const LoginPage: React.FC = () => {
                     .filter((u) => u.role !== 'SUPERADMIN')
                     .map((u) => {
                       const isOrganizer = u.role === 'ORGANIZER';
-                      const isTopStudent = u.id === 'usr-student-003' || (u.totalSatPoints && u.totalSatPoints >= 60);
+                      const isTopStudent = u.id === 'usr-student-003' || (u.totalComservHours && u.totalComservHours >= 20);
 
                       return (
                         <button
@@ -586,7 +586,7 @@ export const LoginPage: React.FC = () => {
                               </span>
                             </h4>
                             <p className="text-[9px] text-text-secondary truncate font-mono">
-                              {u.email || (isOrganizer ? 'SSO / TFI' : `${u.totalSatPoints || 0} SAT • ${u.totalGreenCoins || 0} GC`)}
+                              {u.email || (isOrganizer ? 'SSO / TFI' : `${u.totalComservHours || 0} Jam • ${u.totalGreenCoins || 0} GC`)}
                             </p>
                           </div>
                         </button>

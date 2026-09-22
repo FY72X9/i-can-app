@@ -318,10 +318,10 @@ export const EventDetailPage: React.FC = () => {
                         <Coins className="w-3 h-3 text-amber-600" />
                         <span className="text-[11px] font-black text-amber-800">+{activity.coinsReward} GC</span>
                       </div>
-                      {activity.satPointsReward !== undefined && activity.satPointsReward > 0 && (
+                      {activity.comservHoursReward !== undefined && activity.comservHoursReward > 0 && (
                         <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200">
-                          <Star className="w-3 h-3 text-blue-600" />
-                          <span className="text-[11px] font-black text-blue-800">+{activity.satPointsReward} SAT</span>
+                          <Clock className="w-3 h-3 text-blue-600" />
+                          <span className="text-[11px] font-black text-blue-800">+{activity.comservHoursReward} Jam</span>
                         </div>
                       )}
                     </div>

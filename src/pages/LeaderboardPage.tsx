@@ -35,7 +35,7 @@ interface LeaderboardUser {
   faculty: string;
   avatar: string;
   greenCoins: number;
-  satPoints: number;
+  comservHours: number;
   carbonKg: number;
   streakDays: number;
   badge: string;
@@ -50,7 +50,7 @@ interface LeaderboardUser {
 
 export const LeaderboardPage: React.FC = () => {
   const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'BEKEN' | 'SAT' | 'FACULTY' | 'EVENT'>('BEKEN');
+  const [activeTab, setActiveTab] = useState<'BEKEN' | 'COMSERV' | 'FACULTY' | 'EVENT'>('BEKEN');
 
   const [events, setEvents] = useState<CampusEvent[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string>('');
@@ -119,7 +119,7 @@ export const LeaderboardPage: React.FC = () => {
             faculty: a.userFaculty || 'Bina Nusantara',
             avatar: a.userAvatar || 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
             greenCoins: 0,
-            satPoints: 0,
+            comservHours: 0,
             carbonKg: 0,
             streakDays: 0,
             badge: 'Eco Warrior',
@@ -127,13 +127,13 @@ export const LeaderboardPage: React.FC = () => {
               title: a.categoryName || 'Aksi Ramah Lingkungan',
               category: a.submissionType || 'Aksi Harian',
               photo: a.photoUrl,
-              impact: `${a.carbonImpactKg || 0} kg CO2e / ${a.satPointsEarned || 0} SAT`
+              impact: `${a.carbonImpactKg || 0} kg CO2e / ${a.comservHoursEarned || 0} Jam Comserv`
             }
           });
         }
         const u = userMap.get(a.userId)!;
         u.greenCoins += (a.greenCoinsEarned || 0);
-        u.satPoints += (a.satPointsEarned || 0);
+        u.comservHours += (a.comservHoursEarned || 0);
         u.carbonKg += (a.carbonImpactKg || 0);
       });
 
@@ -154,14 +154,14 @@ export const LeaderboardPage: React.FC = () => {
             name: s.faculty,
             carbonNum: 0,
             coinsNum: 0,
-            satNum: 0,
+            comservNum: 0,
             activeStudents: 0
           });
         }
         const f = facultyMap.get(s.faculty)!;
         f.carbonNum += s.carbonKg;
         f.coinsNum += s.greenCoins;
-        f.satNum += s.satPoints;
+        f.comservNum += s.comservHours;
         f.activeStudents += 1;
       });
 
@@ -171,7 +171,7 @@ export const LeaderboardPage: React.FC = () => {
         f.rank = idx + 1;
         f.carbon = `${f.carbonNum.toFixed(1)} kg CO2e`;
         f.coins = `${f.coinsNum} GC`;
-        f.satTotal = `${f.satNum} SAT`;
+        f.comservTotal = `${f.comservNum} Jam Comserv`;
       });
       setFacultyLeaderboard(computedFaculties);
     });
@@ -179,8 +179,8 @@ export const LeaderboardPage: React.FC = () => {
 
   // Sorting logic based on active tab
   const sortedStudents = [...studentRankings].sort((a, b) => {
-    if (activeTab === 'SAT') {
-      return b.satPoints - a.satPoints;
+    if (activeTab === 'COMSERV') {
+      return b.comservHours - a.comservHours;
     }
     return b.greenCoins - a.greenCoins;
   });
@@ -224,14 +224,14 @@ export const LeaderboardPage: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveTab('SAT')}
+            onClick={() => setActiveTab('COMSERV')}
             className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-black transition-all ${
-              activeTab === 'SAT'
+              activeTab === 'COMSERV'
                 ? 'bg-eco-neon text-eco-950 shadow-xs'
                 : 'text-eco-100 hover:text-white'
             }`}
           >
-            🎓 Poin SAT Riil
+            🤝 Jam Comserv TFI
           </button>
 
           <button
@@ -278,7 +278,7 @@ export const LeaderboardPage: React.FC = () => {
                 <h4 className="text-xs sm:text-sm font-black text-text-primary truncate">{runnerUp.name}</h4>
                 <p className="text-xs text-text-secondary truncate mt-0.5">{runnerUp.faculty.split(' ')[0]}</p>
                 <div className="mt-1.5 text-xs sm:text-sm font-black text-slate-800">
-                  {activeTab === 'SAT' ? `${runnerUp.satPoints} SAT` : `${runnerUp.greenCoins} GC`}
+                  {activeTab === 'COMSERV' ? `${runnerUp.comservHours} Jam` : `${runnerUp.greenCoins} GC`}
                 </div>
               </div>
             </div>
@@ -300,7 +300,7 @@ export const LeaderboardPage: React.FC = () => {
                 <h4 className="text-xs sm:text-sm font-black text-text-primary truncate mt-1">{topStudent.name}</h4>
                 <p className="text-xs text-text-secondary truncate mt-0.5">{topStudent.faculty.split(' ')[0]}</p>
                 <div className="mt-1.5 text-sm sm:text-base font-black text-amber-900">
-                  {activeTab === 'SAT' ? `${topStudent.satPoints} SAT` : `${topStudent.greenCoins} GC`}
+                  {activeTab === 'COMSERV' ? `${topStudent.comservHours} Jam` : `${topStudent.greenCoins} GC`}
                 </div>
               </div>
             </div>
@@ -319,7 +319,7 @@ export const LeaderboardPage: React.FC = () => {
                 <h4 className="text-xs sm:text-sm font-black text-text-primary truncate">{thirdPlace.name}</h4>
                 <p className="text-xs text-text-secondary truncate mt-0.5">{thirdPlace.faculty.split(' ')[0]}</p>
                 <div className="mt-1.5 text-xs sm:text-sm font-black text-amber-800">
-                  {activeTab === 'SAT' ? `${thirdPlace.satPoints} SAT` : `${thirdPlace.greenCoins} GC`}
+                  {activeTab === 'COMSERV' ? `${thirdPlace.comservHours} Jam` : `${thirdPlace.greenCoins} GC`}
                 </div>
               </div>
             </div>
@@ -444,7 +444,7 @@ export const LeaderboardPage: React.FC = () => {
                   <div className="min-w-0">
                     <h4 className="text-xs sm:text-sm font-black text-text-primary truncate">{fac.name}</h4>
                     <p className="text-xs text-text-secondary font-mono mt-0.5">
-                      {fac.carbon} • {fac.satTotal} ({fac.activeStudents} Mahasiswa)
+                      {fac.carbon} • {fac.comservTotal} ({fac.activeStudents} Mahasiswa)
                     </p>
                   </div>
                 </div>
@@ -504,7 +504,7 @@ export const LeaderboardPage: React.FC = () => {
 
                 <div className="text-right shrink-0">
                   <span className="text-xs sm:text-sm font-black text-text-primary block">
-                    {activeTab === 'SAT' ? `+${s.satPoints} SAT` : `${s.greenCoins} GC`}
+                    {activeTab === 'COMSERV' ? `+${s.comservHours} Jam` : `${s.greenCoins} GC`}
                   </span>
                   <p className="text-xs text-text-secondary font-mono mt-0.5">{s.carbonKg} kg CO2e</p>
                 </div>

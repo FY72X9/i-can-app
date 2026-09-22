@@ -31,7 +31,7 @@ export const CallbackPage: React.FC = () => {
         role,
         facultyName,
         totalGreenCoins: 50,
-        totalSatPoints: 0,
+        totalComservHours: 0,
         totalCarbonSaved: 0.0,
         streakDays: 1,
         createdAt: new Date().toISOString(),

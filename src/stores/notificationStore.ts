@@ -107,7 +107,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => {
             generatedNotifs.push({
               id: `notif-${act.id}`,
               title: 'Aksi Nyata Disetujui Penuh! 🌳',
-              desc: `+${act.satPointsEarned} SAT Points & +${act.greenCoinsEarned} GC masuk ke transkrip kamu dari kegiatan "${act.categoryName}".`,
+              desc: `+${act.comservHoursEarned || 2} Jam Comserv & +${act.greenCoinsEarned} GC telah disetujui untuk kegiatan "${act.categoryName}".`,
               time: timeAgoStr,
               timestamp: Date.now() - timeOffset,
               type: 'sat',

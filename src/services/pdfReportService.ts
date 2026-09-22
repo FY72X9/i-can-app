@@ -186,14 +186,12 @@ export async function downloadActionPdfReport(
   printKeyValue('b. Pilar Program', pillarLabel);
   printKeyValue('c. Status Dokumen', statusLabel);
   printKeyValue('d. Tanggal Pelaksanaan', dateStr);
-  printKeyValue('e. Lokasi / Checkpoint', locationLabel);
-  printKeyValue('f. Capaian Poin SAT', `+${action.satPointsEarned || 0} Poin SAT`);
   printKeyValue(
-    'g. Jam Pengabdian',
-    `${action.comservHoursEarned || (action.satPointsEarned ? action.satPointsEarned * 0.5 : 0)} Jam Community Service (Comserv)`
+    'f. Jam Pengabdian',
+    `${action.comservHoursEarned || 2.0} Jam Community Service (Comserv TFI)`
   );
-  printKeyValue('h. Reduksi Emisi Karbon', `${action.carbonImpactKg || 0.5} kg CO2eq`);
-  printKeyValue('i. Insentif Green Coins', `+${action.greenCoinsEarned || 0} Green Coins (GC)`);
+  printKeyValue('g. Reduksi Emisi Karbon', `${action.carbonImpactKg || 0.5} kg CO2eq`);
+  printKeyValue('h. Insentif Green Coins', `+${action.greenCoinsEarned || 0} Green Coins (GC)`);
 
   cursorY += 4;
 

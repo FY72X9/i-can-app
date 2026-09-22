@@ -22,6 +22,7 @@ import {
 } from '@/services/questProgramService';
 import { 
   LayoutDashboard, 
+  Menu,
   Users, 
   User,
   UserCheck,
@@ -79,11 +80,18 @@ import {
   Shirt,
   FileSpreadsheet,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Handshake
 } from 'lucide-react';
 import { compressImage } from '@/utils/imageCompressor';
 import { FormattedText } from '@/components/common/FormattedText';
 import { ImportUsersModal } from '@/components/admin/ImportUsersModal';
+import { Partner } from '@/types/partner';
+import { getPartners, createPartner, updatePartner, deletePartner } from '@/services/partnerService';
+import { PartnerFormModal } from '@/components/admin/PartnerFormModal';
+import { PartnerDetailModal } from '@/components/admin/PartnerDetailModal';
+import { PartnerDashboardWidget } from '@/components/admin/PartnerDashboardWidget';
+import { StudentGreenActivityMonitor } from '@/components/admin/StudentGreenActivityMonitor';
 
 const PROGRAM_ICONS_LIST = [
   { id: 'TreePine', label: 'Pohon', icon: TreePine },
@@ -127,7 +135,13 @@ export const AdminLtePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, loginAs, updateUserStats, updateOwnProfile, changeOwnPassword } = useAuthStore();
 
-  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'users' | 'actions' | 'grant' | 'sdg' | 'events' | 'quests' | 'programs' | 'profile'>('dashboard');
+  const [activeMenu, setActiveMenu] = useState<'dashboard' | 'users' | 'actions' | 'grant' | 'sdg' | 'partners' | 'events' | 'quests' | 'programs' | 'profile'>('dashboard');
+
+  // SDG 17 Partners Management State
+  const [partnersList, setPartnersList] = useState<Partner[]>([]);
+  const [isPartnerFormOpen, setIsPartnerFormOpen] = useState(false);
+  const [selectedPartnerForDetail, setSelectedPartnerForDetail] = useState<Partner | null>(null);
+  const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
 
   // Admin / SSO Own Profile Form State
   const [adminFullName, setAdminFullName] = useState(user?.fullName || '');
@@ -261,11 +275,14 @@ export const AdminLtePage: React.FC = () => {
   const [actionsCategoryFilter, setActionsCategoryFilter] = useState<string>('ALL');
   const actionsItemsPerPage = 10;
 
+  // Sidebar Collapsible State
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+
   // Manual Grant Modal
   const [selectedUserForGrant, setSelectedUserForGrant] = useState<string>('usr-student-001');
-  const [grantSatAmount, setGrantSatAmount] = useState<number>(4);
+  const [grantComservHours, setGrantComservHours] = useState<number>(4);
   const [grantCoinsAmount, setGrantCoinsAmount] = useState<number>(25);
-  const [grantReason, setGrantReason] = useState<string>('Pemberian SAT Manual oleh SSO');
+  const [grantReason, setGrantReason] = useState<string>('Pemberian Jam Comserv Manual oleh SSO');
   const [grantSuccessMsg, setGrantSuccessMsg] = useState<string | null>(null);
 
   // Event Management State
@@ -325,7 +342,7 @@ export const AdminLtePage: React.FC = () => {
     hashtags: '#WasteForChange #CampusEcoFair #ZeroWasteBinus',
     allowGroupMembers: false,
     maxGroupMembers: 3,
-    activities: [{ name: '', description: '', coinsReward: 10, satPointsReward: 0 }] as Array<{ name: string; description: string; coinsReward: number; satPointsReward?: number }>,
+    activities: [{ name: '', description: '', coinsReward: 10, comservHoursReward: 0 }] as Array<{ name: string; description: string; coinsReward: number; comservHoursReward?: number }>,
   });
   const [showRewardGuide, setShowRewardGuide] = useState(false);
   const [bannerInputMode, setBannerInputMode] = useState<'upload' | 'url'>('upload');
@@ -345,7 +362,6 @@ export const AdminLtePage: React.FC = () => {
     desc: '',
     reward: '+15 Green Coins',
     coinsReward: 15,
-    satReward: 0,
     deadline: 'Sisa Hari Ini',
     actionUrl: '/upload',
     isActive: true,
@@ -361,7 +377,6 @@ export const AdminLtePage: React.FC = () => {
     title: '',
     category: 'Penyuluhan & Aksi Nyata',
     categoryType: 'PENYULUHAN_AKSI_NYATA' as ActionType,
-    satPoints: 4,
     comservHours: 2.0,
     coins: 25,
     co2: '5.0 kg',
@@ -405,6 +420,39 @@ export const AdminLtePage: React.FC = () => {
     setQuestsList(quests);
     const progs = await getActionPrograms();
     setProgramsList(progs);
+
+    // Load SDG 17 Partners
+    const partners = await getPartners();
+    setPartnersList(partners);
+  };
+
+  const handleSavePartner = async (partnerData: Omit<Partner, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      if (editingPartner) {
+        await updatePartner(editingPartner.id, partnerData);
+      } else {
+        await createPartner(partnerData);
+      }
+      const updated = await getPartners();
+      setPartnersList(updated);
+      setIsPartnerFormOpen(false);
+      setEditingPartner(null);
+    } catch (err: any) {
+      alert(`Gagal menyimpan data kemitraan: ${err.message}`);
+    }
+  };
+
+  const handleDeletePartner = async (partnerId: string) => {
+    try {
+      await deletePartner(partnerId);
+      const updated = await getPartners();
+      setPartnersList(updated);
+      if (selectedPartnerForDetail?.id === partnerId) {
+        setSelectedPartnerForDetail(null);
+      }
+    } catch (err: any) {
+      alert(`Gagal menghapus kemitraan: ${err.message}`);
+    }
   };
 
   const handleSyncToSupabase = async () => {
@@ -432,7 +480,6 @@ export const AdminLtePage: React.FC = () => {
       desc: '',
       reward: '+15 Green Coins',
       coinsReward: 15,
-      satReward: 0,
       deadline: 'Sisa Hari Ini',
       actionUrl: '/upload',
       isActive: true,
@@ -447,7 +494,6 @@ export const AdminLtePage: React.FC = () => {
       desc: quest.desc,
       reward: quest.reward,
       coinsReward: quest.coinsReward || 15,
-      satReward: quest.satReward || 0,
       deadline: quest.deadline,
       actionUrl: quest.actionUrl || '/upload',
       isActive: quest.isActive,
@@ -461,9 +507,7 @@ export const AdminLtePage: React.FC = () => {
       alert('Judul dan deskripsi misi wajib diisi!');
       return;
     }
-    const rewardText = questFormData.satReward && questFormData.satReward > 0
-      ? `+${questFormData.coinsReward} GC & +${questFormData.satReward} SAT`
-      : `+${questFormData.coinsReward} Green Coins`;
+    const rewardText = `+${questFormData.coinsReward} Green Coins`;
 
     if (editingQuest) {
       await updateDailyQuest(editingQuest.id, {
@@ -512,7 +556,6 @@ export const AdminLtePage: React.FC = () => {
       title: '',
       category: 'Penyuluhan & Aksi Nyata',
       categoryType: 'PENYULUHAN_AKSI_NYATA',
-      satPoints: 4,
       comservHours: 2.0,
       coins: 25,
       co2: '5.0 kg',
@@ -533,7 +576,6 @@ export const AdminLtePage: React.FC = () => {
       title: prog.title,
       category: prog.category,
       categoryType: prog.categoryType,
-      satPoints: prog.satPoints,
       comservHours: prog.comservHours,
       coins: prog.coins,
       co2: prog.co2,
@@ -620,7 +662,7 @@ export const AdminLtePage: React.FC = () => {
       if (u.id === selectedUserForGrant) {
         return {
           ...u,
-          totalSatPoints: (u.totalSatPoints || 0) + Number(grantSatAmount),
+          totalComservHours: (u.totalComservHours || 0) + Number(grantComservHours),
           totalGreenCoins: (u.totalGreenCoins || 0) + Number(grantCoinsAmount),
         };
       }
@@ -638,7 +680,7 @@ export const AdminLtePage: React.FC = () => {
           acc.id === selectedUserForGrant
             ? {
                 ...acc,
-                totalSatPoints: (acc.totalSatPoints || 0) + Number(grantSatAmount),
+                totalComservHours: (acc.totalComservHours || 0) + Number(grantComservHours),
                 totalGreenCoins: (acc.totalGreenCoins || 0) + Number(grantCoinsAmount),
               }
             : acc
@@ -649,7 +691,7 @@ export const AdminLtePage: React.FC = () => {
 
     if (user?.id === selectedUserForGrant) {
       updateUserStats({
-        satPoints: Number(grantSatAmount),
+        comservHours: Number(grantComservHours),
         greenCoins: Number(grantCoinsAmount),
       });
     }
@@ -657,10 +699,10 @@ export const AdminLtePage: React.FC = () => {
     // Persist reward to Supabase & local storage via central helper
     applyRewardToUser(selectedUserForGrant, {
       greenCoins: Number(grantCoinsAmount),
-      satPoints: Number(grantSatAmount),
+      comservHours: Number(grantComservHours),
     }).catch(console.warn);
 
-    setGrantSuccessMsg(`Sukses menambahkan +${grantSatAmount} SAT dan +${grantCoinsAmount} GC ke ${targetUser.fullName}`);
+    setGrantSuccessMsg(`Sukses menambahkan +${grantComservHours} Jam Comserv TFI dan +${grantCoinsAmount} GC ke ${targetUser.fullName}`);
     setTimeout(() => setGrantSuccessMsg(null), 3500);
   };
 
@@ -889,7 +931,6 @@ export const AdminLtePage: React.FC = () => {
         description: act.description.trim(),
         qrCodeValue: (act as any).qrCodeValue || `ican-evt-${Date.now().toString(36)}-act${idx + 1}`,
         coinsReward: Number(act.coinsReward) || 10,
-        satPointsReward: Number(act.satPointsReward) || 0,
         order: idx,
       }));
 
@@ -946,7 +987,7 @@ export const AdminLtePage: React.FC = () => {
       hashtags: '#WasteForChange #CampusEcoFair #ZeroWasteBinus',
       allowGroupMembers: false,
       maxGroupMembers: 3,
-      activities: [{ name: '', description: '', coinsReward: 10, satPointsReward: 0 }],
+      activities: [{ name: '', description: '', coinsReward: 10, comservHoursReward: 0 }],
     });
     await loadData();
   };
@@ -985,7 +1026,7 @@ export const AdminLtePage: React.FC = () => {
         name: a.name,
         description: a.description,
         coinsReward: a.coinsReward,
-        satPointsReward: a.satPointsReward || 0,
+        comservHoursReward: a.comservHoursReward || 0,
       })),
     });
     setShowEventForm(true);
@@ -994,7 +1035,7 @@ export const AdminLtePage: React.FC = () => {
   const addActivityField = () => {
     setEventFormData((prev) => ({
       ...prev,
-      activities: [...prev.activities, { name: '', description: '', coinsReward: 10, satPointsReward: 0 }],
+      activities: [...prev.activities, { name: '', description: '', coinsReward: 10, comservHoursReward: 0 }],
     }));
   };
 
@@ -1002,7 +1043,7 @@ export const AdminLtePage: React.FC = () => {
     setEventFormData((prev) => ({
       ...prev,
       activities: prev.activities.map((a, i) =>
-        i === idx ? { ...a, coinsReward: coins, satPointsReward: 0 } : a
+        i === idx ? { ...a, coinsReward: coins } : a
       ),
     }));
   };
@@ -1024,9 +1065,9 @@ export const AdminLtePage: React.FC = () => {
   // KPIs
   const totalUsers = usersList.length;
   const verifiedActions = actionsList.filter((a) => a.status === 'APPROVED').length;
-  const totalSatAwarded = actionsList.reduce((acc, a) => {
+  const totalComservAwarded = actionsList.reduce((acc, a) => {
     if (a.status === 'APPROVED' && a.decision === 'APPROVED_FULL') {
-      return acc + (a.satPointsEarned || 0);
+      return acc + (a.comservHoursEarned || 0);
     }
     return acc;
   }, 0);
@@ -1079,17 +1120,28 @@ export const AdminLtePage: React.FC = () => {
   return (
     <div className={`min-h-screen bg-[#f4f6f9] font-sans ${isWideView ? 'w-full' : 'max-w-[414px] mx-auto shadow-2xl relative'}`}>
       {/* 1. AdminLTE Inspired Header Navbar */}
-      <header className="bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between sticky top-0 z-50 shadow-xs">
-        <div className="flex items-center gap-3">
+      <header className="bg-white border-b border-slate-200 px-3 sm:px-4 py-2.5 flex items-center justify-between sticky top-0 z-50 shadow-xs">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Sidebar Show/Hide Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen((prev) => !prev)}
+            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors flex items-center justify-center shadow-2xs active:scale-95"
+            title={isSidebarOpen ? "Sembunyikan Sidebar" : "Tampilkan Sidebar"}
+            aria-label="Toggle Sidebar"
+          >
+            <Menu className="w-4 h-4 text-slate-800" />
+          </button>
+
           <div className="flex items-center gap-2">
-            <div className={`w-8 h-8 rounded-xl text-white flex items-center justify-center font-black text-xs shadow-xs ${user?.role === 'SUPERADMIN' ? 'bg-[#007bff]' : 'bg-amber-600'}`}>
+            <div className={`w-8 h-8 rounded-xl text-white flex items-center justify-center font-black text-xs shadow-xs shrink-0 ${user?.role === 'SUPERADMIN' ? 'bg-[#007bff]' : 'bg-amber-600'}`}>
               LTE
             </div>
-            <div>
-              <span className="text-xs sm:text-sm font-black text-slate-800 tracking-tight block">
+            <div className="min-w-0">
+              <span className="text-xs sm:text-sm font-black text-slate-800 tracking-tight block truncate">
                 BINUS I-CAN • {user?.role === 'SUPERADMIN' ? 'Super Admin SSO Platform' : 'Event Organizer Portal'}
               </span>
-              <span className="text-[10px] text-slate-500 font-bold block">
+              <span className="text-[10px] text-slate-500 font-bold block truncate">
                 {user?.fullName} ({user?.facultyName || 'BINUS University'})
               </span>
             </div>
@@ -1147,8 +1199,8 @@ export const AdminLtePage: React.FC = () => {
 
       {/* 2. Main AdminLTE Layout Grid (Sidebar + Content Body) */}
       <div className="flex flex-col md:flex-row min-h-[580px]">
-        {/* Dark Navy AdminLTE Sidebar */}
-        <aside className="w-full md:w-56 bg-[#343a40] text-[#c2c7d0] p-3 shrink-0 space-y-4">
+        {/* Dark Navy AdminLTE Sidebar with Collapsible State */}
+        <aside className={`${isSidebarOpen ? 'block w-full md:w-64' : 'hidden'} bg-[#343a40] text-[#c2c7d0] p-3 shrink-0 space-y-3 transition-all duration-200`}>
           {/* User Profile Bar */}
           <div 
             onClick={() => setActiveMenu('profile')}
@@ -1172,128 +1224,167 @@ export const AdminLtePage: React.FC = () => {
             <Settings className="w-3.5 h-3.5 text-slate-400 group-hover:text-white shrink-0" />
           </div>
 
-          {/* Navigation Menu */}
-          <nav className="space-y-1 text-xs font-bold">
-            <button
-              onClick={() => setActiveMenu('dashboard')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left ${
-                activeMenu === 'dashboard' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Dashboard Utama</span>
-            </button>
-
-            {user?.role === 'SUPERADMIN' && (
+          {/* Navigation Menu Categorized */}
+          <nav className="space-y-3 text-xs font-bold">
+            {/* Category: Menu Utama */}
+            <div className="space-y-1">
+              <div className="px-2 py-0.5 text-[10px] uppercase font-black tracking-wider text-slate-400">
+                Menu Utama
+              </div>
               <button
-                onClick={() => setActiveMenu('users')}
+                onClick={() => setActiveMenu('dashboard')}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left ${
+                  activeMenu === 'dashboard' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                }`}
+              >
+                <LayoutDashboard className="w-4 h-4 text-blue-400" />
+                <span>Dashboard Utama</span>
+              </button>
+            </div>
+
+            {/* Category: Verifikasi & Aksi */}
+            <div className="space-y-1">
+              <div className="px-2 py-0.5 text-[10px] uppercase font-black tracking-wider text-slate-400">
+                Verifikasi & Aksi
+              </div>
+              <button
+                onClick={() => setActiveMenu('actions')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
-                  activeMenu === 'users' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                  activeMenu === 'actions' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Users className="w-4 h-4" />
-                  <span>Manajemen Akun</span>
+                  <CheckSquare className="w-4 h-4 text-emerald-400" />
+                  <span>Log Verifikasi Aksi</span>
                 </div>
-                <span className="bg-[#17a2b8] text-white text-[9px] px-1.5 py-0.2 rounded-full">{usersList.length}</span>
+                <span className="bg-[#ffc107] text-slate-900 text-[9px] px-1.5 py-0.2 rounded-full font-black">
+                  {actionsList.filter((a) => a.status === 'PENDING').length}
+                </span>
               </button>
-            )}
 
-            <button
-              onClick={() => setActiveMenu('actions')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
-                activeMenu === 'actions' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <CheckSquare className="w-4 h-4" />
-                <span>Log Verifikasi Aksi</span>
+              {user?.role === 'SUPERADMIN' && (
+                <>
+                  <button
+                    onClick={() => setActiveMenu('programs')}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
+                      activeMenu === 'programs' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <TreePine className="w-4 h-4 text-emerald-400" />
+                      <span>Program Aksi Nyata</span>
+                    </div>
+                    <span className="bg-emerald-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-black">
+                      {programsList.filter((p) => p.isActive).length}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveMenu('quests')}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
+                      activeMenu === 'quests' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Zap className="w-4 h-4 text-amber-400" />
+                      <span>Daily Quests</span>
+                    </div>
+                    <span className="bg-amber-500 text-slate-900 text-[9px] px-1.5 py-0.2 rounded-full font-black">
+                      {questsList.filter((q) => q.isActive).length}
+                    </span>
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Category: Kolaborasi & Event */}
+            <div className="space-y-1">
+              <div className="px-2 py-0.5 text-[10px] uppercase font-black tracking-wider text-slate-400">
+                Kolaborasi & SDG
               </div>
-              <span className="bg-[#ffc107] text-slate-900 text-[9px] px-1.5 py-0.2 rounded-full font-black">
-                {actionsList.filter((a) => a.status === 'PENDING').length}
-              </span>
-            </button>
-
-            {user?.role === 'SUPERADMIN' && (
               <button
-                onClick={() => setActiveMenu('grant')}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left ${
-                  activeMenu === 'grant' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                onClick={() => setActiveMenu('partners')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
+                  activeMenu === 'partners' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
                 }`}
               >
-                <GraduationCap className="w-4 h-4" />
-                <span>Manual SAT Grant</span>
+                <div className="flex items-center gap-2.5">
+                  <Handshake className="w-4 h-4 text-cyan-300" />
+                  <span>Mitra SDG 17</span>
+                </div>
+                <span className="bg-[#17a2b8] text-white text-[9px] px-1.5 py-0.2 rounded-full font-black">
+                  {partnersList.length}
+                </span>
               </button>
-            )}
 
-            {user?.role === 'SUPERADMIN' && (
-              <>
-                <button
-                  onClick={() => setActiveMenu('quests')}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
-                    activeMenu === 'quests' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Zap className="w-4 h-4 text-amber-400" />
-                    <span>Daily Quests</span>
-                  </div>
-                  <span className="bg-amber-500 text-slate-900 text-[9px] px-1.5 py-0.2 rounded-full font-black">
-                    {questsList.filter((q) => q.isActive).length}
-                  </span>
-                </button>
+              <button
+                onClick={() => setActiveMenu('events')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
+                  activeMenu === 'events' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Calendar className="w-4 h-4 text-blue-400" />
+                  <span>Manajemen Event</span>
+                </div>
+                <span className="bg-[#28a745] text-white text-[9px] px-1.5 py-0.2 rounded-full">{eventsList.length}</span>
+              </button>
 
-                <button
-                  onClick={() => setActiveMenu('programs')}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
-                    activeMenu === 'programs' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <TreePine className="w-4 h-4 text-emerald-400" />
-                    <span>Program Aksi Nyata</span>
-                  </div>
-                  <span className="bg-emerald-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-black">
-                    {programsList.filter((p) => p.isActive).length}
-                  </span>
-                </button>
-              </>
-            )}
+              <button
+                onClick={() => setActiveMenu('sdg')}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left ${
+                  activeMenu === 'sdg' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                }`}
+              >
+                <BarChart3 className="w-4 h-4 text-purple-400" />
+                <span>Analitik SDG Kampus</span>
+              </button>
+            </div>
 
-            <button
-              onClick={() => setActiveMenu('events')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
-                activeMenu === 'events' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Calendar className="w-4 h-4" />
-                <span>Manajemen Event</span>
+            {/* Category: Pengaturan & Akun */}
+            <div className="space-y-1">
+              <div className="px-2 py-0.5 text-[10px] uppercase font-black tracking-wider text-slate-400">
+                Pengaturan & Akun
               </div>
-              <span className="bg-[#28a745] text-white text-[9px] px-1.5 py-0.2 rounded-full">{eventsList.length}</span>
-            </button>
+              {user?.role === 'SUPERADMIN' && (
+                <>
+                  <button
+                    onClick={() => setActiveMenu('users')}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-left ${
+                      activeMenu === 'users' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Users className="w-4 h-4 text-sky-400" />
+                      <span>Manajemen Akun</span>
+                    </div>
+                    <span className="bg-[#17a2b8] text-white text-[9px] px-1.5 py-0.2 rounded-full">{usersList.length}</span>
+                  </button>
 
-            <button
-              onClick={() => setActiveMenu('sdg')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left ${
-                activeMenu === 'sdg' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span>Analitik SDG Kampus</span>
-            </button>
+                  <button
+                    onClick={() => setActiveMenu('grant')}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left ${
+                      activeMenu === 'grant' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                    }`}
+                  >
+                    <Clock className="w-4 h-4 text-amber-400" />
+                    <span>Grant Comserv & Coins</span>
+                  </button>
+                </>
+              )}
 
-            <button
-              onClick={() => setActiveMenu('profile')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left ${
-                activeMenu === 'profile' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
-              }`}
-            >
-              <UserCheck className="w-4 h-4 text-cyan-400" />
-              <span>Profil & Akun Saya</span>
-            </button>
+              <button
+                onClick={() => setActiveMenu('profile')}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-left ${
+                  activeMenu === 'profile' ? 'bg-[#007bff] text-white shadow-xs' : 'hover:bg-[#494e53] text-[#c2c7d0]'
+                }`}
+              >
+                <UserCheck className="w-4 h-4 text-cyan-400" />
+                <span>Profil & Akun Saya</span>
+              </button>
+            </div>
 
-            <div className="pt-4 mt-4 border-t border-[#4f5962]">
+            <div className="pt-2 mt-2 border-t border-[#4f5962]">
               <button
                 onClick={() => {
                   useAuthStore.getState().logout();
@@ -1317,11 +1408,12 @@ export const AdminLtePage: React.FC = () => {
                 {activeMenu === 'dashboard' && 'Dashboard Overview (SSO & TFI)'}
                 {activeMenu === 'users' && 'Manajemen Pengguna & Pengaturan Role'}
                 {activeMenu === 'actions' && 'Log & Validasi Aksi Nyata Mahasiswa'}
-                {activeMenu === 'grant' && 'Pemberian Poin SAT & Jam Comserv Manual'}
-                {activeMenu === 'quests' && 'Manajemen Daily Quests (Misi Kampus)'}
-                {activeMenu === 'programs' && 'Manajemen Program Aksi Nyata'}
+                {activeMenu === 'events' && 'Manajemen Event Kampus & Pos Kegiatan'}
+                {activeMenu === 'quests' && 'Manajemen Daily Quests (Misi Harian)'}
+                {activeMenu === 'programs' && 'Manajemen Program Aksi Nyata (TFI)'}
+                {activeMenu === 'partners' && 'Manajemen Mitra Kerjasama & Dokumen Legal (SDG 17)'}
+                {activeMenu === 'grant' && 'Pemberian Jam Comserv & Green Coins Manual'}
                 {activeMenu === 'sdg' && 'Metrik & Dampak Berkelanjutan SDG Kampus'}
-                {activeMenu === 'events' && 'Manajemen Event Kampus & QR Pos'}
                 {activeMenu === 'profile' && 'Pengaturan Profil & Akun Administrator'}
               </h1>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -1353,13 +1445,13 @@ export const AdminLtePage: React.FC = () => {
               <CheckSquare className="w-12 h-12 text-white/20 absolute right-2 bottom-2" />
             </div>
 
-            {/* Box 3: SAT Distributed (bg-warning #ffc107) */}
+            {/* Box 3: Comserv Hours Distributed (bg-warning #ffc107) */}
             <div className="bg-[#ffc107] text-[#1f2d3d] p-4 sm:p-5 rounded-2xl shadow-xs relative overflow-hidden flex flex-col justify-between">
               <div>
-                <div className="text-2xl sm:text-3xl font-black">{totalSatAwarded} SAT</div>
-                <p className="text-xs font-bold text-amber-900 mt-0.5">Poin SAT Transkrip</p>
+                <div className="text-2xl sm:text-3xl font-black">{totalComservAwarded} Jam</div>
+                <p className="text-xs font-bold text-amber-900 mt-0.5">Jam Comserv Disalurkan</p>
               </div>
-              <GraduationCap className="w-12 h-12 text-black/15 absolute right-2 bottom-2" />
+              <Clock className="w-12 h-12 text-black/15 absolute right-2 bottom-2" />
             </div>
 
             {/* Box 4: Carbon Reduced (bg-danger #dc3545) */}
@@ -1448,6 +1540,23 @@ export const AdminLtePage: React.FC = () => {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Monitor Green Activity Mahasiswa (Timeframe Minggu / Bulan / Tahun) */}
+          {activeMenu === 'dashboard' && (
+            <StudentGreenActivityMonitor actions={actionsList} />
+          )}
+
+          {/* Segmen Kemitraan SDG 17 & Mitra Kolaborasi pada Dashboard */}
+          {activeMenu === 'dashboard' && (
+            <PartnerDashboardWidget
+              partners={partnersList}
+              onAddPartner={() => {
+                setEditingPartner(null);
+                setIsPartnerFormOpen(true);
+              }}
+              onViewPartner={(p) => setSelectedPartnerForDetail(p)}
+            />
           )}
 
           {/* 4. Tab Content: Dashboard & Table 1: Manajemen Akun */}
@@ -1547,7 +1656,7 @@ export const AdminLtePage: React.FC = () => {
                       <th className="p-3 font-black">Nama Lengkap</th>
                       <th className="p-3 font-black">Fakultas / Unit</th>
                       <th className="p-3 font-black">Green Coins</th>
-                      <th className="p-3 font-black">Poin SAT</th>
+                      <th className="p-3 font-black">Jam Comserv</th>
                       <th className="p-3 font-black">Role</th>
                       <th className="p-3 font-black">Status</th>
                       <th className="p-3 font-black">Aksi</th>
@@ -1588,7 +1697,7 @@ export const AdminLtePage: React.FC = () => {
                             </td>
                             <td className="p-3 text-slate-600 text-xs">{u.facultyName}</td>
                             <td className="p-3 font-bold text-amber-700 font-mono text-xs">{u.totalGreenCoins || 0} GC</td>
-                            <td className="p-3 font-bold text-blue-700 font-mono text-xs">{u.totalSatPoints || 0} SAT</td>
+                            <td className="p-3 font-bold text-blue-700 font-mono text-xs">{u.totalComservHours || 0} Jam</td>
                             <td className="p-3">
                               <span className={`text-xs font-bold py-1 px-2.5 rounded-xl ${
                                 u.role === 'SUPERADMIN'
@@ -1818,7 +1927,7 @@ export const AdminLtePage: React.FC = () => {
                       <th className="p-3 font-black">Kategori Aksi</th>
                       <th className="p-3 font-black">Tipe Program</th>
                       <th className="p-3 font-black">Bukti</th>
-                      <th className="p-3 font-black">Potensi SAT</th>
+                      <th className="p-3 font-black">Jam Comserv</th>
                       <th className="p-3 font-black">AI Score</th>
                       <th className="p-3 font-black">Status</th>
                       <th className="p-3 font-black">Aksi Verifikasi</th>
@@ -1839,7 +1948,7 @@ export const AdminLtePage: React.FC = () => {
                             Lihat Bukti
                           </button>
                         </td>
-                        <td className="p-3 font-bold text-blue-700 font-mono text-xs">+{act.satPointsEarned} SAT</td>
+                        <td className="p-3 font-bold text-blue-700 font-mono text-xs">+{act.comservHoursEarned || 0} Jam</td>
                         <td className="p-3 font-bold text-emerald-700 font-mono text-xs">
                           {Math.round((act.aiConfidence || 0.9) * 100)}%
                         </td>
@@ -1862,7 +1971,7 @@ export const AdminLtePage: React.FC = () => {
                               <button
                                 onClick={() => handleAdminVerify(act.id, 'APPROVED_FULL')}
                                 className="px-2.5 py-1.5 bg-[#28a745] hover:bg-[#218838] text-white rounded-lg text-[10px] font-bold transition-colors"
-                                title="Approve Full SAT + Coins"
+                                title="Approve Full Comserv + Coins"
                               >
                                 Approve
                               </button>
@@ -1920,16 +2029,16 @@ export const AdminLtePage: React.FC = () => {
             </div>
           )}
 
-          {/* 6. Tab Content: Manual SAT Grant Tool */}
+          {/* 6. Tab Content: Manual Comserv & Coins Grant Tool */}
           {activeMenu === 'grant' && (
             <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 max-w-lg space-y-4">
               <div className="flex items-center gap-2 text-slate-800">
-                <GraduationCap className="w-5 h-5 text-[#007bff]" />
-                <h3 className="text-sm sm:text-base font-black">Direct Manual SAT & Coins Granting</h3>
+                <Clock className="w-5 h-5 text-[#007bff]" />
+                <h3 className="text-sm sm:text-base font-black">Direct Manual Comserv & Coins Granting</h3>
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed">
-                Fitur khusus SSO untuk memberikan Poin SAT atau Green Coins langsung kepada mahasiswa (misalnya pemenang kompetisi lingkungan khusus atau aksi di luar jadwal).
+                Fitur khusus SSO untuk memberikan Jam Community Service (Comserv TFI) atau Green Coins langsung kepada mahasiswa (misalnya pemenang kompetisi lingkungan khusus atau aksi di luar jadwal).
               </p>
 
               {grantSuccessMsg && (
@@ -1957,13 +2066,14 @@ export const AdminLtePage: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1.5">Jumlah Poin SAT</label>
+                    <label className="text-xs font-bold text-slate-700 block mb-1.5">Jumlah Jam Comserv (TFI)</label>
                     <input
                       type="number"
-                      min={1}
-                      max={20}
-                      value={grantSatAmount}
-                      onChange={(e) => setGrantSatAmount(Number(e.target.value))}
+                      min={0.5}
+                      step={0.5}
+                      max={40}
+                      value={grantComservHours}
+                      onChange={(e) => setGrantComservHours(Number(e.target.value))}
                       className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none font-mono"
                       required
                     />
@@ -1999,7 +2109,7 @@ export const AdminLtePage: React.FC = () => {
                   type="submit"
                   className="w-full py-3.5 bg-[#007bff] hover:bg-[#0069d9] text-white rounded-2xl text-xs sm:text-sm font-black shadow-xs transition-colors"
                 >
-                  Eksekusi Pemberian Poin SAT →
+                  Eksekusi Pemberian Jam Comserv & Coins →
                 </button>
               </form>
             </div>
@@ -2043,6 +2153,32 @@ export const AdminLtePage: React.FC = () => {
                   <p className="text-xs text-slate-500 font-bold">68% terverifikasi berstandar APA Style</p>
                 </div>
               </div>
+
+              {/* SDG 17 Kemitraan Module inside SDG Tab */}
+              <div className="pt-2">
+                <PartnerDashboardWidget
+                  partners={partnersList}
+                  onAddPartner={() => {
+                    setEditingPartner(null);
+                    setIsPartnerFormOpen(true);
+                  }}
+                  onViewPartner={(p) => setSelectedPartnerForDetail(p)}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Tab Content: SDG 17 Dedicated Partners Management */}
+          {activeMenu === 'partners' && (
+            <div className="space-y-6">
+              <PartnerDashboardWidget
+                partners={partnersList}
+                onAddPartner={() => {
+                  setEditingPartner(null);
+                  setIsPartnerFormOpen(true);
+                }}
+                onViewPartner={(p) => setSelectedPartnerForDetail(p)}
+              />
             </div>
           )}
 
@@ -2072,7 +2208,7 @@ export const AdminLtePage: React.FC = () => {
                       hashtags: '#WasteForChange #CampusEcoFair #ZeroWasteBinus',
                       allowGroupMembers: false,
                       maxGroupMembers: 3,
-                      activities: [{ name: '', description: '', coinsReward: 10, satPointsReward: 0 }],
+                      activities: [{ name: '', description: '', coinsReward: 10, comservHoursReward: 0 }],
                     });
                     setShowEventForm(true);
                   }}
@@ -3091,11 +3227,6 @@ export const AdminLtePage: React.FC = () => {
                           <span className="text-amber-800 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200">
                             {quest.reward}
                           </span>
-                          {quest.satReward && quest.satReward > 0 ? (
-                            <span className="text-blue-700 bg-blue-50 px-2 py-1 rounded-xl border border-blue-200 text-[10px]">
-                              +{quest.satReward} SAT
-                            </span>
-                          ) : null}
                         </div>
 
                         <div className="flex items-center gap-1">
@@ -3172,7 +3303,7 @@ export const AdminLtePage: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
-                    Pengaturan program pengabdian masyarakat mandiri resmi TFI untuk pemenuhan Poin SAT & Jam Comserv.
+                    Pengaturan program pengabdian masyarakat mandiri resmi TFI untuk pemenuhan Jam Comserv & Green Coins.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -3283,8 +3414,8 @@ export const AdminLtePage: React.FC = () => {
                       {/* Rewards Bar */}
                       <div className="bg-slate-50 p-3 rounded-2xl flex items-center justify-between text-xs font-black border border-slate-200/70">
                         <span className="text-blue-700 flex items-center gap-1">
-                          <GraduationCap className="w-3.5 h-3.5" />
-                          +{prog.satPoints} SAT ({prog.comservHours} Jam Comserv)
+                          <Clock className="w-3.5 h-3.5" />
+                          +{prog.comservHours} Jam Comserv TFI
                         </span>
                         <span className="text-amber-800">
                           +{prog.coins} Green Coins
@@ -3399,7 +3530,7 @@ export const AdminLtePage: React.FC = () => {
                     </div>
                     <p className="text-[11px] text-blue-900 leading-relaxed">
                       {user?.role === 'SUPERADMIN'
-                        ? 'Super Administrator memiliki wewenang menyeluruh untuk mengelola pengguna, memvalidasi bukti aksi, mengatur program & misi harian, serta mengekspor transkrip SAT ke myBINUS.'
+                        ? 'Super Administrator memiliki wewenang menyeluruh untuk mengelola pengguna, memvalidasi bukti aksi, mengatur program & misi harian, serta mengekspor transkrip Jam Comserv TFI ke myBINUS.'
                         : 'Tim Member SSO & Verifikator memiliki hak untuk memverifikasi bukti aksi mahasiswa, mengelola campus events, dan memantau analitik keberlanjutan kampus.'}
                     </p>
                   </div>
@@ -3800,9 +3931,9 @@ export const AdminLtePage: React.FC = () => {
                   ))}
                 </div>
                 <p className="text-[10px] text-slate-500 mt-1">
-                  {userFormData.role === 'MAHASISWA' && 'Mahasiswa aktif BINUS: submit aksi hijau, kumpulkan SAT & GC.'}
+                  {userFormData.role === 'MAHASISWA' && 'Mahasiswa aktif BINUS: submit aksi hijau, kumpulkan Jam Comserv & GC.'}
                   {userFormData.role === 'ORGANIZER' && 'Penyelenggara Event: membuat kegiatan kampus & pos QR reward.'}
-                  {userFormData.role === 'SUPERADMIN' && 'Super Admin SSO: verifikasi aksi, kelola akun, manual SAT grant.'}
+                  {userFormData.role === 'SUPERADMIN' && 'Super Admin SSO: verifikasi aksi, kelola akun, manual Comserv grant.'}
                 </p>
               </div>
 
@@ -4215,17 +4346,6 @@ export const AdminLtePage: React.FC = () => {
                     required
                   />
                 </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Reward Poin SAT (Opsional)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={10}
-                    value={questFormData.satReward}
-                    onChange={(e) => setQuestFormData((p) => ({ ...p, satReward: Number(e.target.value) }))}
-                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
-                  />
-                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -4309,7 +4429,7 @@ export const AdminLtePage: React.FC = () => {
                     {editingProgram ? 'Edit Program Aksi Nyata' : 'Tambah Program Aksi Nyata Baru'}
                   </h4>
                   <p className="text-[11px] text-slate-500 font-medium">
-                    Program aksi mandiri resmi TFI dengan rekognisi Poin SAT & Jam Comserv
+                    Program aksi mandiri resmi TFI dengan rekognisi Jam Comserv & Green Coins
                   </p>
                 </div>
               </div>
@@ -4364,21 +4484,9 @@ export const AdminLtePage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Poin SAT Riil</label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={20}
-                    value={programFormData.satPoints}
-                    onChange={(e) => setProgramFormData((p) => ({ ...p, satPoints: Number(e.target.value) }))}
-                    className="w-full text-xs p-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#007bff]"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">Jam Comserv (Jam)</label>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Jam Comserv TFI (Jam)</label>
                   <input
                     type="number"
                     step={0.5}
@@ -4680,6 +4788,31 @@ export const AdminLtePage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* SDG 17 Partner Registration & Edit Modal */}
+      <PartnerFormModal
+        isOpen={isPartnerFormOpen}
+        onClose={() => {
+          setIsPartnerFormOpen(false);
+          setEditingPartner(null);
+        }}
+        onSave={handleSavePartner}
+        initialPartner={editingPartner}
+        availableEvents={eventsList}
+      />
+
+      {/* SDG 17 Partner Detail & Dossier Modal */}
+      <PartnerDetailModal
+        isOpen={!!selectedPartnerForDetail}
+        onClose={() => setSelectedPartnerForDetail(null)}
+        partner={selectedPartnerForDetail}
+        onEdit={(partner) => {
+          setSelectedPartnerForDetail(null);
+          setEditingPartner(partner);
+          setIsPartnerFormOpen(true);
+        }}
+        onDelete={handleDeletePartner}
+      />
     </div>
   );
 };

@@ -518,7 +518,6 @@ export const UploadPage: React.FC = () => {
           groupMembers: groupMembers.length > 0 ? groupMembers : undefined,
           greenCoinsEarned: selectedProgram.coins,
           carbonImpactKg: co2Value,
-          satPointsEarned: selectedProgram.satPoints,
           comservHoursEarned: selectedProgram.comservHours,
           status: 'PENDING',
           isActivityMatch: aiResult?.isActivityMatch ?? true,
@@ -535,15 +534,15 @@ export const UploadPage: React.FC = () => {
 
         useNotificationStore.getState().addNotification({
           title: 'Laporan Aksi Nyata Berhasil Dipublikasi 🌳',
-          desc: `Laporan "${selectedProgram.title}" berhasil diunggah. Menunggu review verifikator SSO/TFI untuk persetujuan +${selectedProgram.satPoints} SAT & +${selectedProgram.coins} GC.`,
-          type: 'sat',
+          desc: `Laporan "${selectedProgram.title}" berhasil diunggah. Menunggu review verifikator SSO/TFI untuk persetujuan +${selectedProgram.comservHours} Jam Comserv & +${selectedProgram.coins} GC.`,
+          type: 'tfi',
           actionUrl: '/wallet',
           userId: user?.id,
         });
 
       } else if (activePillar === 'QUEST') {
         if (!selectedQuest) {
-          alert('Pilih daily quest yang ingin diselesaikan.');
+          alert('Pilih quest terlebih dahulu.');
           setIsSubmitting(false);
           return;
         }
@@ -552,7 +551,6 @@ export const UploadPage: React.FC = () => {
         await completeDailyQuest(selectedQuest.id);
 
         const earnedCoins = selectedQuest.coinsReward || 15;
-        const earnedSat = selectedQuest.satReward || 0;
 
         const createdAction = await submitGreenAction({
           userId: user?.id || 'usr-student-001',
@@ -568,7 +566,6 @@ export const UploadPage: React.FC = () => {
           story: story || `Menyelesaikan misi harian ${selectedQuest.title}`,
           greenCoinsEarned: earnedCoins,
           carbonImpactKg: 0.1,
-          satPointsEarned: earnedSat,
           comservHoursEarned: 0,
           status: 'APPROVED', // Daily quests are instant approved
           decision: 'APPROVED_COINS_ONLY',
@@ -587,7 +584,6 @@ export const UploadPage: React.FC = () => {
         // Increment student stats
         updateUserStats({
           greenCoins: earnedCoins,
-          satPoints: earnedSat,
           carbonSaved: 0.1,
         });
 
@@ -607,7 +603,6 @@ export const UploadPage: React.FC = () => {
         }
 
         const earnedCoins = selectedActivity?.coinsReward || 15;
-        const earnedSat = selectedActivity?.satPointsReward || 0;
 
         const createdAction = await submitGreenAction({
           userId: user?.id || 'usr-student-001',
@@ -629,7 +624,6 @@ export const UploadPage: React.FC = () => {
           groupMembers: (maxAllowedMembers > 0 && groupMembers.length > 0) ? groupMembers : undefined,
           greenCoinsEarned: earnedCoins,
           carbonImpactKg: 0.5,
-          satPointsEarned: earnedSat,
           comservHoursEarned: 0,
           status: 'PENDING',
           isActivityMatch: aiResult?.isActivityMatch ?? true,
@@ -675,7 +669,7 @@ export const UploadPage: React.FC = () => {
     if (submittedPillar === 'PROGRAM' && selectedProgram) {
       shareText = `🌱 SAYA BARU SAJA MENYELESAIKAN AKSI HIJAU KAMPUS!
 Program: ${selectedProgram.title}
-+${selectedProgram.satPoints} SAT (${selectedProgram.comservHours} Jam) & +${selectedProgram.coins} Green Coins
++${selectedProgram.comservHours} Jam Comserv & +${selectedProgram.coins} Green Coins
 Dampak: ${selectedProgram.co2} CO2e
 ${officialHashtags} #ICAN2026`;
     } else if (submittedPillar === 'QUEST' && selectedQuest) {
@@ -751,19 +745,15 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
 
             <div className="bg-black/30 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 text-center">
               <span className="text-xs text-eco-200 uppercase font-black tracking-wider block">
-                Poin SAT
+                Jam Comserv TFI
               </span>
               <span className="text-2xl font-black text-eco-neon mt-0.5 block">
-                +{submittedPillar === 'QUEST'
-                  ? (selectedQuest?.satReward || 0)
-                  : submittedPillar === 'EVENT'
-                  ? (selectedActivity?.satPointsReward || 0)
-                  : (selectedProgram?.satPoints || 0)} SAT
+                +{submittedPillar === 'PROGRAM' && selectedProgram
+                  ? `${selectedProgram.comservHours} Jam`
+                  : '0 Jam'}
               </span>
               <span className="text-[10px] text-eco-100">
-                {submittedPillar === 'PROGRAM' && selectedProgram
-                  ? `${selectedProgram.comservHours} Jam Comserv`
-                  : 'Poin Akademik'}
+                Teach For Indonesia
               </span>
             </div>
           </div>
@@ -856,7 +846,7 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
 
           <div className="p-3.5 bg-white/10 rounded-2xl border border-white/10 space-y-1 font-mono text-xs text-eco-100">
             <p>🌿 <strong>Aktivitas:</strong> {submittedPillar === 'PROGRAM' ? selectedProgram?.title : submittedPillar === 'QUEST' ? selectedQuest?.title : selectedEvent?.title}</p>
-            <p>🏆 <strong>Reward:</strong> +{submittedPillar === 'PROGRAM' ? `${selectedProgram?.satPoints} SAT & +${selectedProgram?.coins} GC` : submittedPillar === 'QUEST' ? `${selectedQuest?.coinsReward} GC` : `${selectedActivity?.coinsReward} GC`}</p>
+            <p>🏆 <strong>Reward:</strong> +{submittedPillar === 'PROGRAM' ? `${selectedProgram?.comservHours} Jam Comserv & +${selectedProgram?.coins} GC` : submittedPillar === 'QUEST' ? `${selectedQuest?.coinsReward} GC` : `${selectedActivity?.coinsReward} GC`}</p>
             <p>🌱 <strong>Hashtags:</strong> #TeachForIndonesia #BinusCommunityService</p>
           </div>
 
@@ -1027,7 +1017,7 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
                       <p className={`text-xs mt-1 font-bold truncate ${
                         isSelected ? 'text-gold-neon' : 'text-blue-700'
                       }`}>
-                        +{prog.satPoints} SAT ({prog.comservHours} Jam) • +{prog.coins} GC
+                        +{prog.comservHours} Jam Comserv • +{prog.coins} GC
                       </p>
                     </div>
                   </button>
@@ -1202,7 +1192,7 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
                           <span className={`text-[10px] font-black px-2 py-0.5 rounded-md shrink-0 ${
                             isSelected ? 'bg-blue-600 text-white shadow-xs' : 'bg-amber-100 text-amber-900'
                           }`}>
-                            +{act.coinsReward} GC {act.satPointsReward ? `• +${act.satPointsReward} SAT` : ''}
+                            +{act.coinsReward} GC
                           </span>
                         </div>
 
@@ -1224,7 +1214,7 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
                       Pos Terpilih: <strong>{selectedActivity.name}</strong>
                     </span>
                     <span className="font-black text-blue-800 shrink-0">
-                      +{selectedActivity.coinsReward} GC {selectedActivity.satPointsReward ? `• +${selectedActivity.satPointsReward} SAT` : ''}
+                      +{selectedActivity.coinsReward} GC
                     </span>
                   </div>
                 )}
@@ -1844,7 +1834,7 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
               <div className="flex items-center justify-between text-xs font-black bg-surface-subtle p-2.5 rounded-xl border border-surface-border/60">
                 {activePillar === 'PROGRAM' && selectedProgram && (
                   <>
-                    <span className="text-blue-700">+{selectedProgram.satPoints} SAT ({selectedProgram.comservHours} Jam)</span>
+                    <span className="text-blue-700">+{selectedProgram.comservHours} Jam Comserv</span>
                     <span className="text-amber-800">+{selectedProgram.coins} GC</span>
                   </>
                 )}
@@ -1856,7 +1846,7 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
                 )}
                 {activePillar === 'EVENT' && selectedEvent && (
                   <>
-                    <span className="text-blue-700">+{selectedActivity?.satPointsReward || 0} SAT</span>
+                    <span className="text-blue-700">{selectedEvent.title}</span>
                     <span className="text-amber-800">+{selectedActivity?.coinsReward || 15} GC</span>
                   </>
                 )}
@@ -1878,7 +1868,7 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
             className="w-full text-xs sm:text-sm font-black py-4 shadow-neon-glow rounded-2xl"
           >
             {activePillar === 'PROGRAM' && selectedProgram ? (
-              `🚀 Publikasikan Laporan Aksi & Klaim +${selectedProgram.satPoints} SAT (+${selectedProgram.coins} GC) →`
+              `🚀 Publikasikan Laporan Aksi & Klaim +${selectedProgram.comservHours} Jam Comserv (+${selectedProgram.coins} GC) →`
             ) : activePillar === 'QUEST' && selectedQuest ? (
               `⚡ Selesaikan Misi Harian & Klaim +${selectedQuest.coinsReward} Green Coins →`
             ) : (

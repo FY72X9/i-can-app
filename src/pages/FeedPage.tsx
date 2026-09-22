@@ -161,7 +161,7 @@ export const FeedPage: React.FC = () => {
           story: a.story || 'Aksi nyata keberlanjutan lingkungan civitas akademika BINUS.',
           carbonSaved: `${Number(a.carbonImpactKg || 0).toFixed(1)} kg CO2e`,
           coinsEarned: `+${a.greenCoinsEarned || 10} GC`,
-          satEarned: a.satPointsEarned > 0 ? `+${a.satPointsEarned} SAT (${a.comservHoursEarned || 0} Jam)` : 'Aksi Mandiri Harian',
+          comservEarned: a.comservHoursEarned && a.comservHoursEarned > 0 ? `+${a.comservHoursEarned} Jam Comserv` : 'Aksi Mandiri Harian',
           location: a.surveyLocation || 'Kampus BINUS & Sekitar',
           time: formatRelativeTime(a.verifiedAt || a.submittedAt),
           rawSubmittedAt: a.submittedAt,
@@ -444,10 +444,10 @@ export const FeedPage: React.FC = () => {
                 </div>
               )}
 
-              {/* SAT & Impact Badge */}
+              {/* Comserv & Impact Badge */}
               <div className="flex items-center justify-between text-xs font-black bg-surface-subtle p-3 rounded-2xl border border-surface-border/60">
                 <span className={post.status === 'APPROVED' ? 'text-blue-700' : 'text-amber-700'}>
-                  {post.status === 'APPROVED' ? post.satEarned : `${post.satEarned} (Dalam Tinjauan)`}
+                  {post.status === 'APPROVED' ? post.comservEarned : `${post.comservEarned} (Dalam Tinjauan)`}
                 </span>
                 <span className="text-eco-800 font-mono">{post.carbonSaved}</span>
               </div>

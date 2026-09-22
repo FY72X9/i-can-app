@@ -432,7 +432,7 @@ export const ImportUsersModal: React.FC<ImportUsersModalProps> = ({
                       />
                       <div>
                         <span className="font-bold text-slate-800 block">Perbarui Data (Update)</span>
-                        <span className="text-[10px] text-slate-400">Perbarui Nama & Program tanpa menghapus Green Coins / SAT</span>
+                        <span className="text-[10px] text-slate-400">Perbarui Nama & Program tanpa menghapus Green Coins / Jam Comserv</span>
                       </div>
                     </label>
                   </div>

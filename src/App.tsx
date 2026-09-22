@@ -153,7 +153,7 @@ const AppLayout: React.FC<{ children: React.ReactNode; title?: string; subtitle?
                       <div className="min-w-0 flex-1">
                         <div className="text-xs font-black leading-tight truncate">{u.fullName}</div>
                         <div className={`text-[10px] truncate mt-0.5 ${isActive ? 'text-white/80 font-medium' : 'text-slate-500'}`}>
-                          {u.role} • {u.totalSatPoints || 0} SAT
+                          {u.role} • {u.totalComservHours || 0} Jam Comserv
                         </div>
                       </div>
                     </button>

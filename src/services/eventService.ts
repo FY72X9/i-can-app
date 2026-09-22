@@ -39,7 +39,7 @@ export const DEFAULT_CAMPUS_EVENTS: CampusEvent[] = [
         description: 'Setorkan minimal 3 botol plastik bersih ke tong daur ulang.',
         qrCodeValue: 'ican-evt-wfc-pos1',
         coinsReward: 15,
-        satPointsReward: 1,
+        comservHoursReward: 0.5,
         order: 0,
       },
       {
@@ -49,7 +49,7 @@ export const DEFAULT_CAMPUS_EVENTS: CampusEvent[] = [
         description: 'Ikuti sesi edukasi pembuatan pupuk kompos cair selama 15 menit.',
         qrCodeValue: 'ican-evt-wfc-pos2',
         coinsReward: 20,
-        satPointsReward: 2,
+        comservHoursReward: 1.0,
         order: 1,
       },
       {
@@ -59,7 +59,7 @@ export const DEFAULT_CAMPUS_EVENTS: CampusEvent[] = [
         description: 'Kunjungi booth inovasi teknologi hijau karya mahasiswa dan scan QR checkpoint.',
         qrCodeValue: 'ican-evt-wfc-pos3',
         coinsReward: 15,
-        satPointsReward: 1,
+        comservHoursReward: 0.5,
         order: 2,
       },
     ],
@@ -397,7 +397,7 @@ const mapDbEventToModel = (row: any): CampusEvent => {
         name: act.name || `Pos ${idx + 1}`,
         description: act.description || '',
         coinsReward: Number(act.coinsReward) || 10,
-        satPointsReward: Number(act.satPointsReward) || 0,
+        comservHoursReward: Number(act.comservHoursReward) || 0,
         qrCodeValue: act.qrCodeValue || `ican-${eventId}-act${idx + 1}`,
         order: act.order ?? idx,
       }))
