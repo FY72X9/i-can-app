@@ -55,7 +55,8 @@ import {
   FileText,
   ShieldCheck,
   Wand2,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react';
 
 export type ActionPillar = 'PROGRAM' | 'QUEST' | 'EVENT';
@@ -120,18 +121,19 @@ export const UploadPage: React.FC = () => {
     feedback: string;
     detectedHashtag: boolean;
     confidence: number;
-  } | null>({
-    isActivityMatch: true,
-    activityMatchScore: 0.96,
-    isAuthentic: true,
-    authenticityScore: 0.98,
-    antiFraudFlags: ['Lolos Audit Anti-Fraud', 'Foto Fisik Otentik'],
-    detectedObjects: ['🌱 Objek Aksi Fisik', '🏛️ Lingkungan Kampus'],
-    guidelineScore: 0.95,
-    confidence: 0.95,
-    detectedHashtag: true,
-    feedback: 'Foto terverifikasi cocok dengan kegiatan dan terkonfirmasi asli fisik (lolos uji anti-fraud).',
-  });
+  } | null>(null);
+
+  // AI Threshold Configuration (> 80% required to submit)
+  const AI_PASS_THRESHOLD = 0.80;
+  const currentAiScore = aiResult
+    ? (aiResult.confidence ?? aiResult.activityMatchScore ?? 0)
+    : 0;
+  const isAiQualified = Boolean(
+    aiResult &&
+    currentAiScore > AI_PASS_THRESHOLD &&
+    aiResult.isActivityMatch &&
+    aiResult.isAuthentic
+  );
 
   // AI Caption Assistant State
   const [isGeneratingCaption, setIsGeneratingCaption] = useState(false);
@@ -353,6 +355,7 @@ export const UploadPage: React.FC = () => {
   const runAiAnalysis = async (base64Img: string, contextTitle: string) => {
     if (!base64Img) return;
     setIsAnalyzing(true);
+    setAiResult(null);
 
     try {
       const res = await verifyActionWithGemini(
@@ -482,6 +485,18 @@ export const UploadPage: React.FC = () => {
     e.preventDefault();
     if (!photoPreview) {
       alert('Silakan pilih atau ambil foto bukti pelaksanaan aksi terlebih dahulu (Slot 1).');
+      return;
+    }
+
+    if (isAnalyzing) {
+      alert('Mohon tunggu hingga proses analisis Multimodal AI selesai sebelum mengirim.');
+      return;
+    }
+
+    if (!isAiQualified) {
+      alert(
+        `Pengajuan Belum Memenuhi Syarat:\nSkor verifikasi AI (${Math.round(currentAiScore * 100)}%) belum mencapai ambang batas minimum (> 80%).\n\nHarap pastikan foto bukti kegiatan terlihat jelas, fokus pada objek aksi, dan merupakan foto fisik otentik.`
+      );
       return;
     }
 
@@ -1332,41 +1347,72 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
 
           {/* AI Pre-Validation Status Box: Activity Match & Anti-Fraud */}
           {aiResult && (
-            <Card className="p-4 sm:p-5 bg-gradient-to-br from-emerald-50/90 via-white to-teal-50/90 border-emerald-200 shadow-xs space-y-3 rounded-3xl animate-in fade-in duration-200">
-              <div className="flex items-center justify-between border-b border-emerald-100 pb-2.5">
-                <span className="text-xs sm:text-sm font-black text-emerald-950 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-emerald-600" />
+            <Card className={`p-4 sm:p-5 border shadow-xs space-y-3 rounded-3xl animate-in fade-in duration-200 ${
+              isAiQualified 
+                ? 'bg-gradient-to-br from-emerald-50/90 via-white to-teal-50/90 border-emerald-200' 
+                : 'bg-gradient-to-br from-rose-50/90 via-white to-amber-50/90 border-rose-300'
+            }`}>
+              <div className={`flex items-center justify-between border-b pb-2.5 ${
+                isAiQualified ? 'border-emerald-100' : 'border-rose-100'
+              }`}>
+                <span className={`text-xs sm:text-sm font-black flex items-center gap-2 ${
+                  isAiQualified ? 'text-emerald-950' : 'text-rose-950'
+                }`}>
+                  <Sparkles className={`w-4 h-4 ${isAiQualified ? 'text-emerald-600' : 'text-rose-600'}`} />
                   Audit Multimodal Vision AI:
                 </span>
-                <span className="text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
-                  {aiResult.isAuthentic ? 'Otentik & Terverifikasi' : 'Perlu Ditinjau'}
+                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border ${
+                  isAiQualified 
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300' 
+                    : 'bg-rose-100 text-rose-800 border-rose-300'
+                }`}>
+                  {isAiQualified ? (
+                    <>
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
+                      Lolos Ambang Batas ({Math.round(currentAiScore * 100)}% &gt; 80%)
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="w-3.5 h-3.5 text-rose-700" />
+                      Belum Memenuhi Batas ({Math.round(currentAiScore * 100)}% ≤ 80%)
+                    </>
+                  )}
                 </span>
               </div>
 
               {/* Dual Indicators: Activity Match & Anti-Fraud */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {/* 1. Kesesuaian Gambar dengan Kegiatan */}
-                <div className="bg-white p-3 rounded-2xl border border-emerald-100 space-y-1.5 shadow-2xs">
+                <div className={`bg-white p-3 rounded-2xl border space-y-1.5 shadow-2xs ${
+                  isAiQualified ? 'border-emerald-100' : 'border-rose-100'
+                }`}>
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-slate-700 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      {isAiQualified ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      ) : (
+                        <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                      )}
                       Kesesuaian Kegiatan
                     </span>
-                    <span className="font-mono font-black text-emerald-700">
-                      {Math.round((aiResult.activityMatchScore ?? 0.95) * 100)}% Cocok
+                    <span className={`font-mono font-black ${
+                      (aiResult.activityMatchScore ?? 0) >= 0.8 ? 'text-emerald-700' : 'text-rose-700'
+                    }`}>
+                      {Math.round((aiResult.activityMatchScore ?? 0) * 100)}% Cocok
                     </span>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                     <div
-                      className="bg-emerald-600 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${Math.round((aiResult.activityMatchScore ?? 0.95) * 100)}%` }}
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        (aiResult.activityMatchScore ?? 0) >= 0.8 ? 'bg-emerald-600' : 'bg-rose-500'
+                      }`}
+                      style={{ width: `${Math.round((aiResult.activityMatchScore ?? 0) * 100)}%` }}
                     />
                   </div>
                   {aiResult.detectedObjects && aiResult.detectedObjects.length > 0 && (
                     <div className="flex flex-wrap gap-1 pt-1">
                       {aiResult.detectedObjects.map((obj, i) => (
-                        <span key={i} className="text-[10px] font-bold bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-lg border border-emerald-200">
+                        <span key={i} className="text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-lg border border-slate-200">
                           {obj}
                         </span>
                       ))}
@@ -1375,26 +1421,40 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
                 </div>
 
                 {/* 2. Verifikasi Keaslian Anti-Fraud */}
-                <div className="bg-white p-3 rounded-2xl border border-emerald-100 space-y-1.5 shadow-2xs">
+                <div className={`bg-white p-3 rounded-2xl border space-y-1.5 shadow-2xs ${
+                  isAiQualified ? 'border-emerald-100' : 'border-rose-100'
+                }`}>
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-slate-700 flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-teal-600" />
+                      {isAiQualified ? (
+                        <ShieldCheck className="w-3.5 h-3.5 text-teal-600" />
+                      ) : (
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                      )}
                       Keaslian Anti-Fraud
                     </span>
-                    <span className="font-mono font-black text-teal-700">
-                      {Math.round((aiResult.authenticityScore ?? 0.98) * 100)}% Otentik
+                    <span className={`font-mono font-black ${
+                      (aiResult.authenticityScore ?? 0) >= 0.8 ? 'text-teal-700' : 'text-amber-700'
+                    }`}>
+                      {Math.round((aiResult.authenticityScore ?? 0) * 100)}% Otentik
                     </span>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                     <div
-                      className="bg-teal-600 h-full rounded-full transition-all duration-500"
-                      style={{ width: `${Math.round((aiResult.authenticityScore ?? 0.98) * 100)}%` }}
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        (aiResult.authenticityScore ?? 0) >= 0.8 ? 'bg-teal-600' : 'bg-amber-500'
+                      }`}
+                      style={{ width: `${Math.round((aiResult.authenticityScore ?? 0) * 100)}%` }}
                     />
                   </div>
                   {aiResult.antiFraudFlags && aiResult.antiFraudFlags.length > 0 && (
                     <div className="flex flex-wrap gap-1 pt-1">
                       {aiResult.antiFraudFlags.map((flag, i) => (
-                        <span key={i} className="text-[10px] font-bold bg-teal-50 text-teal-800 px-2 py-0.5 rounded-lg border border-teal-200">
+                        <span key={i} className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border ${
+                          isAiQualified 
+                            ? 'bg-teal-50 text-teal-800 border-teal-200' 
+                            : 'bg-amber-50 text-amber-800 border-amber-200'
+                        }`}>
                           🛡️ {flag}
                         </span>
                       ))}
@@ -1403,9 +1463,35 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
                 </div>
               </div>
 
-              <p className="text-xs text-emerald-950/90 leading-relaxed bg-white/70 p-2.5 rounded-xl border border-emerald-100">
+              <p className={`text-xs leading-relaxed bg-white/80 p-2.5 rounded-xl border ${
+                isAiQualified 
+                  ? 'text-emerald-950/90 border-emerald-100' 
+                  : 'text-rose-950/90 border-rose-200'
+              }`}>
                 {aiResult.feedback}
               </p>
+
+              {!isAiQualified && (
+                <div className="p-3 bg-rose-100/70 rounded-2xl border border-rose-200 text-xs text-rose-900 space-y-1.5">
+                  <div className="font-bold flex items-center gap-1.5 text-rose-950">
+                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                    <span>Syarat Publikasi: Skor AI Wajib &gt; 80%</span>
+                  </div>
+                  <p className="text-[11px] text-rose-800 leading-normal">
+                    Untuk mencegah kecurangan dan menjaga keabsahan transkrip SAT/Comserv TFI, sistem hanya menerima foto bukti otentik dengan tingkat kecocokan di atas 80%.
+                  </p>
+                  <div className="pt-1 flex items-center justify-between">
+                    <span className="text-[10px] text-rose-700 italic">Tips: Pastikan foto tidak buram dan fokus ke objek kegiatan.</span>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10px] font-bold transition-colors shadow-2xs"
+                    >
+                      Ganti Foto Bukti →
+                    </button>
+                  </div>
+                </div>
+              )}
             </Card>
           )}
 
@@ -1856,18 +1942,59 @@ Pos: ${selectedActivity?.name || 'Aktivitas'} • Diselenggarakan oleh ${selecte
         </div>
 
         {/* ------------------------------------------------------------- */}
-        {/* SUBMIT BUTTON                                                 */}
         {/* ------------------------------------------------------------- */}
-        <div className="pt-2">
+        {/* SUBMIT BUTTON & AI THRESHOLD STATUS                          */}
+        {/* ------------------------------------------------------------- */}
+        <div className="pt-2 space-y-3">
+          {/* Status Banners */}
+          {photoPreview && isAnalyzing && (
+            <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-2.5 text-xs text-blue-900 font-bold animate-pulse">
+              <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
+              <span>Sedang memeriksa foto dengan Multimodal Vision AI... Mohon tunggu.</span>
+            </div>
+          )}
+
+          {photoPreview && !isAnalyzing && !isAiQualified && (
+            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-2.5 text-xs text-rose-900">
+              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <p className="font-black">Tombol Kirim Dinonaktifkan: Skor AI Belum Mencapai Batas Minimum (&gt; 80%)</p>
+                <p className="text-[11px] text-rose-700">
+                  Skor saat ini: <span className="font-black">{Math.round(currentAiScore * 100)}%</span>. Unggah foto bukti yang lebih tajam, otentik, dan sesuai kegiatan untuk membuka pengiriman laporan.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {photoPreview && !isAnalyzing && isAiQualified && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs text-emerald-900">
+              <div className="flex items-center gap-2 font-bold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Lolos Ambang Batas AI ({Math.round(currentAiScore * 100)}% &gt; 80%)</span>
+              </div>
+              <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                Siap Dipublikasikan
+              </span>
+            </div>
+          )}
+
           <Button
             type="submit"
             variant="primary"
             size="lg"
             isLoading={isSubmitting}
-            disabled={!photoPreview || isSubmitting}
-            className="w-full text-xs sm:text-sm font-black py-4 shadow-neon-glow rounded-2xl"
+            disabled={!photoPreview || isSubmitting || isAnalyzing || !isAiQualified}
+            className={`w-full text-xs sm:text-sm font-black py-4 rounded-2xl transition-all ${
+              photoPreview && !isAiQualified
+                ? 'opacity-60 cursor-not-allowed bg-slate-300 text-slate-600 border-slate-300'
+                : 'shadow-neon-glow'
+            }`}
           >
-            {activePillar === 'PROGRAM' && selectedProgram ? (
+            {isAnalyzing ? (
+              'Memverifikasi Foto Bukti...'
+            ) : photoPreview && !isAiQualified ? (
+              `Skor AI Belum Memenuhi Syarat (${Math.round(currentAiScore * 100)}% ≤ 80%)`
+            ) : activePillar === 'PROGRAM' && selectedProgram ? (
               `🚀 Publikasikan Laporan Aksi & Klaim +${selectedProgram.comservHours} Jam Comserv (+${selectedProgram.coins} GC) →`
             ) : activePillar === 'QUEST' && selectedQuest ? (
               `⚡ Selesaikan Misi Harian & Klaim +${selectedQuest.coinsReward} Green Coins →`
