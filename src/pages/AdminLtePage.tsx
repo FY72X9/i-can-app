@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore, DEMO_PROFILES } from '@/stores/authStore';
 import { getActions, updateActionVerification } from '@/services/actionService';
+import { calculateAllSdgMetrics } from '@/services/sdgService';
 import { getStoredAccounts, syncAccountsToSupabase, getNeutralAvatarUrl, applyRewardToUser } from '@/services/authService';
 import { uploadAvatarPhoto } from '@/services/storageService';
 import { GreenAction, UserProfile, UserRole, CampusEvent, EventActivity, EventStatus, DailyQuest, ActionProgram, ActionType } from '@/types';
@@ -1078,6 +1079,9 @@ export const AdminLtePage: React.FC = () => {
     return acc;
   }, 0).toFixed(1);
 
+  // Dynamic UN SDG Metrics from actionsList (SDG 13, SDG 4, SDG 15, SDG 6)
+  const sdgMetrics = useMemo(() => calculateAllSdgMetrics(actionsList), [actionsList]);
+
   // Filtered Users List based on Search Term and Status Filter
   const filteredUsersList = usersList.filter((u) => {
     // Status filter
@@ -2117,40 +2121,177 @@ export const AdminLtePage: React.FC = () => {
 
           {/* 7. Tab Content: SDG Analytics */}
           {activeMenu === 'sdg' && (
-            <div className="space-y-4">
-              <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
+            <div className="space-y-5">
+              <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-slate-900">Monitoring Target UN SDG BINUS University</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Agregasi capaian program keberlanjutan kampus semester aktif 2026</p>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-black text-slate-900">Monitoring Target UN SDG BINUS University</h3>
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-100 text-blue-900 border border-blue-300">
+                      Live Backend Data
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Agregasi capaian program keberlanjutan kampus semester aktif 2026 yang terhubung langsung ke database pengajuan aksi nyata mahasiswa
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveMenu('actions')}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors self-start sm:self-auto flex items-center gap-1.5"
+                >
+                  Lihat Antrean Aksi ({actionsList.length}) →
+                </button>
+              </div>
+
+              {/* 2 Campus SDG Cards (Live Backend Data Only) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {/* 1. SDG 13: Climate Action (Dynamic from Backend) */}
+                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs sm:text-sm font-black text-blue-800 block">SDG 13: Climate Action</span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-black text-slate-900">
+                    {sdgMetrics.sdg13.totalCo2SavedKg.toLocaleString()} <span className="text-sm font-bold text-slate-500">kg CO2e</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
+                      style={{ width: `${sdgMetrics.sdg13.progressPercent}%` }}
+                    />
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <p className="text-slate-600 font-bold">
+                      {sdgMetrics.sdg13.progressPercent}% dari target {sdgMetrics.sdg13.targetCo2Kg.toLocaleString()} kg CO2e
+                    </p>
+                    <p className="text-[11px] text-slate-400 font-medium">
+                      {sdgMetrics.sdg13.approvedActionsCount} aksi iklim • {sdgMetrics.sdg13.activeStudentsCount} mahasiswa
+                    </p>
+                  </div>
+                </div>
+
+                {/* 2. SDG 4: Quality Education (Dynamic VBL from Backend) */}
+                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs sm:text-sm font-black text-purple-800 block">SDG 4: Quality Education</span>
+                    {sdgMetrics.sdg4.pendingCount > 0 && (
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                        {sdgMetrics.sdg4.pendingCount} Pending
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-black text-slate-900">
+                    {sdgMetrics.sdg4.verifiedCount} <span className="text-sm font-bold text-slate-500">Video VBL</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className="bg-purple-600 h-2.5 rounded-full transition-all duration-500"
+                      style={{ width: `${sdgMetrics.sdg4.progressPercent}%` }}
+                    />
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <p className="text-slate-600 font-bold">
+                      {sdgMetrics.sdg4.progressPercent}% dari target {sdgMetrics.sdg4.targetVblCount} video edukasi
+                    </p>
+                    <p className="text-[11px] text-purple-700 font-medium">
+                      {sdgMetrics.sdg4.apaStyleCompliancePercent}% berstandar APA Style ({sdgMetrics.sdg4.totalComservHours} jam)
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2.5">
-                  <span className="text-xs sm:text-sm font-black text-emerald-800 block">SDG 15: Life on Land</span>
-                  <div className="text-2xl sm:text-3xl font-black text-slate-900">1,420 Pohon</div>
-                  <div className="w-full bg-slate-100 rounded-full h-2.5">
-                    <div className="bg-emerald-500 h-2.5 rounded-full w-[71%]" />
+              {/* Detailed Breakdown: SDG 13 (Climate Action) & SDG 4 (Quality Education) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Detail Breakdown SDG 13 */}
+                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                        Rincian Sumber Reduksi Emisi Karbon (SDG 13)
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        Kontribusi penurunan jejak karbon kampus berdasarkan kategori aksi nyata terverifikasi
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-500 font-bold">71% dari target 2,000 pohon tahun 2026</p>
+
+                  <div className="grid grid-cols-3 gap-2.5 text-center">
+                    <div className="p-3 bg-blue-50/60 rounded-2xl border border-blue-100">
+                      <span className="text-[10px] font-bold text-blue-700 block uppercase">Pohon & Tanaman</span>
+                      <span className="text-base sm:text-lg font-black text-blue-900 mt-1 block">
+                        {sdgMetrics.sdg13.breakdown.treesKg} kg
+                      </span>
+                      <span className="text-[9px] text-blue-600">5.0 kg/5 bibit</span>
+                    </div>
+
+                    <div className="p-3 bg-cyan-50/60 rounded-2xl border border-cyan-100">
+                      <span className="text-[10px] font-bold text-cyan-700 block uppercase">Shuttle & Bus</span>
+                      <span className="text-base sm:text-lg font-black text-cyan-900 mt-1 block">
+                        {sdgMetrics.sdg13.breakdown.transportKg} kg
+                      </span>
+                      <span className="text-[9px] text-cyan-600">0.12 kg/trip</span>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                      <span className="text-[10px] font-bold text-slate-600 block uppercase">Daur Ulang/Lain</span>
+                      <span className="text-base sm:text-lg font-black text-slate-800 mt-1 block">
+                        {sdgMetrics.sdg13.breakdown.wasteAndOthersKg} kg
+                      </span>
+                      <span className="text-[9px] text-slate-500">Eco Drop Box dll</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-2xl text-[11px] text-slate-600 flex items-center justify-between">
+                    <span>Partisipasi Mahasiswa Aktif Aksi Iklim:</span>
+                    <span className="font-black text-slate-900">{sdgMetrics.sdg13.activeStudentsCount} Mahasiswa</span>
+                  </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2.5">
-                  <span className="text-xs sm:text-sm font-black text-cyan-800 block">SDG 6: Clean Water</span>
-                  <div className="text-2xl sm:text-3xl font-black text-slate-900">890 Biopori</div>
-                  <div className="w-full bg-slate-100 rounded-full h-2.5">
-                    <div className="bg-cyan-500 h-2.5 rounded-full w-[89%]" />
+                {/* Detail Breakdown SDG 4 */}
+                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
+                        Rincian Video Based Learning TFI (SDG 4)
+                      </h4>
+                      <p className="text-[11px] text-slate-500">
+                        Monitoring kepatuhan konten video edukasi mahasiswa terhadap panduan TFI & standar APA
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-500 font-bold">89% dari target 1,000 lubang biopori</p>
-                </div>
 
-                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2.5">
-                  <span className="text-xs sm:text-sm font-black text-purple-800 block">SDG 4: Quality Education</span>
-                  <div className="text-2xl sm:text-3xl font-black text-slate-900">340 Video VBL</div>
-                  <div className="w-full bg-slate-100 rounded-full h-2.5">
-                    <div className="bg-purple-500 h-2.5 rounded-full w-[68%]" />
+                  <div className="grid grid-cols-3 gap-2.5 text-center">
+                    <div className="p-3 bg-purple-50/60 rounded-2xl border border-purple-100">
+                      <span className="text-[10px] font-bold text-purple-700 block uppercase">Total Diajukan</span>
+                      <span className="text-base sm:text-lg font-black text-purple-900 mt-1 block">
+                        {sdgMetrics.sdg4.totalSubmitted} Video
+                      </span>
+                      <span className="text-[9px] text-purple-600">{sdgMetrics.sdg4.uniqueCreatorsCount} kreator</span>
+                    </div>
+
+                    <div className="p-3 bg-emerald-50/60 rounded-2xl border border-emerald-100">
+                      <span className="text-[10px] font-bold text-emerald-700 block uppercase">Terverifikasi</span>
+                      <span className="text-base sm:text-lg font-black text-emerald-900 mt-1 block">
+                        {sdgMetrics.sdg4.verifiedCount} Video
+                      </span>
+                      <span className="text-[9px] text-emerald-600">Disetujui SSO/TFI</span>
+                    </div>
+
+                    <div className="p-3 bg-amber-50/60 rounded-2xl border border-amber-100">
+                      <span className="text-[10px] font-bold text-amber-700 block uppercase">Jam Comserv</span>
+                      <span className="text-base sm:text-lg font-black text-amber-900 mt-1 block">
+                        {sdgMetrics.sdg4.totalComservHours} Jam
+                      </span>
+                      <span className="text-[9px] text-amber-600">Kredit TFI resmi</span>
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-500 font-bold">68% terverifikasi berstandar APA Style</p>
+
+                  <div className="p-3 bg-purple-50/60 rounded-2xl text-[11px] text-purple-900 flex items-center justify-between border border-purple-100">
+                    <span>Tingkat Kepatuhan Format Referensi APA Style:</span>
+                    <span className="font-black text-purple-900">{sdgMetrics.sdg4.apaStyleCompliancePercent}% Terpenuhi</span>
+                  </div>
                 </div>
               </div>
 
